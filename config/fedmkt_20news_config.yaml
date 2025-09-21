@@ -1,0 +1,156 @@
+# Federated Learning Configuration for DistilBART ↔ MobileBART on 20News Dataset
+# Classification Task Configuration
+
+# Dataset Configuration
+dataset:
+  name: "20newsgroups"
+  task: "classification"
+  num_classes: 20
+  max_length: 512
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  
+# Model Configuration
+models:
+  central:
+    name: "facebook/distilbart-cnn-12-6"
+    type: "distilbart"
+    num_labels: 20
+    max_length: 512
+    hidden_size: 768
+    num_layers: 6
+    
+  clients:
+    - name: "valhalla/mobile-bart"
+      type: "mobilebart"
+      num_labels: 20
+      max_length: 256
+      hidden_size: 512
+      num_layers: 3
+      client_id: 0
+    - name: "valhalla/mobile-bart"
+      type: "mobilebart"
+      num_labels: 20
+      max_length: 256
+      hidden_size: 512
+      num_layers: 3
+      client_id: 1
+    - name: "valhalla/mobile-bart"
+      type: "mobilebart"
+      num_labels: 20
+      max_length: 256
+      hidden_size: 512
+      num_layers: 3
+      client_id: 2
+
+# LoRA Configuration
+lora_config:
+  central:
+    r: 16
+    lora_alpha: 32
+    lora_dropout: 0.1
+    target_modules:
+      - "q_proj"
+      - "v_proj"
+      - "k_proj"
+      - "o_proj"
+      - "fc1"
+      - "fc2"
+    
+  clients:
+    - r: 8
+      lora_alpha: 16
+      lora_dropout: 0.1
+      target_modules:
+        - "q_proj"
+        - "v_proj"
+    - r: 8
+      lora_alpha: 16
+      lora_dropout: 0.1
+      target_modules:
+        - "q_proj"
+        - "v_proj"
+    - r: 8
+      lora_alpha: 16
+      lora_dropout: 0.1
+      target_modules:
+        - "k_proj"
+        - "o_proj"
+
+# Training Configuration
+training:
+  global_epochs: 10
+  local_epochs: 3
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 16
+  gradient_accumulation_steps: 2
+  learning_rate: 5e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  lr_scheduler_type: "cosine"
+  optim: "adamw_torch"
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  max_grad_norm: 1.0
+  fp16: true
+  dataloader_num_workers: 4
+  remove_unused_columns: false
+  
+  # Knowledge Distillation
+  distill_temperature: 4.0
+  kd_alpha: 0.7
+  distill_loss_type: "kl"  # "kl" or "ce"
+  distill_strategy: "weighted_mean"  # "greater" or "weighted_mean"
+  
+  # Token Alignment
+  align_strategy: "dtw"  # "dtw" or "greedy_dp"
+  skip_align: false
+  
+  # Federated Learning
+  aggregate_freq: 1
+  post_fedavg: true
+  llm_training: true
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - "accuracy"
+    - "f1"
+    - "precision"
+    - "recall"
+  eval_steps: 100
+  save_steps: 500
+  logging_steps: 50
+  
+# Output Configuration
+output:
+  output_dir: "./outputs/fedmkt_20news"
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_f1"
+  greater_is_better: true
+  
+# Logging Configuration
+logging:
+  level: "info"
+  log_level: "info"
+  logging_strategy: "steps"
+  
+# Paths Configuration
+paths:
+  data_dir: "./data/20news"
+  model_cache_dir: "./cache/models"
+  vocab_mapping_dir: "./cache/vocab_mappings"
+  
+# Privacy Configuration
+privacy:
+  differential_privacy: false
+  noise_multiplier: 1.0
+  max_grad_norm: 1.0
+  
+# Communication Configuration
+communication:
+  compression: true
+  quantization_bits: 8
+  max_communication_rounds: 100
