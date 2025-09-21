@@ -478,9 +478,9 @@ If you use this work, please cite:
 ```bibtex
 @software{fedavgls2024,
   title={FedAvgLS: Federated Learning with DistilBART and MobileBART},
-  author={Your Name},
-  year={2024},
-  url={https://github.com/your-repo/FedAvgLS}
+  author={},
+  year={2025},
+  url={https://github.com/vinh1988/FedAvgLS}
 }
 ```
 
