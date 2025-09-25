@@ -1,0 +1,38 @@
+# Model configuration for BERT-base server and TinyBERT clients
+_target_: models.federated_bert.FederatedBERTConfig
+
+server:
+  model_name: "bert-base-uncased"
+  hidden_size: 768
+  intermediate_size: 3072
+  num_attention_heads: 12
+  num_hidden_layers: 12
+  max_position_embeddings: 512
+  type_vocab_size: 2
+  vocab_size: 30522
+
+client:
+  model_name: "huawei-noah/TinyBERT_General_4L_312D"
+  hidden_size: 312
+  intermediate_size: 1200
+  num_attention_heads: 12
+  num_hidden_layers: 4
+  max_position_embeddings: 512
+  type_vocab_size: 2
+  vocab_size: 30522
+
+# LoRA configuration
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.1
+  target_modules: ["query", "value", "key", "dense"]
+  bias: "none"
+  task_type: "SEQ_CLS"
+
+# Projection layers for dimension alignment
+projection:
+  server_to_client_hidden: 512
+  client_to_server_hidden: 512
+  use_layer_norm: true
+  activation: "gelu"
