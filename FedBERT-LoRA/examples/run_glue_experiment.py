@@ -8,6 +8,7 @@ import sys
 import os
 import logging
 import argparse
+import torch # Import torch for CUDA check
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -21,9 +22,18 @@ from src.utils.training_utils import setup_logging, set_seed
 from src.utils.data_utils import create_federated_datasets
 
 
-def create_client_fn_with_glue_data(task_name: str, num_clients: int):
+def create_client_fn_with_glue_data(task_name: str, num_clients: int, model_name: str = "prajjwal1/bert-tiny", max_length: int = 128):
     """Create client function with GLUE data"""
-    
+
+    from transformers import AutoTokenizer
+
+    # Determine device (CPU or CUDA if available)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    logging.info(f"Using device: {device}")
+
+    # Initialize tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+
     # Load and partition data
     train_partitions, test_partitions, num_labels = create_federated_datasets(
         task_name=task_name,
@@ -31,14 +41,49 @@ def create_client_fn_with_glue_data(task_name: str, num_clients: int):
         partition_strategy="iid",
         test_split=0.2
     )
-    
+
+    # Tokenize datasets
+    def tokenize_function(examples):
+        # Use task-specific columns
+        if "sentence1" in examples and "sentence2" in examples:
+            return tokenizer(examples["sentence1"], examples["sentence2"], truncation=True, padding="max_length", max_length=max_length)
+        elif "sentence" in examples:
+            return tokenizer(examples["sentence"], truncation=True, padding="max_length", max_length=max_length)
+        else:
+            # Fallback for other formats (e.g., if 'text' column is present)
+            return tokenizer(examples["text"], truncation=True, padding="max_length", max_length=max_length)
+
+    # Apply tokenization to all partitions
+    # Ensure to remove original columns and rename 'label' to 'labels' if necessary
+    tokenized_train_partitions = []
+    for partition in train_partitions:
+        tokenized_partition = partition.map(tokenize_function, batched=True)
+        tokenized_partition = tokenized_partition.remove_columns([col for col in partition.column_names if col not in ["input_ids", "attention_mask", "token_type_ids", "label"]])
+        if "label" in tokenized_partition.column_names:
+            tokenized_partition = tokenized_partition.rename_column("label", "labels")
+        tokenized_train_partitions.append(tokenized_partition)
+
+    tokenized_test_partitions = []
+    for partition in test_partitions:
+        tokenized_partition = partition.map(tokenize_function, batched=True)
+        tokenized_partition = tokenized_partition.remove_columns([col for col in partition.column_names if col not in ["input_ids", "attention_mask", "token_type_ids", "label"]])
+        if "label" in tokenized_partition.column_names:
+            tokenized_partition = tokenized_partition.rename_column("label", "labels")
+        tokenized_test_partitions.append(tokenized_partition)
+
     def client_fn(cid: str):
         client_id = int(cid)
-        
+
+        # Log CUDA availability within Ray worker
+        client_device = "cuda" if torch.cuda.is_available() else "cpu"
+        logging.info(f"Ray worker client {client_id} using device: {client_device}")
+        if client_device == "cuda":
+            logging.info(f"Ray worker client {client_id} CUDA device count: {torch.cuda.device_count()}")
+
         # Get client data
-        train_data = train_partitions[client_id % len(train_partitions)]
-        test_data = test_partitions[client_id % len(test_partitions)]
-        
+        train_data = tokenized_train_partitions[client_id % len(tokenized_train_partitions)]
+        test_data = tokenized_test_partitions[client_id % len(tokenized_test_partitions)]
+
         # Create client config
         config = FlowerClientConfig(
             client_id=client_id,
@@ -49,11 +94,11 @@ def create_client_fn_with_glue_data(task_name: str, num_clients: int):
                 num_labels=num_labels
             ),
             task_name=task_name,
-            device="cpu"  # Use CPU for simulation
+            device=client_device  # Use detected device
         )
-        
+
         return FlowerFederatedClient(config, train_data, test_data)
-    
+
     return client_fn, num_labels
 
 
@@ -77,10 +122,17 @@ def run_glue_experiment(task_name: str, num_clients: int = 10, num_rounds: int =
         
         server_model_config=FederatedBERTConfig(num_labels=num_labels),
         enable_knowledge_transfer=True,
-        progressive_config=ProgressiveTransferConfig(warmup_rounds=5),
+        progressive_config=ProgressiveTransferConfig(start_round=5),
         alignment_config=DynamicAlignmentConfig(),
         aggregation_config=AggregationConfig(weighting_strategy="data_size")
     )
+
+    # Add the project root to PYTHONPATH for Ray workers
+    project_root = os.path.join(os.path.dirname(__file__), "..")
+    if "PYTHONPATH" in os.environ:
+        os.environ["PYTHONPATH"] = f"{project_root}:{os.environ["PYTHONPATH"]}"
+    else:
+        os.environ["PYTHONPATH"] = project_root
     
     # Create and run server
     from src.server.flower_server import FlowerFederatedServer

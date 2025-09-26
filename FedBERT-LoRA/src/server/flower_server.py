@@ -107,7 +107,7 @@ class FederatedBERTStrategy(FedAvg):
         server_params = self.server_model.get_lora_parameters()
         
         # Convert to numpy arrays
-        param_arrays = [param.cpu().numpy() for param in server_params.values()]
+        param_arrays = [param.cpu().detach().numpy() for param in server_params.values()]
         param_names = list(server_params.keys())
         
         logger.info(f"Initialized {len(param_arrays)} LoRA parameters")
@@ -283,7 +283,18 @@ class FlowerFederatedServer:
         """Simulate federated learning in a single process"""
         
         from flwr.simulation import start_simulation
-        
+        import os
+
+        current_pythonpath = os.environ.get("PYTHONPATH", "")
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        if project_root not in current_pythonpath:
+            if current_pythonpath:
+                new_pythonpath = f"{project_root}:{current_pythonpath}"
+            else:
+                new_pythonpath = project_root
+        else:
+            new_pythonpath = current_pythonpath
+
         logger.info(f"Starting federated simulation with {num_clients} clients")
         
         # Start simulation
@@ -292,7 +303,10 @@ class FlowerFederatedServer:
             num_clients=num_clients,
             config=ServerConfig(num_rounds=self.config.num_rounds),
             strategy=self.strategy,
-            client_resources={"num_cpus": 1, "num_gpus": 0.0}  # Adjust based on available resources
+            client_resources={"num_cpus": 1, "num_gpus": 1.0},  # Request 1 GPU for each client
+            ray_init_args={
+                "runtime_env": {"env_vars": {"PYTHONPATH": new_pythonpath}}
+            }
         )
         
         logger.info("Federated simulation completed")

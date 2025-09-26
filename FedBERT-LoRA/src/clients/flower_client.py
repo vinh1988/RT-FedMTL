@@ -150,7 +150,7 @@ class FlowerFederatedClient(NumPyClient):
         
         for param_name in self.param_names:
             if param_name in lora_params:
-                param_arrays.append(lora_params[param_name].cpu().numpy())
+                param_arrays.append(lora_params[param_name].cpu().detach().numpy())
             else:
                 logger.warning(f"Parameter {param_name} not found in client model")
         
@@ -343,6 +343,7 @@ def client_fn(cid: str) -> FlowerFederatedClient:
     """Create a client function for Flower simulation"""
     
     client_id = int(cid)
+
     
     try:
         # Load and partition data (this is a placeholder)

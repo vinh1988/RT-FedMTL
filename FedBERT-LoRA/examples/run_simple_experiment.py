@@ -4,12 +4,14 @@ Simple example script to run federated BERT learning.
 This demonstrates the basic usage without complex configuration.
 """
 
-import sys
 import os
+import sys
 import logging
+import hydra
 
-# Add src to path
+# Add the project root to sys.path for local imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 
 from src.server.flower_server import create_flower_server
 from src.clients.flower_client import client_fn
@@ -31,6 +33,14 @@ def main():
     NUM_ROUNDS = 2
     ENABLE_KNOWLEDGE_TRANSFER = False  # Disable for simple test
     
+    # Add the project root to PYTHONPATH for Ray workers
+    project_root = os.path.join(os.path.dirname(__file__), "..")
+    if "PYTHONPATH" in os.environ:
+        os.environ["PYTHONPATH"] = f"{project_root}:{os.environ["PYTHONPATH"]}"
+    else:
+        os.environ["PYTHONPATH"] = project_root
+
+
     # Create server
     server = create_flower_server(
         num_rounds=NUM_ROUNDS,
