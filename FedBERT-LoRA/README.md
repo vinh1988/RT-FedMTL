@@ -121,6 +121,83 @@ python main.py data.task_name=cola lora.r=32 knowledge_transfer.progressive_tran
 python main.py --config-path configs --config-name custom_config
 ```
 
+## 🎯 Custom Federated Learning Approaches
+
+### Understanding Multi-Dataset Training
+
+When you run separate commands like the GLUE experiments above, each creates an **independent federated learning simulation**:
+
+```bash
+python examples/run_glue_experiment.py --task sst2 --num_clients 10 --num_rounds 20
+python examples/run_glue_experiment.py --task cola --num_clients 8 --num_rounds 15  
+python examples/run_glue_experiment.py --task mrpc --num_clients 6 --num_rounds 25
+```
+
+**Result**: Three separate global models specialized for each task, **not** a unified multi-task model.
+
+### Custom Implementation (Without Flower Framework)
+
+For scenarios requiring more control, simultaneous training, or streaming data:
+
+#### 1. Standard Custom Federated Learning
+
+**Architecture**: Global BERT ↔ Multiple Tiny-BERT Clients
+
+```bash
+# Terminal 1: Start global BERT server
+python custom_federated_learning.py --mode server
+
+# Terminals 2-4: Start Tiny-BERT clients with private datasets
+python custom_federated_learning.py --mode client --client_id 0
+python custom_federated_learning.py --mode client --client_id 1
+python custom_federated_learning.py --mode client --client_id 2
+```
+
+**Key Features**:
+- Global model: Full BERT (bert-base-uncased)
+- Client models: Tiny-BERT for efficiency
+- Real-time WebSocket communication
+- Knowledge distillation from global to local models
+- Simultaneous training across all clients
+
+#### 2. Streaming Federated Learning
+
+**Architecture**: Continuous real-time learning with data streams
+
+```bash
+# Terminal 1: Start streaming server
+python streaming_federated.py server
+
+# Terminals 2-4: Start streaming clients
+python streaming_federated.py client client_0
+python streaming_federated.py client client_1
+python streaming_federated.py client client_2
+```
+
+**Key Features**:
+- **Continuous Learning**: Models update as new data arrives
+- **Streaming Buffers**: Circular buffers for real-time data ingestion
+- **Micro-batch Updates**: Frequent parameter synchronization
+- **Asynchronous Processing**: Non-blocking operations
+- **Auto-aggregation**: Server aggregates updates every few seconds
+
+### Federated Learning Training Flow
+
+**How Multiple Datasets Integrate into Global Model:**
+
+1. **Data Distribution**: Each client has private dataset (Dataset A, B, C)
+2. **Local Training**: Clients train on their private data simultaneously  
+3. **Parameter Sharing**: Clients send model updates (not raw data) to server
+4. **Global Aggregation**: Server combines updates using weighted averaging
+5. **Knowledge Broadcasting**: Updated global model sent back to all clients
+6. **Iteration**: Process repeats for multiple rounds
+
+**Integration Mechanism**:
+- Each client's unique dataset contributes distinct "knowledge gradients"
+- Server aggregation synthesizes these into a generalized global model
+- Global model represents collective learning from all datasets
+- **Privacy preserved**: Raw data never leaves client devices
+
 ## ⚙️ Configuration
 
 ### Model Configuration
