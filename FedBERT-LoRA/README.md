@@ -1,4 +1,4 @@
-# Federated Learning Scalability Analysis Results
+# Federated Learning Scalability Analysis Results - Enhanced with F1/Precision Metrics
 
 > **📚 For general project information, see [GENERAL_README.md](GENERAL_README.md)**  
 > **🏗️ For system architecture, see [ARCHITECTURE.md](ARCHITECTURE.md)**  
@@ -7,12 +7,38 @@
 ## Overview
 This analysis presents the results of a comprehensive scalability study for Non-LoRA federated learning using streaming WebSocket communication. The experiment tested 2, 3, 4, and 5 client configurations over 10 rounds each with 200 samples per client.
 
+**🆕 Enhanced with Comprehensive ML Metrics**: The system now includes F1-score, Precision, Recall, per-class metrics, and confusion matrices for publication-quality research analysis.
+
 ## Experimental Setup
 - **Model**: BERT-base-uncased (server) + prajjwal1/bert-tiny (clients)
 - **Tasks**: SST-2, QQP, STS-B (GLUE benchmark)
 - **Data Distribution**: Non-IID (α=0.5)
 - **Communication**: WebSocket streaming
 - **Knowledge Transfer**: Pure knowledge distillation (no LoRA)
+
+## 🆕 Enhanced Metrics System
+
+### Comprehensive ML Metrics
+The system now collects **publication-quality metrics** beyond simple accuracy:
+
+#### **Per-Client Metrics:**
+- **Accuracy**: Traditional correct/total predictions
+- **Precision**: Weighted average precision across all classes
+- **Recall**: Weighted average recall across all classes  
+- **F1-Score**: Weighted average F1-score across all classes
+- **Per-Class Metrics**: Individual precision, recall, F1 for each class
+- **Confusion Matrix**: Complete confusion matrix for detailed analysis
+
+#### **Research Benefits:**
+- **Class Imbalance Analysis**: F1-score reveals performance on minority classes
+- **Non-IID Robustness**: Per-class metrics show how data heterogeneity affects different labels
+- **Knowledge Distillation Quality**: Comprehensive metrics prove teacher-student transfer effectiveness
+- **Publication Ready**: Standard ML metrics expected in NLP research papers
+
+#### **Enhanced Logging:**
+```
+Client client1 training complete: Loss=0.234, Acc=0.867, P=0.845, R=0.867, F1=0.854
+```
 
 ## Key Findings
 
@@ -72,6 +98,13 @@ The system successfully handled Non-IID data distribution (α=0.5) across all cl
 
 ## Technical Achievements
 
+### ✅ **Enhanced Metrics Implementation**
+1. **Comprehensive ML Metrics**: F1-score, Precision, Recall with sklearn integration
+2. **Per-Class Analysis**: Individual metrics for each class to detect bias
+3. **Confusion Matrix**: Complete classification analysis for research publication
+4. **Weighted Averaging**: Handles class imbalance in Non-IID federated settings
+5. **Zero Division Handling**: Robust metrics calculation for edge cases
+
 ### ✅ **Solved Issues**
 1. **Complete Round Isolation**: Each client configuration gets exactly 10 complete rounds
 2. **Experiment Independence**: No data mixing between different client configurations
@@ -107,8 +140,10 @@ The system successfully handled Non-IID data distribution (α=0.5) across all cl
 
 ### Additional Metrics
 - Non-IID distribution analysis files
-- Client participation tracking files
+- Client participation tracking files with **enhanced ML metrics**
 - Resource utilization logs
+- **Per-class performance analysis** (precision, recall, F1 per class)
+- **Confusion matrices** for detailed classification analysis
 
 ## Quick Start Commands
 
@@ -117,8 +152,9 @@ The system successfully handled Non-IID data distribution (α=0.5) across all cl
 # Activate virtual environment
 source venv/bin/activate
 
-# Install dependencies (if not done)
+# Install enhanced dependencies
 pip install -r requirements.txt
+pip install scikit-learn  # For F1, Precision, Recall metrics
 ```
 
 ### Run Scalability Experiment
@@ -164,11 +200,14 @@ python3 streaming_no_lora.py --mode client --client_id client2 --task qqp --port
 
 ### View Results
 ```bash
-# Check CSV results
+# Check CSV results with enhanced metrics
 ls no_lora_results/scalability_metrics_*clients_*.csv
 
-# View logs
+# View logs with F1/Precision output
 ls no_lora_logs/
+
+# Example enhanced log output:
+# Client client1 training complete: Loss=0.234, Acc=0.867, P=0.845, R=0.867, F1=0.854
 ```
 
 ## Recommendations for Future Research

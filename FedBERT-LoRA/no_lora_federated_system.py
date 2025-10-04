@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Federated Streaming System WITHOUT LoRA
+Federated Streaming System WITHOUT LoRA - Enhanced with F1/Precision Metrics
 Focus: Non-IID data metrics and client participation analysis (2-10 clients)
-Output: CSV metrics for research analysis
+Output: CSV metrics for research analysis with comprehensive ML metrics
 """
 
 import asyncio
@@ -29,6 +29,14 @@ from transformers import (
 from datasets import load_dataset
 from torch.utils.data import DataLoader, Dataset
 import torch.nn.functional as F
+
+# Enhanced metrics imports
+from sklearn.metrics import (
+    precision_recall_fscore_support, 
+    classification_report,
+    confusion_matrix,
+    accuracy_score
+)
 
 # Configure logging
 logging.basicConfig(
@@ -71,7 +79,7 @@ class NoLoRAConfig:
 
 @dataclass
 class ClientParticipationMetrics:
-    """Detailed client participation metrics"""
+    """Enhanced client participation metrics with comprehensive ML metrics"""
     client_id: str
     round_num: int
     
@@ -86,10 +94,19 @@ class ClientParticipationMetrics:
     data_distribution: Dict[str, int]  # Label distribution
     data_heterogeneity_score: float  # Measure of how different from global
     
-    # Performance metrics
+    # Enhanced performance metrics
     local_accuracy: float
+    local_precision: float  # Weighted average precision
+    local_recall: float     # Weighted average recall
+    local_f1_score: float   # Weighted average F1-score
     local_loss: float
     contribution_weight: float  # Weight in aggregation
+    
+    # Per-class metrics (for detailed analysis)
+    per_class_precision: Dict[str, float]  # Precision per class
+    per_class_recall: Dict[str, float]     # Recall per class
+    per_class_f1: Dict[str, float]         # F1-score per class
+    confusion_matrix_flat: List[int]       # Flattened confusion matrix
     
     # Communication metrics
     upload_time: float
@@ -434,8 +451,10 @@ class NoLoRAFederatedClient:
         total_loss = 0.0
         total_kd_loss = 0.0
         total_task_loss = 0.0
-        correct_predictions = 0
-        total_samples = 0
+        
+        # Collect all predictions and labels for comprehensive metrics
+        all_predictions = []
+        all_labels = []
         
         # Training loop
         for epoch in range(self.config.local_epochs):
@@ -470,15 +489,16 @@ class NoLoRAFederatedClient:
                 
                 total_loss += loss.item()
                 
-                # Calculate accuracy
+                # Collect predictions and labels for comprehensive metrics
                 if self.task_type == "classification":
                     predictions = torch.argmax(student_logits, dim=-1)
-                    correct_predictions += (predictions == labels.long()).sum().item()
+                    all_predictions.extend(predictions.cpu().numpy())
+                    all_labels.extend(labels.cpu().numpy())
                 else:
+                    # For regression, we'll convert to binary for metrics
                     predictions = student_logits.squeeze()
-                    correct_predictions += (torch.abs(predictions - labels) < 0.1).sum().item()
-                
-                total_samples += labels.size(0)
+                    all_predictions.extend(predictions.cpu().numpy())
+                    all_labels.extend(labels.cpu().numpy())
         
         training_time = time.time() - start_time
         
@@ -492,9 +512,44 @@ class NoLoRAFederatedClient:
         
         logger.info(f"Client {self.client_id} sending {len(updated_params)} parameter groups for metrics")
         
-        # Calculate metrics
+        # Calculate comprehensive metrics using sklearn
         avg_loss = total_loss / (len(self.dataloader) * self.config.local_epochs)
-        accuracy = correct_predictions / total_samples
+        
+        if self.task_type == "classification" and len(all_predictions) > 0:
+            # Convert to numpy arrays
+            y_true = np.array(all_labels)
+            y_pred = np.array(all_predictions)
+            
+            # Calculate comprehensive metrics
+            accuracy = accuracy_score(y_true, y_pred)
+            precision, recall, f1, support = precision_recall_fscore_support(
+                y_true, y_pred, average='weighted', zero_division=0
+            )
+            
+            # Per-class metrics
+            precision_per_class, recall_per_class, f1_per_class, _ = precision_recall_fscore_support(
+                y_true, y_pred, average=None, zero_division=0
+            )
+            
+            # Confusion matrix
+            cm = confusion_matrix(y_true, y_pred)
+            cm_flat = cm.flatten().tolist()
+            
+            # Create per-class dictionaries
+            unique_labels = np.unique(np.concatenate([y_true, y_pred]))
+            per_class_precision = {str(label): precision_per_class[i] if i < len(precision_per_class) else 0.0 
+                                 for i, label in enumerate(unique_labels)}
+            per_class_recall = {str(label): recall_per_class[i] if i < len(recall_per_class) else 0.0 
+                              for i, label in enumerate(unique_labels)}
+            per_class_f1 = {str(label): f1_per_class[i] if i < len(f1_per_class) else 0.0 
+                          for i, label in enumerate(unique_labels)}
+            
+        else:
+            # Fallback for regression or empty predictions
+            accuracy = 0.0
+            precision = recall = f1 = 0.0
+            per_class_precision = per_class_recall = per_class_f1 = {}
+            cm_flat = []
         
         # Update participation tracking
         self.total_participations += 1
@@ -507,7 +562,7 @@ class NoLoRAFederatedClient:
         # Calculate heterogeneity score (will be updated with global distribution)
         heterogeneity_score = 0.0  # Placeholder
         
-        # Create participation metrics
+        # Create enhanced participation metrics
         participation_metrics = ClientParticipationMetrics(
             client_id=self.client_id,
             round_num=round_num,
@@ -519,15 +574,23 @@ class NoLoRAFederatedClient:
             data_distribution=self.dataset.get_label_distribution(),
             data_heterogeneity_score=heterogeneity_score,
             local_accuracy=accuracy,
+            local_precision=precision,
+            local_recall=recall,
+            local_f1_score=f1,
             local_loss=avg_loss,
             contribution_weight=len(self.dataset),  # Weight by data size
+            per_class_precision=per_class_precision,
+            per_class_recall=per_class_recall,
+            per_class_f1=per_class_f1,
+            confusion_matrix_flat=cm_flat,
             upload_time=0.0,  # Will be set by caller
             download_time=0.0,  # Will be set by caller
             parameter_size_bytes=param_size_bytes
         )
         
         logger.info(f"Client {self.client_id} training complete: "
-                   f"Loss={avg_loss:.4f}, Acc={accuracy:.4f}, Params={param_size_bytes/1024/1024:.1f}MB")
+                   f"Loss={avg_loss:.4f}, Acc={accuracy:.4f}, P={precision:.4f}, R={recall:.4f}, F1={f1:.4f}, "
+                   f"Params={param_size_bytes/1024/1024:.1f}MB")
         
         return updated_params, participation_metrics
     
