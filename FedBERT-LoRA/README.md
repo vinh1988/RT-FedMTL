@@ -98,6 +98,13 @@ The system successfully handled Non-IID data distribution (α=0.5) across all cl
 - `scalability_metrics_4clients_20251003_071134.csv` (10 rounds)
 - `scalability_metrics_5clients_20251003_071313.csv` (10 rounds)
 
+### Non-IID Alpha Study Metrics (Current Results)
+- `scalability_metrics_5clients_20251004_084126.csv` (α=0.1, 2 rounds)
+- `scalability_metrics_5clients_20251004_084204.csv` (α=0.3, 2 rounds)
+- `scalability_metrics_5clients_20251004_084244.csv` (α=0.5, 2 rounds)
+- `scalability_metrics_5clients_20251004_084323.csv` (α=1.0, 2 rounds)
+- `scalability_metrics_5clients_20251004_084401.csv` (α=2.0, 2 rounds)
+
 ### Additional Metrics
 - Non-IID distribution analysis files
 - Client participation tracking files

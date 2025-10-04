@@ -1,0 +1,6 @@
+client_id,round_num,participated,participation_rate,consecutive_participations,total_participations,data_samples,data_distribution,data_heterogeneity_score,local_accuracy,local_loss,contribution_weight,upload_time,download_time,parameter_size_bytes
+no_lora_client_3,1,True,1.0,1,1,30,"{""bin_0"": 0, ""bin_1"": 0, ""bin_2"": 0, ""bin_3"": 21, ""bin_4"": 9}",0.676340062243564,0.0,1.0525248050689697,30,0.3078610897064209,0.0,15890432
+no_lora_client_1,1,True,1.0,1,1,29,"{""class_0"": 21, ""class_1"": 8}",0.7102416139192453,0.4942528735632184,0.7061516245206197,29,0.2911710739135742,0.0,15890432
+no_lora_client_3,2,True,1.0,2,2,30,"{""bin_0"": 0, ""bin_1"": 0, ""bin_2"": 0, ""bin_3"": 21, ""bin_4"": 9}",1.076139432816051,0.0,0.8712410628795624,30,0.07313251495361328,0.0,15890432
+no_lora_client_1,2,True,1.0,2,2,29,"{""class_0"": 21, ""class_1"": 8}",0.479878131480162,0.5287356321839081,0.6848231752713522,29,0.059467315673828125,0.0,15890432
+no_lora_client_4,2,True,0.5,1,1,29,"{""class_0"": 11, ""class_1"": 18}",0.47675501993067615,0.4827586206896552,0.6813479463259379,29,0.2857942581176758,0.0,15890432
