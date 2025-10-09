@@ -1,6 +1,0 @@
-client_id,round_num,participated,participation_rate,consecutive_participations,total_participations,data_samples,data_distribution,data_heterogeneity_score,local_accuracy,local_loss,contribution_weight,upload_time,download_time,parameter_size_bytes
-no_lora_client_1,1,True,1.0,1,1,29,"{""class_0"": 12, ""class_1"": 17}",0.7102416139192453,0.5977011494252874,0.6727934082349142,29,0.2832508087158203,0.0,15890432
-no_lora_client_3,1,True,1.0,1,1,30,"{""bin_0"": 0, ""bin_1"": 0, ""bin_2"": 0, ""bin_3"": 24, ""bin_4"": 6}",1.0761394328160512,0.0,0.7578083574771881,30,0.3086206912994385,0.0,15890432
-no_lora_client_1,2,True,1.0,2,2,29,"{""class_0"": 12, ""class_1"": 17}",0.5571204412857473,0.5977011494252874,0.6667502224445343,29,0.07702827453613281,0.0,15890432
-no_lora_client_3,2,True,1.0,2,2,30,"{""bin_0"": 0, ""bin_1"": 0, ""bin_2"": 0, ""bin_3"": 24, ""bin_4"": 6}",1.0761394328160512,0.0,0.6232462624708811,30,0.07362961769104004,0.0,15890432
-no_lora_client_4,2,True,0.5,1,1,29,"{""class_0"": 27, ""class_1"": 2}",0.5124336478588549,0.367816091954023,0.7288828194141388,29,0.2826662063598633,0.0,15890432

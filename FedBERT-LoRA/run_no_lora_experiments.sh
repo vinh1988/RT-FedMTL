@@ -208,8 +208,8 @@ run_non_iid_analysis() {
     log "=== NON-IID PARAMETER ANALYSIS ==="
     log "Testing different Non-IID parameters with $clients clients"
     
-    # Different alpha values for Dirichlet distribution
-    local alphas=(0.1 0.3 0.5 1.0 2.0)
+    # Different alpha values for Dirichlet distribution (quick test: only 0.1 and 0.5)
+    local alphas=(0.1 0.5)
     
     for alpha in "${alphas[@]}"; do
         log "--- Testing Non-IID alpha=$alpha ---"

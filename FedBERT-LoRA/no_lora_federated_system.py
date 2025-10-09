@@ -149,6 +149,14 @@ class ScalabilityMetrics:
     worst_client_accuracy: float
     best_client_accuracy: float
     
+    # Enhanced ML metrics
+    average_precision: float
+    precision_std: float
+    average_recall: float
+    recall_std: float
+    average_f1_score: float
+    f1_score_std: float
+    
     # Communication scaling
     total_communication_time: float
     average_client_latency: float
@@ -297,6 +305,43 @@ class NonIIDDataset(Dataset):
         client_texts = [texts[i] for i in indices]
         client_labels = [labels[i] for i in indices]
         
+        if self.task_type == "classification":
+            distribution = {}
+            for label in set(client_labels):
+                distribution[f"class_{label}"] = client_labels.count(label)
+        else:
+            bins = np.linspace(0, 1, 6)
+            hist, _ = np.histogram(client_labels, bins=bins)
+            distribution = {f"bin_{i}": int(count) for i, count in enumerate(hist)}
+        
+        return client_texts, client_labels, distribution
+    
+    def _create_pathological_split(self, texts: List[str], labels: List, 
+                                 client_id: str, total_clients: int, 
+                                 samples_per_client: int) -> Tuple[List[str], List, Dict]:
+        """Create pathological split (each client gets only one class)"""
+        
+        # Get unique labels/classes
+        unique_labels = list(set(labels))
+        
+        # Assign each client to a specific class (round-robin)
+        client_num = int(client_id.split('_')[-1]) - 1  # Extract client number
+        assigned_label = unique_labels[client_num % len(unique_labels)]
+        
+        # Find all samples with the assigned label
+        label_indices = [i for i, label in enumerate(labels) if label == assigned_label]
+        
+        # Sample from this label only
+        if len(label_indices) >= samples_per_client:
+            selected_indices = np.random.choice(label_indices, samples_per_client, replace=False)
+        else:
+            # If not enough samples, take all and pad with repetition
+            selected_indices = np.random.choice(label_indices, samples_per_client, replace=True)
+        
+        client_texts = [texts[i] for i in selected_indices]
+        client_labels = [labels[i] for i in selected_indices]
+        
+        # Create distribution
         if self.task_type == "classification":
             distribution = {}
             for label in set(client_labels):
@@ -492,13 +537,13 @@ class NoLoRAFederatedClient:
                 # Collect predictions and labels for comprehensive metrics
                 if self.task_type == "classification":
                     predictions = torch.argmax(student_logits, dim=-1)
-                    all_predictions.extend(predictions.cpu().numpy())
-                    all_labels.extend(labels.cpu().numpy())
+                    all_predictions.extend(predictions.detach().cpu().numpy())
+                    all_labels.extend(labels.detach().cpu().numpy())
                 else:
                     # For regression, we'll convert to binary for metrics
                     predictions = student_logits.squeeze()
-                    all_predictions.extend(predictions.cpu().numpy())
-                    all_labels.extend(labels.cpu().numpy())
+                    all_predictions.extend(predictions.detach().cpu().numpy())
+                    all_labels.extend(labels.detach().cpu().numpy())
         
         training_time = time.time() - start_time
         
@@ -974,6 +1019,14 @@ class NoLoRAFederatedServer:
         accuracies = [update["participation_metrics"].local_accuracy 
                      for update in client_updates.values()]
         
+        # Collect enhanced ML metrics
+        precisions = [update["participation_metrics"].local_precision 
+                     for update in client_updates.values()]
+        recalls = [update["participation_metrics"].local_recall 
+                  for update in client_updates.values()]
+        f1_scores = [update["participation_metrics"].local_f1_score 
+                    for update in client_updates.values()]
+        
         # Get system resource usage
         import psutil
         import os
@@ -1002,6 +1055,12 @@ class NoLoRAFederatedServer:
             accuracy_std=np.std(accuracies),
             worst_client_accuracy=np.min(accuracies),
             best_client_accuracy=np.max(accuracies),
+            average_precision=np.mean(precisions),
+            precision_std=np.std(precisions),
+            average_recall=np.mean(recalls),
+            recall_std=np.std(recalls),
+            average_f1_score=np.mean(f1_scores),
+            f1_score_std=np.std(f1_scores),
             total_communication_time=time.time() - start_time,
             average_client_latency=np.mean([
                 update["participation_metrics"].upload_time + update["participation_metrics"].download_time
