@@ -1,5 +1,0 @@
-metric,baseline_value,lora_value,improvement_percent
-accuracy,0.55,0.63,15
-parameters,4400000,440000,90
-communication_mb,15.2,3.8,75
-training_time,100,60,40
