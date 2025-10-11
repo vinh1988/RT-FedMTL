@@ -16,6 +16,7 @@ import argparse
 import time
 import os
 import csv
+import configparser
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, asdict
@@ -35,8 +36,12 @@ from sklearn.metrics import (
     precision_recall_fscore_support, 
     classification_report,
     confusion_matrix,
-    accuracy_score
+    accuracy_score,
+    mean_squared_error,
+    mean_absolute_error,
+    r2_score
 )
+from scipy.stats import pearsonr
 
 # Configure logging
 logging.basicConfig(
@@ -52,30 +57,37 @@ logger = logging.getLogger(__name__)
 @dataclass
 class NoLoRAConfig:
     """Configuration for non-LoRA federated learning"""
-    # Model settings
-    server_model: str = "bert-base-uncased"
-    client_model: str = "prajjwal1/bert-tiny"
-    
-    # Training settings
-    num_rounds: int = 22
-    min_clients: int = 2
-    max_clients: int = 10
-    local_epochs: int = 3
-    batch_size: int = 16
-    learning_rate: float = 2e-5
-    
-    # Knowledge Distillation settings
-    distillation_temperature: float = 4.0
-    distillation_alpha: float = 0.7
-    
-    # Data settings
-    data_samples_per_client: int = 1000
-    data_distribution: str = "non_iid"  # "iid", "non_iid", "pathological"
-    non_iid_alpha: float = 0.5  # Dirichlet parameter for non-IID
-    
-    # Communication settings
-    port: int = 8771
-    timeout: int = 300
+    def __init__(self, **kwargs):
+        # Model settings
+        self.server_model = kwargs.get("server_model", "bert-base-uncased")
+        self.client_model = kwargs.get("client_model", "prajjwal1/bert-tiny")
+        
+        # Training settings
+        self.num_rounds = int(kwargs.get("num_rounds", 22))
+        self.min_clients = int(kwargs.get("min_clients", 2))
+        self.max_clients = int(kwargs.get("max_clients", 10))
+        self.local_epochs = int(kwargs.get("local_epochs", 3))
+        self.batch_size = int(kwargs.get("batch_size", 16))
+        self.learning_rate = float(kwargs.get("learning_rate", 2e-5))
+        self.weight_decay = float(kwargs.get("weight_decay", 0.01))
+        
+        # Knowledge Distillation settings
+        self.distillation_temperature = float(kwargs.get("distillation_temperature", 4.0))
+        self.distillation_alpha = float(kwargs.get("distillation_alpha", 0.7))
+        
+        # Data settings
+        self.samples_per_client = int(kwargs.get("samples_per_client", 2000))
+        self.max_samples_per_client = int(kwargs.get("max_samples_per_client", 2000))
+        self.data_samples_per_client = min(self.samples_per_client, self.max_samples_per_client)
+        self.data_distribution = kwargs.get("data_distribution", "non_iid")
+        self.non_iid_alpha = float(kwargs.get("non_iid_alpha", 0.5))
+        self.balance_classes = bool(kwargs.get("balance_classes", True))
+        self.oversample_minority = bool(kwargs.get("oversample_minority", True))
+        self.normalize_weights = bool(kwargs.get("normalize_weights", True))
+        
+        # Communication settings
+        self.port = int(kwargs.get("port", 8771))
+        self.timeout = int(kwargs.get("timeout", 300))
 
 @dataclass
 class ClientParticipationMetrics:
@@ -268,32 +280,84 @@ class NonIIDDataset(Dataset):
     def _create_regression_non_iid(self, texts: List[str], labels: List[float], 
                                  client_id: int, total_clients: int, 
                                  samples_per_client: int) -> Tuple[List[str], List, Dict]:
-        """Create Non-IID split for regression by value ranges"""
-        
+        """
+        Create Non-IID split for regression with balanced bin distribution.
+        Ensures good representation across the entire label range.
+        """
         # Sort by label values
         sorted_pairs = sorted(zip(texts, labels), key=lambda x: x[1])
         
-        # Divide into ranges based on client_id
-        range_size = len(sorted_pairs) // total_clients
-        start_idx = client_id * range_size
-        end_idx = start_idx + range_size if client_id < total_clients - 1 else len(sorted_pairs)
+        # Create more bins for better granularity
+        num_bins = 10
+        bins = np.linspace(0, 1, num_bins + 1)
+        bin_edges = list(zip(bins[:-1], bins[1:]))
         
-        # Add some overlap for realism
-        overlap = range_size // 4
-        start_idx = max(0, start_idx - overlap)
-        end_idx = min(len(sorted_pairs), end_idx + overlap)
+        # Assign each sample to a bin
+        binned_data = [[] for _ in range(num_bins)]
+        for text, label in sorted_pairs:
+            bin_idx = min(int(label * num_bins), num_bins - 1)
+            binned_data[bin_idx].append((text, label))
         
-        client_pairs = sorted_pairs[start_idx:end_idx]
+        # Calculate target samples per bin for balanced distribution
+        target_per_bin = samples_per_client // num_bins
+        remaining_samples = samples_per_client % num_bins
+        
+        # Ensure minimum samples per bin
+        min_samples_per_bin = 5
+        client_pairs = []
+        
+        # Log bin statistics
+        bin_counts = [len(bin_data) for bin_data in binned_data]
+        logger.info(f"Available samples per bin: {dict(zip(range(num_bins), bin_counts))}")
+        
+        # First pass: take target_per_bin from each bin
+        for bin_idx in range(num_bins):
+            bin_samples = binned_data[bin_idx]
+            if not bin_samples:
+                continue
+                
+            # Calculate how many samples to take
+            n_samples = min(target_per_bin, len(bin_samples))
+            n_samples = max(n_samples, min(min_samples_per_bin, len(bin_samples)))
+            
+            # Random sample from this bin
+            if n_samples > 0:
+                sampled = np.random.choice(len(bin_samples), n_samples, replace=False)
+                client_pairs.extend([bin_samples[i] for i in sampled])
+        
+        # Second pass: distribute remaining samples
+        while len(client_pairs) < samples_per_client:
+            # Find non-empty bins that can provide more samples
+            available_bins = [i for i in range(num_bins) 
+                            if len(binned_data[i]) > 0 and 
+                            len([p for p in client_pairs if p[1] >= bins[i] and p[1] < bins[i+1]]) < 
+                            (target_per_bin + 1)]
+            
+            if not available_bins:
+                break
+                
+            # Distribute remaining samples
+            for bin_idx in available_bins:
+                if len(client_pairs) >= samples_per_client:
+                    break
+                remaining = [p for p in binned_data[bin_idx] if p not in client_pairs]
+                if remaining:
+                    client_pairs.append(remaining[0])
+        
+        # Shuffle and limit to requested size
         np.random.shuffle(client_pairs)
         client_pairs = client_pairs[:samples_per_client]
         
         client_texts = [pair[0] for pair in client_pairs]
         client_labels = [pair[1] for pair in client_pairs]
         
-        # Create distribution bins
-        bins = np.linspace(0, 1, 6)  # 5 bins
+        # Create distribution bins for logging
         hist, _ = np.histogram(client_labels, bins=bins)
-        distribution = {f"bin_{i}": int(count) for i, count in enumerate(hist)}
+        distribution = {f"bin_{i:02d}_{bin_edges[i][0]:.1f}-{bin_edges[i][1]:.1f}": int(count) 
+                       for i, count in enumerate(hist)}
+        
+        # Log final distribution
+        logger.info(f"Final distribution for client {client_id}: {distribution}")
         
         return client_texts, client_labels, distribution
     
@@ -589,8 +653,38 @@ class NoLoRAFederatedClient:
             per_class_f1 = {str(label): f1_per_class[i] if i < len(f1_per_class) else 0.0 
                           for i, label in enumerate(unique_labels)}
             
+        elif self.task_type == "regression" and len(all_predictions) > 0:
+            # Regression-specific metrics
+            y_true = np.array(all_labels)
+            y_pred = np.array(all_predictions)
+            
+            # Calculate regression metrics
+            mse = float(mean_squared_error(y_true, y_pred))
+            rmse = float(np.sqrt(mse))
+            mae = float(mean_absolute_error(y_true, y_pred))
+            r2 = float(r2_score(y_true, y_pred))
+            
+            # Pearson correlation
+            try:
+                pearson_corr, _ = pearsonr(y_true, y_pred)
+                pearson_corr = float(pearson_corr)
+            except:
+                pearson_corr = 0.0
+            
+            # For regression, store metrics in classification fields for compatibility
+            # but use meaningful regression values
+            accuracy = r2  # R² score as "accuracy" equivalent
+            precision = 1.0 - mae  # Inverse of MAE (higher is better)
+            recall = pearson_corr  # Correlation as "recall" equivalent
+            f1 = rmse  # RMSE stored in F1 field
+            
+            per_class_precision = {"mse": mse, "rmse": rmse, "mae": mae}
+            per_class_recall = {"r2": r2, "pearson": pearson_corr}
+            per_class_f1 = {}
+            cm_flat = []
+            
         else:
-            # Fallback for regression or empty predictions
+            # Fallback for empty predictions
             accuracy = 0.0
             precision = recall = f1 = 0.0
             per_class_precision = per_class_recall = per_class_f1 = {}
@@ -633,9 +727,22 @@ class NoLoRAFederatedClient:
             parameter_size_bytes=param_size_bytes
         )
         
-        logger.info(f"Client {self.client_id} training complete: "
-                   f"Loss={avg_loss:.4f}, Acc={accuracy:.4f}, P={precision:.4f}, R={recall:.4f}, F1={f1:.4f}, "
-                   f"Params={param_size_bytes/1024/1024:.1f}MB")
+        # Log based on task type
+        if self.task_type == "regression":
+            # Extract regression metrics from per_class dictionaries
+            mse = per_class_precision.get("mse", 0.0)
+            rmse = per_class_precision.get("rmse", 0.0)
+            mae = per_class_precision.get("mae", 0.0)
+            r2 = per_class_recall.get("r2", 0.0)
+            pearson = per_class_recall.get("pearson", 0.0)
+            
+            logger.info(f"Client {self.client_id} ({self.task_name}) training complete: "
+                       f"Loss={avg_loss:.4f}, MSE={mse:.4f}, RMSE={rmse:.4f}, MAE={mae:.4f}, "
+                       f"R²={r2:.4f}, Pearson={pearson:.4f}, Params={param_size_bytes/1024/1024:.1f}MB")
+        else:
+            logger.info(f"Client {self.client_id} ({self.task_name}) training complete: "
+                       f"Loss={avg_loss:.4f}, Acc={accuracy:.4f}, P={precision:.4f}, R={recall:.4f}, F1={f1:.4f}, "
+                       f"Params={param_size_bytes/1024/1024:.1f}MB")
         
         return updated_params, participation_metrics
     
@@ -1014,18 +1121,53 @@ class NoLoRAFederatedServer:
     
     def calculate_scalability_metrics(self, round_num: int, client_updates: Dict[str, Dict], 
                                    start_time: float) -> ScalabilityMetrics:
-        """Calculate scalability metrics with proper resource monitoring"""
+        """Calculate scalability metrics with proper resource monitoring
         
+        Args:
+            round_num: Current round number
+            client_updates: Dictionary of client updates for this round
+            start_time: Timestamp when the round started
+            
+        Returns:
+            ScalabilityMetrics: Calculated metrics for this round
+        """
+        # Get the actual number of connected clients from the configuration
+        num_connected_clients = len(self.connected_clients)
+        
+        # If no updates received, use zeros to avoid division by zero
+        if not client_updates:
+            return ScalabilityMetrics(
+                num_clients=num_connected_clients,
+                round_num=round_num,
+                average_accuracy=0.0,
+                accuracy_std=0.0,
+                worst_client_accuracy=0.0,
+                best_client_accuracy=0.0,
+                average_precision=0.0,
+                precision_std=0.0,
+                average_recall=0.0,
+                recall_std=0.0,
+                average_f1_score=0.0,
+                f1_score_std=0.0,
+                total_communication_time=0.0,
+                average_client_latency=0.0,
+                aggregation_time=0.0,
+                memory_usage_mb=0.0,
+                cpu_utilization=0.0,
+                throughput_samples_per_sec=0.0
+            )
+        
+        # Calculate metrics from client updates
         accuracies = [update["participation_metrics"].local_accuracy 
-                     for update in client_updates.values()]
+                     for update in client_updates.values() if update["participation_metrics"].local_accuracy is not None]
         
         # Collect enhanced ML metrics
         precisions = [update["participation_metrics"].local_precision 
-                     for update in client_updates.values()]
+                     for update in client_updates.values() if update["participation_metrics"].local_precision is not None]
         recalls = [update["participation_metrics"].local_recall 
-                  for update in client_updates.values()]
+                  for update in client_updates.values() if update["participation_metrics"].local_recall is not None]
         f1_scores = [update["participation_metrics"].local_f1_score 
-                    for update in client_updates.values()]
+                    for update in client_updates.values() if update["participation_metrics"].local_f1_score is not None]
         
         # Get system resource usage
         import psutil
@@ -1048,8 +1190,20 @@ class NoLoRAFederatedServer:
         if torch.cuda.is_available():
             gpu_memory_mb = torch.cuda.max_memory_allocated() / 1024 / 1024
         
+        # Note: For multi-task learning with mixed classification/regression:
+        # - Classification clients report: Acc, Precision, Recall, F1
+        # - Regression clients report: R² (as Acc), 1-MAE (as Precision), Pearson (as Recall), RMSE (as F1)
+        # This allows aggregation while preserving task-specific semantics
+        
+        # Calculate metrics with proper handling of empty lists
+        def safe_mean(values):
+            return np.mean(values) if values else 0.0
+            
+        def safe_std(values):
+            return np.std(values) if len(values) > 1 else 0.0
+        
         scalability_metrics = ScalabilityMetrics(
-            num_clients=len(client_updates),
+            num_clients=num_connected_clients,
             round_num=round_num,
             average_accuracy=np.mean(accuracies),
             accuracy_std=np.std(accuracies),
@@ -1316,13 +1470,32 @@ def main():
     parser.add_argument("--task", choices=["sst2", "qqp", "stsb"], help="Task name (required for client mode)")
     parser.add_argument("--port", type=int, default=8771, help="Server port")
     parser.add_argument("--rounds", type=int, default=22, help="Number of federated rounds")
-    parser.add_argument("--samples", type=int, default=1000, help="Data samples per client")
-    parser.add_argument("--total_clients", type=int, default=5, help="Total number of clients")
+    parser.add_argument("--samples", type=int, help="Data samples per client (overrides config file)")
+    parser.add_argument("--total_clients", type=int, help="Total number of clients (overrides config file)")
     parser.add_argument("--distribution", choices=["iid", "non_iid", "pathological"], 
-                       default="non_iid", help="Data distribution type")
-    parser.add_argument("--alpha", type=float, default=0.5, help="Non-IID alpha parameter")
+                       help="Data distribution type (overrides config file)")
+    parser.add_argument("--alpha", type=float, help="Non-IID alpha parameter (overrides config file)")
     
+    # Parse command line arguments
     args = parser.parse_args()
+    
+    # Load config from file
+    config_parser = configparser.ConfigParser()
+    config_parser.read('experiment_config.ini')
+    
+    # Get default values from config file if not provided in command line
+    if args.mode == "server":
+        section = 'SCENARIO_1'  # or get this from command line if needed
+        if not args.samples:
+            args.samples = int(config_parser.get(section, 'samples_per_client', fallback=1000))
+        if not args.total_clients:
+            args.total_clients = int(config_parser.get(section, 'num_clients', fallback=5))
+        if not args.distribution:
+            args.distribution = config_parser.get(section, 'data_distribution', fallback='non_iid')
+        if not args.alpha:
+            args.alpha = float(config_parser.get(section, 'non_iid_alpha', fallback=0.5))
+    
+    logger.info(f"Using configuration: {args}")
     
     # Create configuration
     config = NoLoRAConfig(

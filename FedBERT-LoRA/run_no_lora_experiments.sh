@@ -93,7 +93,7 @@ run_no_lora_experiment() {
     local server_log="$LOG_DIR/${exp_name}_server.log"
     log "Starting server on port $port (log: $server_log)"
     
-    timeout 1200 python3 no_lora_federated_system.py \
+    timeout 14400 python3 no_lora_federated_system.py \
         --mode server \
         --port $port \
         --rounds $rounds \
@@ -163,26 +163,32 @@ run_no_lora_experiment() {
     return $server_exit_code
 }
 
-# Run scalability analysis (2-10 clients)
+# Run scalability analysis (3-10 clients)
 run_scalability_analysis() {
     local max_clients=$1
     local rounds=$2
     local samples=$3
     
-    log "=== CLIENT SCALABILITY ANALYSIS (2-$max_clients clients) ==="
+    # Ensure we start from at least 3 clients
+    local min_clients=3
+    if [ $max_clients -lt $min_clients ]; then
+        max_clients=$min_clients
+    fi
+    
+    log "=== CLIENT SCALABILITY ANALYSIS ($min_clients-$max_clients clients) ==="
     log "Testing Non-IID federated learning scalability"
     
-    for clients in $(seq 2 $max_clients); do
+    # Start from min_clients, increment by 1 until max_clients
+    for ((clients=min_clients; clients<=max_clients; clients++)); do
         log "--- Testing with $clients clients ---"
         
         # Use unique port for each client configuration to avoid conflicts
-        local port=$((8800 + clients))  # Simple port assignment: 8802, 8803, 8804, 8805
-        
+        local port=$((8800 + clients))  # Ports: 8803, 8804, 8805, ...
         # Extra cleanup before each experiment
         cleanup
         sleep 3
         
-        # Non-IID scalability test
+        # Non-IID scalability test with proper argument order
         run_no_lora_experiment "scalability_${clients}c" $clients $port $rounds $samples "non_iid" 0.5
         
         if [ $? -eq 0 ]; then

@@ -99,7 +99,7 @@ show_config() {
     echo "  Non-IID Alpha: $(read_config $scenario non_iid_alpha '0.5')"
     echo "  Learning Rate: $(read_config $scenario learning_rate '2e-5')"
     echo "  Batch Size: $(read_config $scenario batch_size '16')"
-    echo "  Local Epochs: $(read_config $scenario local_epochs '3')"
+    echo "  Local Epochs: $(read_config $scenario local_epochs '1')"
 }
 
 # Function to setup environment
@@ -423,14 +423,14 @@ run_scalability_study() {
     
     log "=== Running Scalability Study ==="
     
-    local client_ranges=$(read_config SCALABILITY_STUDY client_ranges "2,3,5,7,10")
+    local client_ranges=$(read_config SCALABILITY_STUDY client_ranges "3,5,7,10")
     local rounds=$(read_config SCALABILITY_STUDY rounds "10")
     local samples_per_client=$(read_config SCALABILITY_STUDY samples_per_client "200")
     
     if [ "$config_type" = "MINIMAL_TEST" ]; then
         rounds=$(read_config MINIMAL_TEST rounds "1")
         samples_per_client=$(read_config MINIMAL_TEST samples_per_client "30")
-        client_ranges="2,3"
+        client_ranges="3,5"
     fi
     
     info "Testing client ranges: $client_ranges"

@@ -1,11 +1,20 @@
 # Comprehensive Federated Learning Analysis Results
 
-> **📚 Additional Documentation:**
+## Latest Results (Oct 2025)
+
+### STSB Task Performance (Client 3 - Final Round)
+- **R² Score**: 0.8670 (86.7% variance explained)
+- **Pearson Correlation**: 0.9314 (very strong positive relationship)
+- **RMSE**: 0.1071
+- **MAE**: 0.0825
+- **Loss**: 0.0115
+- **Model Size**: 15.2MB
+
+> **Additional Documentation:**
 > - [PREVIOUS_README.md](PREVIOUS_README.md) - Previous scalability analysis
 > - [GENERAL_README.md](GENERAL_README.md) - Original project overview
 > - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture details
 > - [experiment_config.ini](experiment_config.ini) - All experiment configurations
-
 ## Executive Summary
 
 This report presents the analysis of **4 federated learning scenarios** comparing different architectures and approaches. All experiments were conducted with **minimal configuration** (3 clients, 1 round, 30 samples) to validate the enhanced metrics system and establish baseline performance patterns.
