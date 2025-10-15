@@ -129,7 +129,127 @@ data_distribution = iid
 
 ## Multi-Task Learning Architecture
 
-{{ ... }}
+### **📊 System Architecture Diagram**
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        🚀 DISTRIBUTED MTL SYSTEM                        │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  🖥️ COORDINATION SERVER (BERT-Base)                                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │  • WebSocket Server (Port 8771)                                    │  │
+│  │  • Training Coordination                                           │  │
+│  │  • Metrics Collection & CSV Export                                │  │
+│  │  • No Parameter Aggregation                                        │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  🤖 CLIENT NODES (Dataset-Specific MTL Training)                        │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐                 │
+│  │   Client 1    │  │   Client 2    │  │   Client 3    │                 │
+│  │   (SST2)      │  │   (QQP)       │  │   (STSB)      │                 │
+│  │               │  │               │  │               │                 │
+│  │  • SST2 Data  │  │  • QQP Data    │  │  • STSB Data   │                 │
+│  │  • Multi-Task │  │  • Multi-Task  │  │  • Multi-Task  │                 │
+│  │    Learning   │  │    Learning   │  │    Learning   │                 │
+│  │  • Transfer   │  │  • Transfer    │  │  • Transfer    │                 │
+│  │    Learning   │  │    Learning   │  │    Learning   │                 │
+│  └───────────────┘  └───────────────┘  └───────────────┘                 │
+│                                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  🔄 TRAINING PROCESS FLOW                                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  Step 1: Server Initialization                                          │
+│  ──────────────────────────────────────────────────────────────────────  │
+│  Server starts WebSocket server and waits for client connections        │
+│                                                                         │
+│  Step 2: Client Registration                                            │
+│  ──────────────────────────────────────────────────────────────────────  │
+│  ┌───────────────┐    WebSocket     ┌─────────────────────────────────┐   │
+│  │   Client      │  ──────────────► │           Server                │   │
+│  │ Registration  │                 │   ✓ Registers client info       │   │
+│  │ & Dataset     │                 │   ✓ Tracks dataset & models     │   │
+│  │ Info          │                 │   ✓ Initializes CSV logging     │   │
+│  └───────────────┘                 └─────────────────────────────────┘   │
+│                                                                         │
+│  Step 3: Distributed Training Rounds                                    │
+│  ──────────────────────────────────────────────────────────────────────  │
+│  ┌───────────────┐    Training     ┌─────────────────────────────────┐   │
+│  │   Client      │  ◄─────────────► │           Server                │   │
+│  │   Training    │    Request      │   ✓ Sends round instructions    │   │
+│  │   (Independent│                 │   ✓ Coordinates timing          │   │
+│  │    MTL)       │                 │   ✓ No parameter aggregation    │   │
+│  └───────────────┘                 └─────────────────────────────────┘   │
+│                                                                         │
+│  Step 4: Results Collection                                             │
+│  ──────────────────────────────────────────────────────────────────────  │
+│  ┌───────────────┐    Metrics      ┌─────────────────────────────────┐   │
+│  │   Client      │  ──────────────► │           Server                │   │
+│  │   Results     │                 │   ✓ Receives training metrics   │   │
+│  │   & Metrics   │                 │   ✓ Saves to CSV files          │   │
+│  └───────────────┘                 │   ✓ Aggregates for analysis     │   │
+│                                   └─────────────────────────────────┘   │
+│                                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  🎯 MULTI-TASK LEARNING WITHIN EACH CLIENT                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │                    Client MTL Process                              │  │
+│  ├─────────────────────────────────────────────────────────────────────┤  │
+│  │  📥 Input Data (Dataset-Specific)                                  │  │
+│  │  ↓                                                                  │  │
+│  │  🔄 Multi-Task Model Training                                       │  │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │  │
+│  │  │  Classification  │  │   Regression    │  │   Knowledge     │     │  │
+│  │  │    Model 1      │  │    Model 2      │  │  Distillation   │     │  │
+│  │  └─────────────────┘  └─────────────────┘  └─────────────────┘     │  │
+│  │           │                    │                    │              │  │
+│  │           ▼                    ▼                    ▼              │  │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │  │
+│  │  │   Task Loss     │  │   Task Loss     │  │   KD Loss       │     │  │
+│  │  │   (CrossEnt)    │  │   (MSE/MAE)     │  │   (KL Diverg)   │     │  │
+│  │  └─────────────────┘  └─────────────────┘  └─────────────────┘     │  │
+│  │           │                    │                    │              │  │
+│  │           ▼                    ▼                    ▼              │  │
+│  │  Combined Loss = α×KD + (1-α)×Task                                 │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  📈 KEY DIFFERENCES FROM FEDERATED LEARNING                             │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ❌ FEDERATED LEARNING                  ✅ DISTRIBUTED MTL                │
+│  ┌─────────────────────────────────┐  ┌─────────────────────────────────┐   │
+│  │ • Parameter Sharing             │  │ • No Parameter Sharing          │   │
+│  │ • Model Aggregation             │  │ • Independent Training          │   │
+│  │ • Global Model Updates          │  │ • Dataset-Specific Learning     │   │
+│  │ • Heavy Communication           │  │ • Lightweight Coordination      │   │
+│  └─────────────────────────────────┘  └─────────────────────────────────┘   │
+│                                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  🔐 PRIVACY & SECURITY ADVANTAGES                                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  • ✅ Maximum Privacy: No model parameters shared between clients        │
+│  • ✅ Dataset Isolation: Each client processes only its own data         │
+│  • ✅ Independence: Complete model autonomy per client                   │
+│  • ✅ Lightweight: Only metrics exchanged, not model weights             │
+│  • ✅ Scalability: No aggregation bottlenecks                           │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### **🔄 Training Process Steps**
 
 1. **Data Loading**: Each client loads its specific dataset
 2. **Model Initialization**: Multiple models created for different task types
