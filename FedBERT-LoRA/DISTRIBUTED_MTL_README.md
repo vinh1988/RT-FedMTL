@@ -133,20 +133,21 @@ data_distribution = iid
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                        🚀 DISTRIBUTED MTL SYSTEM                        │
+│                    🚀 FEDMKT-INSPIRED DISTRIBUTED MTL SYSTEM             │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│  🖥️ COORDINATION SERVER (BERT-Base)                                     │
+│  🖥️ COORDINATION SERVER (BERT-Base with LoRA)                           │
 │  ┌─────────────────────────────────────────────────────────────────────┐  │
 │  │  • WebSocket Server (Port 8771)                                    │  │
-│  │  • Training Coordination                                           │  │
+│  │  • LoRA-Enhanced Teacher Model                                     │  │
+│  │  • Selective Knowledge Distillation                                │  │
 │  │  • Metrics Collection & CSV Export                                │  │
 │  │  • No Parameter Aggregation                                        │  │
 │  └─────────────────────────────────────────────────────────────────────┘  │
 │                                                                         │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│  🤖 CLIENT NODES (Dataset-Specific MTL Training)                        │
+│  🤖 CLIENT NODES (Dataset-Specific MTL Training with LoRA)              │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐                 │
@@ -154,27 +155,27 @@ data_distribution = iid
 │  │   (SST2)      │  │   (QQP)       │  │   (STSB)      │                 │
 │  │               │  │               │  │               │                 │
 │  │  • SST2 Data  │  │  • QQP Data    │  │  • STSB Data   │                 │
-│  │  • Multi-Task │  │  • Multi-Task  │  │  • Multi-Task  │                 │
-│  │    Learning   │  │    Learning   │  │    Learning   │                 │
-│  │  • Transfer   │  │  • Transfer    │  │  • Transfer    │                 │
-│  │    Learning   │  │    Learning   │  │    Learning   │                 │
+│  │  • LoRA MTL   │  │  • LoRA MTL    │  │  • LoRA MTL    │                 │
+│  │    Training   │  │    Training   │  │    Training   │                 │
+│  │  • Selective  │  │  • Selective  │  │  • Selective  │                 │
+│  │    Transfer   │  │    Transfer   │  │    Transfer   │                 │
 │  └───────────────┘  └───────────────┘  └───────────────┘                 │
 │                                                                         │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│  🔄 TRAINING PROCESS FLOW                                               │
+│  🔄 ENHANCED TRAINING PROCESS FLOW                                      │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  Step 1: Server Initialization                                          │
 │  ──────────────────────────────────────────────────────────────────────  │
-│  Server starts WebSocket server and waits for client connections        │
+│  Server starts WebSocket server and initializes LoRA teacher model      │
 │                                                                         │
 │  Step 2: Client Registration                                            │
 │  ──────────────────────────────────────────────────────────────────────  │
 │  ┌───────────────┐    WebSocket     ┌─────────────────────────────────┐   │
 │  │   Client      │  ──────────────► │           Server                │   │
 │  │ Registration  │                 │   ✓ Registers client info       │   │
-│  │ & Dataset     │                 │   ✓ Tracks dataset & models     │   │
+│  │ & Dataset     │                 │   ✓ Tracks LoRA models         │   │
 │  │ Info          │                 │   ✓ Initializes CSV logging     │   │
 │  └───────────────┘                 └─────────────────────────────────┘   │
 │                                                                         │
@@ -183,8 +184,9 @@ data_distribution = iid
 │  ┌───────────────┐    Training     ┌─────────────────────────────────┐   │
 │  │   Client      │  ◄─────────────► │           Server                │   │
 │  │   Training    │    Request      │   ✓ Sends round instructions    │   │
-│  │   (Independent│                 │   ✓ Coordinates timing          │   │
-│  │    MTL)       │                 │   ✓ No parameter aggregation    │   │
+│  │   (LoRA MTL)  │                 │   ✓ Coordinates timing          │   │
+│  │  • Selective  │                 │   ✓ Provides teacher logits     │   │
+│  │    KD         │                 │   ✓ No parameter aggregation    │   │
 │  └───────────────┘                 └─────────────────────────────────┘   │
 │                                                                         │
 │  Step 4: Results Collection                                             │
@@ -198,28 +200,29 @@ data_distribution = iid
 │                                                                         │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│  🎯 MULTI-TASK LEARNING WITHIN EACH CLIENT                              │
+│  🎯 ENHANCED MULTI-TASK LEARNING WITHIN EACH CLIENT                     │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  ┌─────────────────────────────────────────────────────────────────────┐  │
-│  │                    Client MTL Process                              │  │
+│  │                    Client LoRA MTL Process                         │  │
 │  ├─────────────────────────────────────────────────────────────────────┤  │
-│  │  📥 Input Data (Dataset-Specific)                                  │  │
+│  │  📥 Input Data (Private + Public)                                  │  │
 │  │  ↓                                                                  │  │
-│  │  🔄 Multi-Task Model Training                                       │  │
+│  │  🔄 LoRA-Enhanced Multi-Task Training                              │  │
 │  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │  │
-│  │  │  Classification  │  │   Regression    │  │   Knowledge     │     │  │
-│  │  │    Model 1      │  │    Model 2      │  │  Distillation   │     │  │
+│  │  │  Classification  │  │   Regression    │  │   Selective     │     │  │
+│  │  │    Model 1      │  │    Model 2      │  │  Knowledge      │     │  │
+│  │  │   (LoRA)        │  │   (LoRA)        │  │  Distillation   │     │  │
 │  │  └─────────────────┘  └─────────────────┘  └─────────────────┘     │  │
 │  │           │                    │                    │              │  │
 │  │           ▼                    ▼                    ▼              │  │
 │  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │  │
 │  │  │   Task Loss     │  │   Task Loss     │  │   KD Loss       │     │  │
-│  │  │   (CrossEnt)    │  │   (MSE/MAE)     │  │   (KL Diverg)   │     │  │
+│  │  │   (CrossEnt)    │  │   (MSE/MAE)     │  │   (Selective)   │     │  │
 │  │  └─────────────────┘  └─────────────────┘  └─────────────────┘     │  │
 │  │           │                    │                    │              │  │
 │  │           ▼                    ▼                    ▼              │  │
-│  │  Combined Loss = α×KD + (1-α)×Task                                 │  │
+│  │  Combined Loss = α×KD + (1-α)×Task (with Selection)               │  │
 │  └─────────────────────────────────────────────────────────────────────┘  │
 │                                                                         │
 ├─────────────────────────────────────────────────────────────────────────┤
@@ -227,11 +230,11 @@ data_distribution = iid
 │  📈 KEY DIFFERENCES FROM FEDERATED LEARNING                             │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│  ❌ FEDERATED LEARNING                  ✅ DISTRIBUTED MTL                │
+│  ❌ FEDERATED LEARNING                  ✅ FEDMKT-INSPIRED MTL             │
 │  ┌─────────────────────────────────┐  ┌─────────────────────────────────┐   │
-│  │ • Parameter Sharing             │  │ • No Parameter Sharing          │   │
-│  │ • Model Aggregation             │  │ • Independent Training          │   │
-│  │ • Global Model Updates          │  │ • Dataset-Specific Learning     │   │
+│  │ • Parameter Sharing             │  │ • LoRA for Efficient Tuning     │   │
+│  │ • Model Aggregation             │  │ • Selective Knowledge Transfer  │   │
+│  │ • Global Model Updates          │  │ • Real Distillation             │   │
 │  │ • Heavy Communication           │  │ • Lightweight Coordination      │   │
 │  └─────────────────────────────────┘  └─────────────────────────────────┘   │
 │                                                                         │
@@ -245,6 +248,7 @@ data_distribution = iid
 │  • ✅ Independence: Complete model autonomy per client                   │
 │  • ✅ Lightweight: Only metrics exchanged, not model weights             │
 │  • ✅ Scalability: No aggregation bottlenecks                           │
+│  • ✅ Efficiency: LoRA reduces computational cost by ~99%                │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```

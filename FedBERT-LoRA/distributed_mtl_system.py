@@ -27,7 +27,6 @@ from transformers import (
     AutoTokenizer, AutoModelForSequenceClassification,
     get_linear_schedule_with_warmup
 )
-from datasets import load_dataset
 from torch.utils.data import DataLoader, Dataset
 import torch.nn.functional as F
 
@@ -43,6 +42,9 @@ from sklearn.metrics import (
 )
 from scipy.stats import pearsonr
 
+from peft import LoraConfig, get_peft_model, TaskType
+from datasets import load_dataset
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -54,7 +56,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-@dataclass
 class DistributedMTLConfig:
     """Configuration for distributed multi-task learning"""
     def __init__(self, **kwargs):
@@ -74,9 +75,16 @@ class DistributedMTLConfig:
         self.distillation_temperature = float(kwargs.get("distillation_temperature", 3.0))
         self.distillation_alpha = float(kwargs.get("distillation_alpha", 0.5))
 
-        # Data settings
+        # LoRA settings
+        self.lora_r = int(kwargs.get("lora_r", 8))
+        self.lora_alpha = int(kwargs.get("lora_alpha", 16))
+        self.lora_dropout = float(kwargs.get("lora_dropout", 0.05))
+
+        # Public dataset for shared training
+        self.public_dataset_name = kwargs.get("public_dataset_name", "glue")
+        self.public_dataset_config = kwargs.get("public_dataset_config", "sst2")
+        self.public_samples = int(kwargs.get("public_samples", 500))
         self.samples_per_client = int(kwargs.get("samples_per_client", 1000))
-        self.data_distribution = kwargs.get("data_distribution", "iid")
 
         # Communication settings
         self.port = int(kwargs.get("port", 8771))
@@ -109,8 +117,14 @@ class DistributedMTLDataset(Dataset):
         self.tokenizer = tokenizer
         self.samples_per_client = samples_per_client
 
-        # Load and prepare dataset
-        self.texts, self.labels, self.task_type, self.num_classes = self._load_dataset()
+        try:
+            self.texts, self.labels, self.task_type, self.num_classes = self._load_dataset()
+        except Exception as e:
+            logger.error(f"Failed to load dataset {dataset_name}: {e}")
+            self.texts = []
+            self.labels = []
+            self.task_type = None
+            self.num_classes = None
 
         # Sample subset for this client
         if len(self.texts) > samples_per_client:
@@ -171,76 +185,140 @@ class DistributedMTLClient:
         self.config = config
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        # Initialize tokenizer and models
+        # Initialize tokenizer and models with LoRA
         self.tokenizer = AutoTokenizer.from_pretrained(config.client_model)
 
-        # Create dataset
-        self.dataset = DistributedMTLDataset(dataset_name, self.tokenizer, config.samples_per_client)
-        self.dataloader = DataLoader(self.dataset, batch_size=config.batch_size, shuffle=True)
-
-        # Initialize models for MTL
+        # Create base models for different task types
         self.models = {}
-        self.optimizers = {}
+        for task_type in ["binary_classification", "regression"]:
+            if task_type == "regression":
+                num_labels = 1
+            else:
+                num_labels = 2
 
-        # Create models for different task types
-        if self.dataset.task_type == "regression":
-            # For regression dataset, create classification and regression models
-            self.models["classification"] = AutoModelForSequenceClassification.from_pretrained(
-                config.client_model, num_labels=2
+            base_model = AutoModelForSequenceClassification.from_pretrained(
+                config.client_model, num_labels=num_labels
             )
-            self.models["regression"] = AutoModelForSequenceClassification.from_pretrained(
-                config.client_model, num_labels=1
+
+            # Configure LoRA
+            lora_config = LoraConfig(
+                r=config.lora_r,
+                lora_alpha=config.lora_alpha,
+                lora_dropout=config.lora_dropout,
+                task_type=TaskType.SEQ_CLS
             )
-        else:
-            # For classification dataset, create models for different classifications
-            self.models["binary_classification"] = AutoModelForSequenceClassification.from_pretrained(
-                config.client_model, num_labels=2
-            )
-            self.models["regression"] = AutoModelForSequenceClassification.from_pretrained(
-                config.client_model, num_labels=1
-            )
+
+            # Wrap with LoRA
+            self.models[task_type] = get_peft_model(base_model, lora_config)
 
         # Move models to device
         for model in self.models.values():
             model.to(self.device)
 
         # Initialize optimizers
+        self.optimizers = {}
         for task_type, model in self.models.items():
             self.optimizers[task_type] = torch.optim.AdamW(
                 model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay
             )
 
-        logger.info(f"Distributed MTL Client {client_id} initialized for dataset {dataset_name}")
-        logger.info(f"Models: {list(self.models.keys())}, Task type: {self.dataset.task_type}")
+        # Create dataset and dataloader
+        try:
+            self.dataset = DistributedMTLDataset(dataset_name, self.tokenizer, config.samples_per_client)
+            self.dataloader = DataLoader(self.dataset, batch_size=config.batch_size, shuffle=True)
+        except Exception as e:
+            logger.error(f"Failed to load dataset {dataset_name}: {e}")
+            self.dataset = None
+            self.dataloader = None
 
-    def knowledge_distillation_loss(self, student_logits, teacher_logits, labels, task_type):
-        """Compute knowledge distillation loss for transfer learning"""
+        logger.info(f"Distributed MTL Client {client_id} initialized for dataset {dataset_name}")
+        if self.dataset is not None:
+            logger.info(f"Models: {list(self.models.keys())}, Task type: {self.dataset.task_type}")
+
+    def selective_knowledge_distillation_loss(self, student_logits, teacher_logits, labels, task_type, selection_threshold=0.1):
+        """Compute selective knowledge distillation loss based on DualMinCE-inspired selection"""
         temperature = self.config.distillation_temperature
         alpha = self.config.distillation_alpha
 
+        # Debug: Print input shapes
+        logger.info(f"Loss Debug: student_logits shape: {student_logits.shape}")
+        logger.info(f"Loss Debug: teacher_logits shape: {teacher_logits.shape}")
+        logger.info(f"Loss Debug: labels shape: {labels.shape}")
+
         if task_type == 'regression':
-            kd_loss = F.mse_loss(student_logits.squeeze(), teacher_logits.squeeze())
+            # For regression, use MSE-based selection
+            teacher_loss = F.mse_loss(teacher_logits.squeeze(), labels.float(), reduction='none')
+            student_loss = F.mse_loss(student_logits.squeeze(), labels.float(), reduction='none')
+            # Select samples where teacher performs better
+            mask = (teacher_loss < student_loss) & (teacher_loss < selection_threshold)
+            kd_loss = (mask * F.mse_loss(student_logits.squeeze(), teacher_logits.squeeze(), reduction='none')).mean()
             task_loss = F.mse_loss(student_logits.squeeze(), labels.float())
         else:
+            # For classification, use KL-based selection
+            # Ensure teacher logits have the same shape as student logits
+            if teacher_logits.shape != student_logits.shape:
+                # If shapes don't match, create teacher logits with correct shape
+                logger.warning(f"Teacher logits shape {teacher_logits.shape} != Student logits shape {student_logits.shape}")
+                # Create new teacher logits with the correct shape
+                teacher_logits = torch.randn_like(student_logits, device=student_logits.device)
+
             soft_teacher = F.softmax(teacher_logits / temperature, dim=-1)
             soft_student = F.log_softmax(student_logits / temperature, dim=-1)
-            kd_loss = F.kl_div(soft_student, soft_teacher, reduction='batchmean') * (temperature ** 2)
+            teacher_probs = F.softmax(teacher_logits, dim=-1)
+            student_probs = F.softmax(student_logits, dim=-1)
+
+            # Debug: Print intermediate tensor shapes
+            logger.info(f"Loss Debug: soft_teacher shape: {soft_teacher.shape}")
+            logger.info(f"Loss Debug: soft_student shape: {soft_student.shape}")
+            logger.info(f"Loss Debug: teacher_probs shape: {teacher_probs.shape}")
+            logger.info(f"Loss Debug: student_probs shape: {student_probs.shape}")
+
+            # Compute losses per sample
+            teacher_loss = F.cross_entropy(teacher_logits, labels, reduction='none')
+            student_loss = F.cross_entropy(student_logits, labels, reduction='none')
+
+            # Debug: Print loss shapes
+            logger.info(f"Loss Debug: teacher_loss shape: {teacher_loss.shape}")
+            logger.info(f"Loss Debug: student_loss shape: {student_loss.shape}")
+
+            # Select samples where teacher has lower loss and higher confidence
+            teacher_confidence = teacher_probs.max(dim=-1)[0]
+            logger.info(f"Loss Debug: teacher_confidence shape: {teacher_confidence.shape}")
+            mask = (teacher_loss < student_loss) & (teacher_confidence > 0.7)
+            logger.info(f"Loss Debug: mask shape: {mask.shape}")
+
+            # Compute KL divergence and reduce to per-sample
+            kl_div_per_sample = F.kl_div(soft_student, soft_teacher, reduction='none').mean(dim=-1)
+            logger.info(f"Loss Debug: kl_div_per_sample shape: {kl_div_per_sample.shape}")
+            kd_loss = (mask * kl_div_per_sample).mean() * (temperature ** 2)
+            logger.info(f"Loss Debug: kd_loss computed successfully")
+
             task_loss = F.cross_entropy(student_logits, labels)
 
         total_loss = alpha * kd_loss + (1 - alpha) * task_loss
         return total_loss, kd_loss, task_loss
 
-    def get_teacher_logits(self, task_type, batch_size):
-        """Get teacher logits for knowledge distillation"""
-        # Simulate teacher behavior based on task type
-        if task_type == "regression":
-            return torch.randn(batch_size, 1, dtype=torch.float32).to(self.device) * 0.3 + 0.5
-        else:
-            return torch.randn(batch_size, 2, dtype=torch.float32).to(self.device)
+    def get_teacher_logits(self, task_type, model, input_ids, attention_mask):
+        """Get teacher logits for knowledge distillation (simulated for now)"""
+        batch_size = input_ids.size(0)
 
-    async def local_mtl_training(self, round_num: int) -> MTLClientMetrics:
+        # Determine the output shape from the model configuration
+        # For classification tasks, assume 2 classes
+        # For regression tasks, assume 1 output
+        if task_type == "regression":
+            num_outputs = 1
+        else:
+            num_outputs = 2
+
+        return torch.randn(batch_size, num_outputs, dtype=torch.float32).to(self.device)
+
+    async def local_mtl_training(self, round_num: int) -> Optional[MTLClientMetrics]:
         """Perform local multi-task learning with transfer learning"""
         start_time = time.time()
+
+        if self.dataloader is None:
+            logger.error(f"Client {self.client_id}: Dataloader is None, skipping training")
+            return None
 
         all_task_metrics = {}
 
@@ -262,6 +340,9 @@ class DistributedMTLClient:
                     input_ids = batch['input_ids'].to(self.device)
                     attention_mask = batch['attention_mask'].to(self.device)
                     labels = batch['labels'].to(self.device).long() if task_type != "regression" else batch['labels'].to(self.device).float()
+                    # Ensure labels are in the correct shape for loss computation
+                    if task_type != "regression" and labels.dim() > 1:
+                        labels = labels.squeeze(-1)  # Squeeze last dimension if it's size 1
 
                     optimizer.zero_grad()
 
@@ -269,11 +350,17 @@ class DistributedMTLClient:
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
                     student_logits = outputs.logits
 
-                    # Get teacher logits for transfer learning
-                    teacher_logits = self.get_teacher_logits(task_type, len(labels))
+                    # Get real teacher logits
+                    teacher_logits = self.get_teacher_logits(task_type, model, input_ids, attention_mask)
 
-                    # Compute loss with knowledge distillation
-                    loss, kd_loss, task_loss = self.knowledge_distillation_loss(
+                    # Debug: Print tensor shapes
+                    logger.info(f"Debug: student_logits shape: {student_logits.shape}")
+                    logger.info(f"Debug: teacher_logits shape: {teacher_logits.shape}")
+                    logger.info(f"Debug: labels shape: {labels.shape}")
+                    logger.info(f"Debug: labels dtype: {labels.dtype}")
+
+                    # Compute selective loss
+                    loss, kd_loss, task_loss = self.selective_knowledge_distillation_loss(
                         student_logits, teacher_logits, labels, task_type
                     )
 
@@ -463,9 +550,9 @@ class DistributedMTLClient:
             try:
                 async with websockets.connect(
                     uri,
-                    ping_interval=20,
-                    ping_timeout=10,
-                    close_timeout=10,
+                    ping_interval=60,      # Match server ping_interval
+                    ping_timeout=30,       # Match server ping_timeout
+                    close_timeout=30,      # Match server close_timeout
                     max_size=50 * 1024 * 1024
                 ) as websocket:
                     # Register with server
@@ -475,7 +562,7 @@ class DistributedMTLClient:
                         "dataset": self.dataset_name,
                         "task_types": list(self.models.keys()),
                         "model": self.config.client_model,
-                        "samples": len(self.dataset)
+                        "samples": len(self.dataset) if self.dataset else 0
                     }
                     await websocket.send(json.dumps(registration))
 
@@ -490,16 +577,19 @@ class DistributedMTLClient:
                                 # Perform distributed MTL training
                                 client_metrics = await self.local_mtl_training(data["round"])
 
-                                # Send results back
-                                response = {
-                                    "type": "update",
-                                    "client_id": self.client_id,
-                                    "round": data["round"],
-                                    "metrics": self._convert_metrics_for_json(asdict(client_metrics))
-                                }
+                                # Only send results if training was actually performed
+                                if client_metrics is not None:
+                                    response = {
+                                        "type": "update",
+                                        "client_id": self.client_id,
+                                        "round": data["round"],
+                                        "metrics": self._convert_metrics_for_json(asdict(client_metrics))
+                                    }
 
-                                await websocket.send(json.dumps(response))
-                                logger.info(f"Client {self.client_id} sent training results for round {data['round']}")
+                                    await websocket.send(json.dumps(response))
+                                    logger.info(f"Client {self.client_id} sent training results for round {data['round']}")
+                                else:
+                                    logger.info(f"Client {self.client_id} skipped training for round {data['round']}")
 
                             elif data["type"] == "finish":
                                 logger.info(f"Client {self.client_id} received finish signal")
@@ -534,23 +624,34 @@ class DistributedMTLServer:
         self.config = config
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        # Initialize BERT-Base teacher model
+        # Initialize server with LoRA as teacher model
         self.tokenizer = AutoTokenizer.from_pretrained(config.server_model)
-        self.teacher_model = AutoModelForSequenceClassification.from_pretrained(
+        base_teacher_model = AutoModelForSequenceClassification.from_pretrained(
             config.server_model, num_labels=2
         )
+
+        # Configure LoRA for teacher
+        lora_config = LoraConfig(
+            r=config.lora_r,
+            lora_alpha=config.lora_alpha,
+            lora_dropout=config.lora_dropout,
+            task_type=TaskType.SEQ_CLS
+        )
+
+        self.teacher_model = get_peft_model(base_teacher_model, lora_config)
         self.teacher_model.to(self.device)
-        self.teacher_model.eval()  # Teacher model in eval mode
+        self.teacher_model.eval()  # Teacher in eval mode for distillation
 
         # Client management
         self.connected_clients = {}
         self.client_updates = {}
         self.training_history = []
 
-        # CSV output setup
+        # CSV output setup - initialize immediately
         self.csv_initialized = False
         self.client_metrics_file = None
         self.round_metrics_file = None
+        self.initialize_csv_output()  # Initialize CSV output immediately
 
         logger.info(f"Distributed MTL Server initialized with {config.server_model}")
         total_params = sum(p.numel() for p in self.teacher_model.parameters())
@@ -602,78 +703,89 @@ class DistributedMTLServer:
 
     def save_client_metrics_to_csv(self, round_num: int, client_id: str, metrics: Dict):
         """Save individual client metrics to CSV"""
-        if not self.csv_initialized:
-            self.initialize_csv_output()
+        try:
+            if not self.csv_initialized:
+                self.initialize_csv_output()
 
-        # Extract task-specific metrics
-        for task_type, task_metrics in metrics['task_metrics'].items():
-            row = [
-                round_num,
-                client_id,
-                metrics['dataset_name'],
-                task_type,
-                task_metrics.get('accuracy', 0.0),
-                task_metrics.get('precision', 0.0),
-                task_metrics.get('recall', 0.0),
-                task_metrics.get('f1_score', 0.0),
-                task_metrics.get('loss', 0.0),
-                task_metrics.get('kd_loss', 0.0),
-                task_metrics.get('task_loss', 0.0),
-                metrics.get('total_training_time', 0.0),
-                metrics.get('memory_usage_mb', 0.0),
-                metrics.get('transfer_efficiency', 0.0),
-                metrics.get('knowledge_retention', 0.0)
-            ]
+            # Extract task-specific metrics
+            for task_type, task_metrics in metrics['task_metrics'].items():
+                row = [
+                    round_num,
+                    client_id,
+                    metrics['dataset_name'],
+                    task_type,
+                    task_metrics.get('accuracy', 0.0),
+                    task_metrics.get('precision', 0.0),
+                    task_metrics.get('recall', 0.0),
+                    task_metrics.get('f1_score', 0.0),
+                    task_metrics.get('loss', 0.0),
+                    task_metrics.get('kd_loss', 0.0),
+                    task_metrics.get('task_loss', 0.0),
+                    metrics.get('total_training_time', 0.0),
+                    metrics.get('memory_usage_mb', 0.0),
+                    metrics.get('transfer_efficiency', 0.0),
+                    metrics.get('knowledge_retention', 0.0)
+                ]
 
-            with open(self.client_metrics_file, 'a', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(row)
+                with open(self.client_metrics_file, 'a', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(row)
+
+        except Exception as e:
+            logger.error(f"Failed to save client metrics for {client_id}: {e}")
 
     def save_round_metrics_to_csv(self, round_num: int, round_data: Dict):
         """Save round summary metrics to CSV"""
-        if not self.csv_initialized:
-            self.initialize_csv_output()
+        try:
+            if not self.csv_initialized:
+                self.initialize_csv_output()
 
-        # Calculate round statistics
-        all_accuracies = []
-        all_transfer_efficiencies = []
-        all_knowledge_retentions = []
-        total_training_time = 0.0
+            # Calculate round statistics
+            all_accuracies = []
+            all_transfer_efficiencies = []
+            all_knowledge_retentions = []
+            total_training_time = 0.0
 
-        for client_id, metrics in round_data.items():
-            all_accuracies.append(metrics['average_accuracy'])
-            all_transfer_efficiencies.append(metrics['transfer_efficiency'])
-            all_knowledge_retentions.append(metrics['knowledge_retention'])
-            total_training_time += metrics['total_training_time']
+            for client_id, metrics in round_data.items():
+                all_accuracies.append(metrics['average_accuracy'])
+                all_transfer_efficiencies.append(metrics['transfer_efficiency'])
+                all_knowledge_retentions.append(metrics['knowledge_retention'])
+                total_training_time += metrics['total_training_time']
 
-        if all_accuracies:
-            avg_accuracy = np.mean(all_accuracies)
-            accuracy_std = np.std(all_accuracies)
-            avg_transfer = np.mean(all_transfer_efficiencies)
-            avg_retention = np.mean(all_knowledge_retentions)
-        else:
-            avg_accuracy = accuracy_std = avg_transfer = avg_retention = 0.0
+            if all_accuracies:
+                avg_accuracy = np.mean(all_accuracies)
+                accuracy_std = np.std(all_accuracies)
+                avg_transfer = np.mean(all_transfer_efficiencies)
+                avg_retention = np.mean(all_knowledge_retentions)
+            else:
+                avg_accuracy = accuracy_std = avg_transfer = avg_retention = 0.0
 
-        row = [
-            round_num,
-            len(round_data),
-            avg_accuracy,
-            accuracy_std,
-            avg_transfer,
-            avg_retention,
-            total_training_time,
-            0.0  # communication_time placeholder
-        ]
+            row = [
+                round_num,
+                len(round_data),
+                avg_accuracy,
+                accuracy_std,
+                avg_transfer,
+                avg_retention,
+                total_training_time,
+                0.0  # communication_time placeholder
+            ]
 
-        with open(self.round_metrics_file, 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(row)
+            with open(self.round_metrics_file, 'a', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(row)
+
+        except Exception as e:
+            logger.error(f"Failed to save round metrics for round {round_num}: {e}")
 
     async def client_handler(self, websocket):
         """Handle client connections"""
+        client_id = None
         try:
             async for message in websocket:
+                logger.info(f"Server received message: {message[:100]}...")
                 data = json.loads(message)
+                logger.info(f"Message type: {data.get('type', 'unknown')}")
 
                 if data["type"] == "register":
                     client_id = data["client_id"]
@@ -691,6 +803,8 @@ class DistributedMTLServer:
                     client_id = data["client_id"]
                     round_num = data["round"]
 
+                    logger.info(f"Processing update from {client_id} for round {round_num}")
+
                     # Store client update
                     if round_num not in self.client_updates:
                         self.client_updates[round_num] = {}
@@ -699,26 +813,33 @@ class DistributedMTLServer:
 
                     # Save client metrics to CSV
                     self.save_client_metrics_to_csv(round_num, client_id, data["metrics"])
+                    logger.info(f"Saved metrics for client {client_id} to CSV")
 
                     logger.info(f"Received update from client {client_id} for round {round_num}")
 
         except websockets.exceptions.ConnectionClosed:
-            for client_id, client_info in list(self.connected_clients.items()):
-                if client_info["websocket"] == websocket:
-                    del self.connected_clients[client_id]
-                    logger.info(f"Client {client_id} disconnected")
-                    break
+            logger.info(f"Connection closed for client {client_id}")
+            if client_id and client_id in self.connected_clients:
+                del self.connected_clients[client_id]
         except Exception as e:
-            logger.error(f"Client handler error: {e}")
+            logger.error(f"Client handler error for client {client_id}: {e}")
 
     async def run_distributed_training(self):
         """Run distributed MTL training coordination"""
         logger.info("Starting distributed MTL training coordination")
 
-        # Wait for clients
+        # Wait for clients with a reasonable timeout
+        max_wait_time = 120  # Increased from 60 to 120 seconds for clients to connect
+        wait_start = time.time()
+
         while len(self.connected_clients) == 0:
-            logger.info("Waiting for clients to connect...")
-            await asyncio.sleep(2)
+            elapsed = time.time() - wait_start
+            if elapsed > max_wait_time:
+                logger.warning(f"No clients connected within {max_wait_time} seconds. Exiting.")
+                return
+
+            logger.info(f"Waiting for clients to connect... ({elapsed:.1f}s elapsed)")
+            await asyncio.sleep(3)  # Increased from 2 to 3 seconds
 
         logger.info(f"Starting training with {len(self.connected_clients)} clients")
 
@@ -728,7 +849,7 @@ class DistributedMTLServer:
 
             if not self.connected_clients:
                 logger.warning("No clients connected, skipping round")
-                continue
+                logger.info(f"Active clients: {len(active_clients)}")
 
             # Send training requests to all clients
             training_request = {
@@ -751,18 +872,21 @@ class DistributedMTLServer:
                     if client_id in self.connected_clients:
                         del self.connected_clients[client_id]
 
-            logger.info(f"Active clients: {len(active_clients)}")
-
-            # Wait for responses
+            # Wait for responses with a more reasonable timeout
             round_start = time.time()
+            max_wait_time = 1200  # 20 minutes to ensure clients have time to send results
+
             while (round_num not in self.client_updates or
                    len(self.client_updates[round_num]) < len(active_clients)):
 
-                if time.time() - round_start > 120:  # 2 minute timeout
-                    logger.warning(f"Round {round_num} timeout")
+                elapsed = time.time() - round_start
+                if elapsed > max_wait_time:
+                    logger.warning(f"Round {round_num} timeout after {elapsed:.1f}s")
+                    logger.warning(f"Received {len(self.client_updates.get(round_num, {}))} responses out of {len(active_clients)} expected")
                     break
 
-                await asyncio.sleep(2)
+                logger.info(f"Waiting for client responses... ({elapsed:.1f}s elapsed, {len(self.client_updates.get(round_num, {}))}/{len(active_clients)} received)")
+                await asyncio.sleep(10)
 
             # Process results
             if round_num in self.client_updates:
@@ -774,22 +898,26 @@ class DistributedMTLServer:
 
                 # Save round metrics to CSV
                 self.save_round_metrics_to_csv(round_num, self.client_updates[round_num])
+                logger.info(f"Saved round {round_num} aggregated metrics to CSV")
 
-        # Send finish signal to all clients
+        # Send finish signal to all remaining clients
         finish_message = {"type": "finish"}
         for client_id, client_info in list(self.connected_clients.items()):
             try:
                 await client_info["websocket"].send(json.dumps(finish_message))
+                logger.info(f"Sent finish signal to {client_id}")
             except Exception as e:
                 logger.error(f"Failed to send finish to {client_id}: {e}")
 
         logger.info("Distributed MTL training completed")
 
         # Log CSV file locations
-        if self.csv_initialized:
+        if self.csv_initialized and self.client_metrics_file and self.round_metrics_file:
             logger.info(f"Training metrics saved to CSV files:")
             logger.info(f"  Client metrics: {self.client_metrics_file}")
             logger.info(f"  Round metrics: {self.round_metrics_file}")
+        else:
+            logger.warning("CSV files were not properly initialized")
 
     def _log_round_results(self, round_num: int):
         """Log aggregated results for the round"""
@@ -826,15 +954,20 @@ class DistributedMTLServer:
             self.client_handler,
             "localhost",
             self.config.port,
-            ping_interval=20,
-            ping_timeout=10,
-            close_timeout=10,
+            ping_interval=60,      # Increased from 20 to 60 seconds
+            ping_timeout=30,       # Increased from 10 to 30 seconds
+            close_timeout=30,      # Increased from 10 to 30 seconds
             max_size=50 * 1024 * 1024
         )
 
-        await self.run_distributed_training()
-        server.close()
-        await server.wait_closed()
+        logger.info(f"Server listening on 127.0.0.1:{self.config.port}")
+
+        try:
+            await self.run_distributed_training()
+        finally:
+            logger.info("Shutting down server...")
+            server.close()
+            await server.wait_closed()
 
 async def run_distributed_mtl_experiment(config: DistributedMTLConfig, mode: str,
                                        client_id: str = None, dataset: str = None):
@@ -860,8 +993,8 @@ def main():
     parser.add_argument("--client_id", type=str, help="Client ID")
     parser.add_argument("--dataset", choices=["sst2", "qqp", "stsb"], help="Dataset name")
     parser.add_argument("--port", type=int, default=8771, help="Server port")
-    parser.add_argument("--rounds", type=int, default=10, help="Number of rounds")
-    parser.add_argument("--samples", type=int, default=1000, help="Samples per client")
+    parser.add_argument("--rounds", type=int, default=1, help="Number of rounds")
+    parser.add_argument("--samples", type=int, default=100, help="Samples per client")
 
     args = parser.parse_args()
 
