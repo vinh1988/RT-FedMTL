@@ -63,7 +63,7 @@ wandb/
 data/
 datasets/
 # Ignore CSV files except experiment results
-*.csv
+# *.csv
 !experiment_results*/*.csv
 *.json
 *.pkl

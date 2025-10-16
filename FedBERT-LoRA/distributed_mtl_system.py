@@ -686,6 +686,7 @@ class DistributedMTLServer:
             'round', 'client_id', 'dataset', 'task_type',
             'accuracy', 'precision', 'recall', 'f1_score',
             'loss', 'kd_loss', 'task_loss',
+            'mse', 'rmse', 'mae', 'r2', 'pearson_corr',
             'training_time', 'memory_usage_mb',
             'transfer_efficiency', 'knowledge_retention'
         ]
@@ -728,6 +729,11 @@ class DistributedMTLServer:
                     task_metrics.get('loss', 0.0),
                     task_metrics.get('kd_loss', 0.0),
                     task_metrics.get('task_loss', 0.0),
+                    task_metrics.get('mse', 0.0),
+                    task_metrics.get('rmse', 0.0),
+                    task_metrics.get('mae', 0.0),
+                    task_metrics.get('r2', 0.0),
+                    task_metrics.get('pearson_corr', 0.0),
                     metrics.get('total_training_time', 0.0),
                     metrics.get('memory_usage_mb', 0.0),
                     metrics.get('transfer_efficiency', 0.0),
