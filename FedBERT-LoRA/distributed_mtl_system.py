@@ -241,9 +241,9 @@ class DistributedMTLClient:
         alpha = self.config.distillation_alpha
 
         # Debug: Print input shapes
-        logger.info(f"Loss Debug: student_logits shape: {student_logits.shape}")
-        logger.info(f"Loss Debug: teacher_logits shape: {teacher_logits.shape}")
-        logger.info(f"Loss Debug: labels shape: {labels.shape}")
+        # logger.info(f"Loss Debug: student_logits shape: {student_logits.shape}")
+        # logger.info(f"Loss Debug: teacher_logits shape: {teacher_logits.shape}")
+        # logger.info(f"Loss Debug: labels shape: {labels.shape}")
 
         if task_type == 'regression':
             # For regression, use MSE-based selection
@@ -258,7 +258,7 @@ class DistributedMTLClient:
             # Ensure teacher logits have the same shape as student logits
             if teacher_logits.shape != student_logits.shape:
                 # If shapes don't match, create teacher logits with correct shape
-                logger.warning(f"Teacher logits shape {teacher_logits.shape} != Student logits shape {student_logits.shape}")
+                # logger.warning(f"Teacher logits shape {teacher_logits.shape} != Student logits shape {student_logits.shape}")
                 # Create new teacher logits with the correct shape
                 teacher_logits = torch.randn_like(student_logits, device=student_logits.device)
 
@@ -268,24 +268,24 @@ class DistributedMTLClient:
             student_probs = F.softmax(student_logits, dim=-1)
 
             # Debug: Print intermediate tensor shapes
-            logger.info(f"Loss Debug: soft_teacher shape: {soft_teacher.shape}")
-            logger.info(f"Loss Debug: soft_student shape: {soft_student.shape}")
-            logger.info(f"Loss Debug: teacher_probs shape: {teacher_probs.shape}")
-            logger.info(f"Loss Debug: student_probs shape: {student_probs.shape}")
+            # logger.info(f"Loss Debug: soft_teacher shape: {soft_teacher.shape}")
+            # logger.info(f"Loss Debug: soft_student shape: {soft_student.shape}")
+            # logger.info(f"Loss Debug: teacher_probs shape: {teacher_probs.shape}")
+            # logger.info(f"Loss Debug: student_probs shape: {student_probs.shape}")
 
             # Compute losses per sample
             teacher_loss = F.cross_entropy(teacher_logits, labels, reduction='none')
             student_loss = F.cross_entropy(student_logits, labels, reduction='none')
 
             # Debug: Print loss shapes
-            logger.info(f"Loss Debug: teacher_loss shape: {teacher_loss.shape}")
-            logger.info(f"Loss Debug: student_loss shape: {student_loss.shape}")
+            # logger.info(f"Loss Debug: teacher_loss shape: {teacher_loss.shape}")
+            # logger.info(f"Loss Debug: student_loss shape: {student_loss.shape}")
 
             # Select samples where teacher has lower loss and higher confidence
             teacher_confidence = teacher_probs.max(dim=-1)[0]
-            logger.info(f"Loss Debug: teacher_confidence shape: {teacher_confidence.shape}")
+            # logger.info(f"Loss Debug: teacher_confidence shape: {teacher_confidence.shape}")
             mask = (teacher_loss < student_loss) & (teacher_confidence > 0.7)
-            logger.info(f"Loss Debug: mask shape: {mask.shape}")
+            # logger.info(f"Loss Debug: mask shape: {mask.shape}")
 
             # Compute KL divergence and reduce to per-sample
             kl_div_per_sample = F.kl_div(soft_student, soft_teacher, reduction='none').mean(dim=-1)
@@ -323,8 +323,12 @@ class DistributedMTLClient:
         all_task_metrics = {}
 
         # Train each model with transfer learning
-        for task_type, model in self.models.items():
-            model.train()
+        actual_task_type = self.dataset.task_type if self.dataset else "classification"
+        # Map "classification" to "binary_classification" for model matching
+        model_task_type = "binary_classification" if actual_task_type == "classification" else actual_task_type
+        if model_task_type in self.models:
+            task_type = model_task_type
+            model = self.models[task_type]
             optimizer = self.optimizers[task_type]
 
             total_loss = 0.0
@@ -354,10 +358,10 @@ class DistributedMTLClient:
                     teacher_logits = self.get_teacher_logits(task_type, model, input_ids, attention_mask)
 
                     # Debug: Print tensor shapes
-                    logger.info(f"Debug: student_logits shape: {student_logits.shape}")
-                    logger.info(f"Debug: teacher_logits shape: {teacher_logits.shape}")
-                    logger.info(f"Debug: labels shape: {labels.shape}")
-                    logger.info(f"Debug: labels dtype: {labels.dtype}")
+                    # logger.info(f"Debug: student_logits shape: {student_logits.shape}")
+                    # logger.info(f"Debug: teacher_logits shape: {teacher_logits.shape}")
+                    # logger.info(f"Debug: labels shape: {labels.shape}")
+                    # logger.info(f"Debug: labels dtype: {labels.dtype}")
 
                     # Compute selective loss
                     loss, kd_loss, task_loss = self.selective_knowledge_distillation_loss(
@@ -397,10 +401,10 @@ class DistributedMTLClient:
                     pearson_corr = 0.0
 
                 task_metrics = {
-                    'accuracy': float(r2),  # Use R² as accuracy for regression
-                    'precision': float(1.0 - mae),
-                    'recall': float(pearson_corr),
-                    'f1_score': float(rmse),
+                    'accuracy': float(r2),  # R² as primary metric for regression
+                    'precision': 0.0,  # Not applicable for regression
+                    'recall': 0.0,  # Not applicable for regression
+                    'f1_score': 0.0,  # Not applicable for regression
                     'loss': float(avg_loss),
                     'kd_loss': float(avg_kd_loss),
                     'task_loss': float(avg_task_loss),
@@ -438,6 +442,9 @@ class DistributedMTLClient:
             else:
                 logger.info(f"  {task_type}: Loss={avg_loss:.4f}, Acc={task_metrics['accuracy']:.4f}, "
                            f"P={task_metrics['precision']:.4f}, R={task_metrics['recall']:.4f}, F1={task_metrics['f1_score']:.4f}")
+        else:
+            logger.error(f"No matching model for task_type {actual_task_type} in client {self.client_id}")
+            return None
 
         total_training_time = time.time() - start_time
 
