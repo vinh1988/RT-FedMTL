@@ -26,6 +26,57 @@ This report presents the analysis of **5 federated learning scenarios** comparin
 
 ---
 
+## 🏗️ **Architecture Evolution: From Single-Task to True MTL**
+
+### **🚀 NEW: True Multi-Task Learning (MTL) Architecture**
+
+**Latest Update (Oct 16, 2025)**: Complete architectural transformation implementing **unified multi-task learning** with federated capabilities.
+
+#### **🔄 Architecture Comparison Table**
+
+| Feature | **OLD: Single-Task Architecture** | **NEW: True MTL Architecture** |
+|---------|-----------------------------------|-------------------------------|
+| **Model Structure** | ❌ Separate models per task | ✅ **Single unified model** |
+| **Task Handling** | ❌ One task per client | ✅ **Multiple tasks per model** |
+| **Inference Capability** | ❌ Task-specific only | ✅ **Multi-task inference** |
+| **Training Approach** | ❌ Independent task training | ✅ **Joint multi-task training** |
+| **Parameter Sharing** | ❌ No cross-task sharing | ✅ **Shared backbone + task heads** |
+| **Metric Calculation** | ❌ Mixed incompatible metrics | ✅ **Properly separated metrics** |
+| **Knowledge Transfer** | ❌ Limited cross-task benefits | ✅ **True cross-task learning** |
+| **Federated Learning** | ✅ Supported | ✅ **Enhanced with MTL** |
+
+#### **🎯 Key MTL Capabilities**
+
+**✅ Unified Model Architecture:**
+```python
+class MultiTaskBERTModel(nn.Module):
+    def __init__(self):
+        # Shared BERT backbone for all tasks
+        self.backbone = AutoModelForSequenceClassification(...)
+        # Task-specific heads
+        self.classification_head = nn.Linear(768, 2)  # SST2/QQP
+        self.regression_head = nn.Linear(768, 1)     # STSB
+```
+
+**✅ Multi-Task Inference:**
+```python
+# Single model handles multiple task types
+result = model.predict("This movie is great!", "multi_task")
+# Returns: {"classification": {...}, "regression": {...}}
+```
+
+**✅ Proper Metric Separation:**
+- **Classification**: Accuracy, F1, Precision, Recall
+- **Regression**: R², MSE, MAE, Pearson correlation
+- **No mixing** of incompatible performance measures
+
+**✅ Federated MTL Training:**
+- **Distributed clients** with unified MTL models
+- **Knowledge distillation** between task types
+- **Cross-task transfer** within each client
+
+---
+
 ## 🏆 Performance Rankings
 
 ### 🥇 **Best Overall Performance (F1-Score)**
