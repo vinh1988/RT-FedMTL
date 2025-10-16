@@ -32,7 +32,7 @@ source venv/bin/activate
 # Function to start server
 start_server() {
     echo -e "${BLUE}🖥️ Starting Distributed MTL Server...${NC}"
-    python distributed_mtl_system.py --mode server --rounds 1 &
+    python distributed_mtl_system.py --mode server --rounds 4 &
     SERVER_PID=$!
     echo "✅ Server started (PID: $SERVER_PID)"
     echo "   Server logs: tail -f distributed_mtl.log"
