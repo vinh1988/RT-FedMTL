@@ -42,14 +42,15 @@ tail -f federated_client_*.log
 
 ```
 📦 FedBERT-LoRA/
-├── 🏠 federated_main.py                    # Main entry point
+├── 🏠 federated_main.py                    # Main entry point & CLI
 ├── ⚙️ federated_config.py                  # Configuration management
-├── 📋 federated_config.yaml               # YAML configuration
+├── 📋 federated_config.yaml               # Enhanced YAML configuration
 ├── 📋 requirements.txt                    # Python dependencies
+├── 🚫 .gitignore                          # Git ignore patterns
 │
-├── 📁 src/                                # Source code modules
+├── 📁 src/                                # Modular source code
 │   ├── 🏭 core/
-│   │   ├── federated_server.py            # Server implementation
+│   │   ├── federated_server.py            # Server orchestration
 │   │   └── federated_client.py            # Client implementation
 │   │
 │   ├── 🔧 lora/
@@ -64,13 +65,27 @@ tail -f federated_client_*.log
 │   ├── 🔄 synchronization/
 │   │   └── federated_synchronization.py  # Model synchronization
 │   │
-│   └── 📚 datasets/
-│       └── federated_datasets.py         # Dataset handlers
+│   ├── 📚 datasets/
+│   │   └── federated_datasets.py         # Dataset handlers
+│   │
+│   └── 📈 evaluation/                      # Comprehensive evaluation system
+│       └── federated_evaluation.py        # Model evaluation & reporting
 │
-├── 📁 federated_results/                  # Generated results
-│   └── results_*.csv                      # Training metrics
+├── 📋 post_training_evaluation.py         # Post-training evaluation script
+├── 🧪 test_evaluation.py                   # Evaluation module tests
+├── 📖 FEDERATED_LEARNING_SYSTEM_GUIDE.md  # Complete implementation guide
+├── 🗺️ FEDERATED_MTL_INTEGRATION_MAP.md     # Integration architecture diagrams
+├── 📖 README.md                           # This file
 │
-└── 📖 FEDERATED_LEARNING_SYSTEM_GUIDE.md  # Complete implementation guide
+├── 📁 federated_results/                  # Generated results & logs
+│   ├── results_*.csv                      # Training metrics
+│   ├── evaluation_*.txt                    # Evaluation reports
+│   └── performance_*.txt                   # Performance analysis
+│
+└── 📚 Research Papers/                     # Academic references
+    ├── 2021-Multi-task federated learning for personalised deep neural networks in edge computing.pdf
+    ├── 2024-FedBone Towards Large-Scale Federated Multi-Task Learning.pdf
+    └── 2024-Fedmkt- Federated mutual knowledge transfer for large and small language models.pdf
 ```
 
 ## ⚙️ Configuration
@@ -163,8 +178,11 @@ tail -f federated_server_*.log | grep -i "error\|warning"
 
 ## 📚 Documentation
 
-- **[Complete Guide](FEDERATED_LEARNING_SYSTEM_GUIDE.md)**: Comprehensive implementation specification
-- **[Configuration Guide](federated_config.yaml)**: All configuration options
+- **[Complete Implementation Guide](FEDERATED_LEARNING_SYSTEM_GUIDE.md)**: Comprehensive 30KB+ technical specification
+- **[Integration Architecture Map](FEDERATED_MTL_INTEGRATION_MAP.md)**: Visual diagrams of component relationships
+- **[Configuration Guide](federated_config.yaml)**: All configuration options with examples
+- **[Post-Training Evaluation](post_training_evaluation.py)**: Automated evaluation after training
+- **[Evaluation Testing](test_evaluation.py)**: Verification tests for evaluation module
 - **[API Reference](#)**: Module and class documentation
 
 ## 🤝 Contributing
@@ -181,4 +199,4 @@ This project is licensed under the MIT License.
 
 ---
 
-*🔗 Complete federated learning system with LoRA, bidirectional KD, WebSockets, and model synchronization*
+*🔗 Complete federated learning system with LoRA, bidirectional KD, WebSockets, model synchronization, and comprehensive evaluation*
