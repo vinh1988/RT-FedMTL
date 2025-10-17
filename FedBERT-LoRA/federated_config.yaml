@@ -1,0 +1,62 @@
+# Enhanced Federated Learning Configuration (YAML Format)
+# Complete configuration for LoRA + KD + Synchronization system
+
+model:
+  server_model: "bert-base-uncased"  # Teacher model (BERT-base)
+  client_model: "prajjwal1/bert-tiny"  # Student model (Tiny-BERT)
+
+lora:
+  rank: 8                           # LoRA rank for parameter efficiency
+  alpha: 16.0                      # LoRA scaling factor
+  dropout: 0.1                     # LoRA dropout rate
+
+knowledge_distillation:
+  temperature: 3.0                 # KD temperature scaling
+  alpha: 0.5                      # KD loss weighting (soft vs hard)
+  bidirectional: true              # Enable bidirectional KD
+
+synchronization:
+  enabled: true                    # Enable model synchronization
+  frequency: "per_round"          # Sync frequency
+  global_model_sharing: true      # Share global model with clients
+
+training:
+  num_rounds: 2                   # Number of federated rounds
+  min_clients: 1                  # Minimum clients required
+  max_clients: 3                  # Maximum clients supported
+  local_epochs: 1                 # Local epochs per round
+  batch_size: 8                   # Batch size for training
+  learning_rate: 0.0002          # Learning rate
+
+task_configs:
+  sst2:                          # SST-2 sentiment analysis
+    train_samples: 50            # Training samples
+    val_samples: 10              # Validation samples
+    random_seed: 42              # Reproducibility
+
+  qqp:                           # QQP question pairs
+    train_samples: 30            # Training samples
+    val_samples: 6               # Validation samples
+    random_seed: 42              # Reproducibility
+
+  stsb:                          # STSB semantic similarity
+    train_samples: 20            # Training samples
+    val_samples: 4               # Validation samples
+    random_seed: 42              # Reproducibility
+
+communication:
+  port: 8771                     # WebSocket server port
+  timeout: 60                    # Client timeout (seconds)
+  websocket_timeout: 30          # WebSocket timeout (seconds)
+  retry_attempts: 3              # Retry attempts
+
+output:
+  results_dir: "federated_results"  # Results directory
+  log_level: "INFO"              # Logging level
+  save_checkpoints: true         # Save model checkpoints
+
+monitoring:
+  enable_gpu_monitoring: true     # Track GPU/CPU usage
+  enable_validation_tracking: true # Track validation metrics
+  resource_sampling_interval: 10  # Seconds between samples
+  save_resource_logs: true       # Save resource usage logs

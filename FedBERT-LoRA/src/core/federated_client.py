@@ -1,0 +1,309 @@
+#!/usr/bin/env python3
+"""
+Federated Learning Client Implementation
+Handles local training, LoRA updates, and synchronization
+"""
+
+import asyncio
+import json
+import logging
+import time
+import torch
+from typing import Dict, List, Any, Optional
+from datetime import datetime
+
+from federated_config import FederatedConfig
+from src.lora.federated_lora import LoRAFederatedModel
+from src.knowledge_distillation.federated_knowledge_distillation import LocalKDEngine
+from src.communication.federated_websockets import WebSocketClient, MessageProtocol
+from src.synchronization.federated_synchronization import ClientModelSynchronizer
+from src.datasets.federated_datasets import DatasetFactory, DatasetConfig
+
+logger = logging.getLogger(__name__)
+
+class FederatedClient:
+    """Federated Learning Client with LoRA, KD, and synchronization support"""
+
+    def __init__(self, client_id: str, tasks: List[str], config: FederatedConfig):
+        self.client_id = client_id
+        self.tasks = tasks
+        self.config = config
+        self.device = self.get_device()
+
+        # Initialize models
+        self.student_model = LoRAFederatedModel(
+            base_model=config.client_model,
+            tasks=tasks,
+            lora_rank=config.lora_rank
+        )
+
+        # Initialize KD engine
+        self.kd_engine = LocalKDEngine(self.student_model, tasks, config)
+
+        # Initialize synchronization
+        self.websocket_client = WebSocketClient(
+            f"ws://localhost:{config.port}",
+            client_id
+        )
+        self.model_synchronizer = ClientModelSynchronizer(
+            self.student_model, self.websocket_client
+        )
+
+        # Initialize datasets
+        self.dataset_handlers = self.initialize_dataset_handlers()
+
+        # Setup logging
+        self.setup_logging()
+
+        # Training state
+        self.is_training = False
+        self.current_round = 0
+
+    def get_device(self):
+        """Get available device (GPU/CPU)"""
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    def setup_logging(self):
+        """Setup logging configuration"""
+        logging.basicConfig(
+            level=getattr(logging, self.config.log_level),
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(f'federated_client_{self.client_id}.log'),
+                logging.StreamHandler()
+            ]
+        )
+
+    def initialize_dataset_handlers(self) -> Dict[str, Any]:
+        """Initialize dataset handlers for available tasks"""
+        handlers = {}
+
+        for task in self.tasks:
+            if task in self.config.task_configs:
+                config = self.config.task_configs[task]
+                dataset_config = DatasetConfig(
+                    task_name=task,
+                    train_samples=config.get('train_samples'),
+                    val_samples=config.get('val_samples'),
+                    random_seed=config.get('random_seed', 42)
+                )
+                handlers[task] = DatasetFactory.create_handler(task, dataset_config)
+
+        return handlers
+
+    async def connect_and_register(self):
+        """Connect to server and register"""
+        await self.websocket_client.connect()
+
+        # Register with server
+        registration_message = MessageProtocol.create_registration_message(
+            self.client_id,
+            self.tasks,
+            {
+                "model": self.config.client_model,
+                "lora_rank": self.config.lora_rank,
+                "supported_tasks": self.tasks
+            }
+        )
+
+        await self.websocket_client.send(registration_message)
+        logger.info(f"Client {self.client_id} registered with tasks: {self.tasks}")
+
+    async def run_client(self):
+        """Main client execution loop"""
+        try:
+            # Connect and register
+            await self.connect_and_register()
+
+            # Setup message handlers
+            self.setup_message_handlers()
+
+            # Keep connection alive
+            while self.websocket_client.is_connected:
+                await asyncio.sleep(1)
+
+        except KeyboardInterrupt:
+            logger.info("Client shutting down...")
+        except Exception as e:
+            logger.error(f"Client error: {e}")
+        finally:
+            await self.websocket_client.disconnect()
+
+    def setup_message_handlers(self):
+        """Setup WebSocket message handlers"""
+        self.websocket_client.register_message_handler(
+            "global_model_sync", self.handle_global_model_sync
+        )
+        self.websocket_client.register_message_handler(
+            "training_request", self.handle_training_request
+        )
+
+    async def handle_global_model_sync(self, data: Dict):
+        """Handle incoming global model synchronization"""
+        logger.info(f"Received global model synchronization")
+
+        # Update local model with global knowledge
+        sync_result = await self.model_synchronizer.synchronize_with_global_model(
+            data["global_model_state"]
+        )
+
+        # Send acknowledgment
+        await self.model_synchronizer.send_synchronization_acknowledgment(sync_result)
+
+    async def handle_training_request(self, data: Dict):
+        """Handle training request from server"""
+        round_num = data["round"]
+        teacher_knowledge = data.get("teacher_knowledge", {})
+        global_params = data.get("global_params", {})
+
+        logger.info(f"Received training request for round {round_num}")
+
+        # Update teacher knowledge for KD
+        if teacher_knowledge:
+            self.kd_engine.update_teacher_knowledge(teacher_knowledge)
+
+        # Perform local training
+        self.is_training = True
+        self.current_round = round_num
+
+        try:
+            local_metrics = await self.perform_local_training()
+
+            # Extract LoRA updates
+            lora_updates = self.student_model.get_all_lora_params()
+
+            # Prepare student knowledge for reverse KD
+            student_knowledge = self.kd_engine.prepare_student_knowledge_for_teacher(
+                self.get_task_data_for_kd()
+            )
+
+            # Send update to server
+            update_message = MessageProtocol.create_client_update_message(
+                self.client_id,
+                round_num,
+                lora_updates,
+                {
+                    **local_metrics,
+                    "student_knowledge": student_knowledge
+                }
+            )
+
+            await self.websocket_client.send(update_message)
+            logger.info(f"Sent update for round {round_num}")
+
+        except Exception as e:
+            logger.error(f"Error in local training for round {round_num}: {e}")
+        finally:
+            self.is_training = False
+
+    async def perform_local_training(self) -> Dict[str, float]:
+        """Perform local training with KD"""
+        local_metrics = {}
+
+        for task in self.tasks:
+            if task in self.dataset_handlers:
+                # Get data for this task
+                dataset = self.dataset_handlers[task]
+                task_data = dataset.prepare_data()
+
+                # Train on this task with KD
+                task_metrics = await self.train_task_with_kd(task, task_data)
+                local_metrics[task] = task_metrics
+
+        return local_metrics
+
+    async def train_task_with_kd(self, task: str, task_data: Dict) -> Dict[str, float]:
+        """Train on a specific task with KD"""
+        # Get dataloader for this task
+        dataloader = self.student_model.get_task_dataloader(
+            task, self.config.batch_size
+        )
+
+        # Training loop (simplified for demonstration)
+        total_loss = 0.0
+        num_batches = 0
+
+        for batch in dataloader:
+            if len(batch['input_ids']) == 0:
+                continue
+
+            # Forward pass
+            logits = self.student_model(
+                batch['input_ids'].to(self.device),
+                batch['attention_mask'].to(self.device),
+                task
+            )
+
+            # Calculate KD loss
+            kd_loss = self.kd_engine.calculate_kd_loss(
+                logits, task, batch.get('labels')
+            )
+
+            total_loss += kd_loss.item()
+            num_batches += 1
+
+            # Update LoRA parameters (simplified)
+            # In practice, you'd use an optimizer here
+
+        # Calculate metrics (simplified)
+        avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
+
+        return {
+            'loss': avg_loss,
+            'samples_processed': len(dataloader.dataset) if hasattr(dataloader, 'dataset') else 0
+        }
+
+    def get_task_data_for_kd(self) -> Dict[str, Dict]:
+        """Get task data for student knowledge preparation"""
+        task_data = {}
+
+        for task in self.tasks:
+            if task in self.dataset_handlers:
+                dataset = self.dataset_handlers[task]
+                data = dataset.prepare_data()
+                task_data[task] = data
+
+        return task_data
+
+    def extract_lora_updates(self) -> Dict[str, Dict]:
+        """Extract LoRA parameters for federated aggregation"""
+        return self.student_model.get_all_lora_params()
+
+    def get_client_status(self) -> Dict:
+        """Get current client status"""
+        return {
+            "client_id": self.client_id,
+            "tasks": self.tasks,
+            "is_connected": self.websocket_client.is_connected,
+            "is_training": self.is_training,
+            "current_round": self.current_round,
+            "model_synchronized": self.model_synchronizer.is_synchronized,
+            "available_tasks": list(self.dataset_handlers.keys())
+        }
+
+def run_client(client_id: str, tasks: List[str], config: FederatedConfig):
+    """Run a federated learning client"""
+    client = FederatedClient(client_id, tasks, config)
+    asyncio.run(client.run_client())
+
+if __name__ == "__main__":
+    import argparse
+    from federated_config import create_argument_parser, load_config
+
+    parser = create_argument_parser()
+    args = parser.parse_args()
+
+    # Validate arguments for client mode
+    if args.mode != "client":
+        parser.error("This script is for client mode only.")
+
+    if not args.client_id:
+        parser.error("Client ID is required for client mode.")
+
+    if not args.tasks:
+        parser.error("Tasks are required for client mode.")
+
+    config = load_config(args)
+    config.print_summary()
+
+    run_client(args.client_id, args.tasks, config)

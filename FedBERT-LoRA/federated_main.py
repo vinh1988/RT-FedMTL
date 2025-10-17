@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""
+Federated Learning Main Entry Point
+Orchestrates server and client modes with modular architecture
+"""
+
+import asyncio
+import argparse
+import sys
+from typing import List
+
+# Import from the modular structure
+from federated_config import FederatedConfig, load_config
+from src.core.federated_server import run_server
+from src.core.federated_client import run_client
+
+def create_argument_parser() -> argparse.ArgumentParser:
+    """Create command line argument parser"""
+    parser = argparse.ArgumentParser(description="Federated Learning System with LoRA & KD")
+
+    # Mode selection
+    parser.add_argument("--mode", choices=["server", "client"], required=True,
+                       help="Run mode: server or client")
+
+    # Configuration
+    parser.add_argument("--config", type=str, help="Path to configuration file")
+    parser.add_argument("--config-file", type=str, default="federated_config.yaml",
+                       help="Configuration file name")
+
+    # Common arguments
+    parser.add_argument("--port", type=int, default=8771, help="Server port")
+    parser.add_argument("--rounds", type=int, default=2, help="Number of training rounds")
+    parser.add_argument("--samples", type=int, default=100, help="Samples per client")
+
+    # Client-specific arguments
+    parser.add_argument("--client_id", type=str, help="Client ID (required for client mode)")
+    parser.add_argument("--tasks", nargs='+', choices=["sst2", "qqp", "stsb"],
+                       help="Task names for client (space-separated)")
+
+    # Advanced arguments
+    parser.add_argument("--log_level", type=str, default="INFO",
+                       choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+                       help="Logging level")
+
+    # LoRA arguments
+    parser.add_argument("--lora_rank", type=int, default=8, help="LoRA rank")
+    parser.add_argument("--lora_alpha", type=float, default=16.0, help="LoRA alpha")
+
+    # KD arguments
+    parser.add_argument("--kd_temperature", type=float, default=3.0, help="KD temperature")
+    parser.add_argument("--kd_alpha", type=float, default=0.5, help="KD alpha")
+
+    return parser
+
+def main():
+    """Main entry point"""
+    parser = create_argument_parser()
+    args = parser.parse_args()
+
+    try:
+        # Load configuration
+        config = load_config(args)
+
+        # Override config with command line arguments
+        if args.port != 8771:
+            config.port = args.port
+        if args.rounds != 2:
+            config.num_rounds = args.rounds
+        if args.samples != 100:
+            config.samples_per_client = args.samples
+        if args.log_level != "INFO":
+            config.log_level = args.log_level
+        if args.lora_rank != 8:
+            config.lora_rank = args.lora_rank
+        if args.lora_alpha != 16.0:
+            config.lora_alpha = args.lora_alpha
+        if args.kd_temperature != 3.0:
+            config.kd_temperature = args.kd_temperature
+        if args.kd_alpha != 0.5:
+            config.kd_alpha = args.kd_alpha
+
+        # Print configuration summary
+        print("🔧 Federated Learning Configuration (Enhanced)")
+        print("=" * 60)
+        print(f"📊 Model: {config.server_model} (server), {config.client_model} (client)")
+        print(f"🔧 LoRA: Rank={config.lora_rank}, Alpha={config.lora_alpha}")
+        print(f"👨‍🏫 KD: T={config.kd_temperature}, α={config.kd_alpha}, Bidirectional={config.bidirectional_kd}")
+        print(f"🔄 Sync: {'Enabled' if config.enable_synchronization else 'Disabled'} ({config.sync_frequency})")
+        print(f"🎯 Training: {config.num_rounds} rounds, {config.local_epochs} epochs, batch_size={config.batch_size}")
+        print(f"📚 Data: {config.samples_per_client} samples/client, distribution={config.data_distribution}")
+        print(f"🌐 Communication: Port {config.port}, timeout={config.timeout}s")
+        print(f"📁 Output: Results in '{config.results_dir}', log_level={config.log_level}")
+        print("=" * 60)
+
+        # Run federated system
+        if args.mode == "server":
+            print("🖥️ Starting Federated Server...")
+            asyncio.run(run_server(config))
+        else:
+            print(f"👥 Starting Federated Client: {args.client_id}...")
+            if not args.client_id:
+                print("❌ Error: Client ID is required for client mode")
+                sys.exit(1)
+            if not args.tasks:
+                print("❌ Error: Tasks are required for client mode")
+                sys.exit(1)
+
+            # Run client in a way that doesn't block
+            client_config = config
+            run_client(args.client_id, args.tasks, client_config)
+
+    except KeyboardInterrupt:
+        print("\n🛑 Interrupted by user")
+        sys.exit(0)
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
