@@ -19,19 +19,22 @@ python federated_main.py --mode server --config federated_config.yaml
 ### 3. Start Clients (in separate terminals)
 ```bash
 # Client 1: SST-2 Sentiment Analysis
-python federated_main.py --mode client --client_id sst2_client --tasks sst2
+python federated_main.py --mode client --client_id sst2_client --tasks sst2 --samples 20
 
-# Client 2: QQP Question Pairs
-python federated_main.py --mode client --client_id qqp_client --tasks qqp
+# Client 2: QQP Question Pairs (use smaller samples to avoid timeout)
+python federated_main.py --mode client --client_id qqp_client --tasks qqp --samples 10
 
 # Client 3: STSB Semantic Similarity
-python federated_main.py --mode client --client_id stsb_client --tasks stsb
+python federated_main.py --mode client --client_id stsb_client --tasks stsb --samples 20
 ```
 
 ### 4. Monitor Results
 ```bash
-# Check results
+# Check global results
 cat federated_results/federated_results_*.csv
+
+# Check individual client results
+cat federated_results/client_results_*.csv
 
 # View logs
 tail -f federated_server_*.log
@@ -130,7 +133,7 @@ python federated_main.py --mode client --client_id client_1 --samples 200
 
 ## 📊 Results Structure
 
-### Training Metrics
+### Global Training Metrics (federated_results_*.csv)
 | Column | Description | Example |
 |--------|-------------|---------|
 | round | Training round | 1 |
@@ -143,6 +146,18 @@ python federated_main.py --mode client --client_id client_1 --samples 200
 | training_time | Round duration (s) | 45.23 |
 | synchronization_events | Sync operations | 2 |
 | global_model_version | Model version | 1 |
+| timestamp | When recorded | 2025-10-17 10:00:01 |
+
+### Individual Client Results (client_results_*.csv)
+| Column | Description | Example |
+|--------|-------------|---------|
+| round | Training round | 1 |
+| client_id | Client identifier | sst2_client |
+| task | Task name | sst2 |
+| accuracy | Client accuracy | 0.75 |
+| loss | Training loss | 0.65 |
+| samples_processed | Samples trained | 50 |
+| correct_predictions | Correct predictions | 38 |
 | timestamp | When recorded | 2025-10-17 10:00:01 |
 
 ## 🔬 Technical Details
@@ -166,6 +181,8 @@ python federated_main.py --mode client --client_id client_1 --samples 200
 2. **Connection Issues**: Check port availability (8771)
 3. **Memory Issues**: Reduce batch size or dataset size
 4. **Timeout Errors**: Increase timeout values in config
+5. **QQP Client Not Participating**: QQP dataset is large (363K samples) - use smaller sample sizes (--samples 10)
+6. **Client Joining Mid-Training**: Clients can join after training starts - they'll participate in subsequent rounds
 
 ### Debug Mode
 ```bash

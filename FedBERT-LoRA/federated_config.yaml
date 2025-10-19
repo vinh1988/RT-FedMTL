@@ -24,6 +24,7 @@ training:
   num_rounds: 5                   # Number of federated rounds
   min_clients: 1                  # Minimum clients required
   max_clients: 3                  # Maximum clients supported
+  expected_clients: 3             # Expected clients to wait for (SST2, QQP, STSB)
   local_epochs: 1                 # Local epochs per round
   batch_size: 8                   # Batch size for training
   learning_rate: 0.0002          # Learning rate

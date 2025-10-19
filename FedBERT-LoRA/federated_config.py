@@ -48,6 +48,7 @@ class FederatedConfig:
     num_rounds: int = 2
     min_clients: int = 1
     max_clients: int = 3
+    expected_clients: int = 3  # Expected number of clients to wait for
     local_epochs: int = 1
     batch_size: int = 8
     learning_rate: float = 0.0002

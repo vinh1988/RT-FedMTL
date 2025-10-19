@@ -56,26 +56,68 @@ class FederatedServer:
         )
 
     def setup_results_management(self):
-        """Setup CSV file for results"""
+        """Setup CSV files for results"""
         os.makedirs(self.config.results_dir, exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Global results file
         self.csv_filename = os.path.join(
             self.config.results_dir,
             f"federated_results_{timestamp}.csv"
         )
-
         self.csv_file = open(self.csv_filename, 'w', newline='')
         self.csv_writer = csv.writer(self.csv_file)
 
-        # Write CSV headers
-        headers = [
+        # Client-specific results file
+        self.client_csv_filename = os.path.join(
+            self.config.results_dir,
+            f"client_results_{timestamp}.csv"
+        )
+        self.client_csv_file = open(self.client_csv_filename, 'w', newline='')
+        self.client_csv_writer = csv.writer(self.client_csv_file)
+
+        # Write CSV headers for global results
+        global_headers = [
             "round", "responses_received", "avg_accuracy", "classification_accuracy",
             "regression_accuracy", "total_clients", "active_clients", "training_time",
             "synchronization_events", "global_model_version", "timestamp"
         ]
-        self.csv_writer.writerow(headers)
+        self.csv_writer.writerow(global_headers)
         self.csv_file.flush()
+
+        # Write CSV headers for client results
+        client_headers = [
+            "round", "client_id", "task", "accuracy", "loss", "samples_processed",
+            "correct_predictions", "timestamp"
+        ]
+        self.client_csv_writer.writerow(client_headers)
+        self.client_csv_file.flush()
+
+    def record_client_results(self, round_num: int, client_id: str, client_metrics: Dict):
+        """Record individual client results"""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Process each task's metrics for this client
+        for task_name, task_metrics in client_metrics.items():
+            # Skip non-task entries like student_knowledge
+            if task_name == "student_knowledge":
+                continue
+                
+            if isinstance(task_metrics, dict):
+                row = [
+                    round_num,
+                    client_id,
+                    task_name,
+                    task_metrics.get('accuracy', 0.0),
+                    task_metrics.get('loss', 0.0),
+                    task_metrics.get('samples_processed', 0),
+                    task_metrics.get('correct_predictions', 0),
+                    timestamp
+                ]
+                self.client_csv_writer.writerow(row)
+        
+        self.client_csv_file.flush()
 
     async def client_handler(self, websocket):
         """Handle individual client connections"""
@@ -157,6 +199,9 @@ class FederatedServer:
             "received_at": datetime.now().isoformat()
         })
 
+        # Record individual client results
+        self.record_client_results(round_num, client_id, metrics)
+
         # Update client last seen
         if client_id in self.connected_clients:
             self.connected_clients[client_id]["last_seen"] = time.time()
@@ -179,21 +224,42 @@ class FederatedServer:
             self.connected_clients[client_id]["last_seen"] = time.time()
 
     async def wait_for_clients(self) -> bool:
-        """Wait for minimum number of clients"""
-        logger.info(f"Waiting for clients... (need {self.config.min_clients})")
+        """Wait for all expected clients to connect before starting training"""
+        # For federated learning, we typically want all clients to participate
+        # Use expected_clients from config, fallback to min_clients
+        expected_clients = getattr(self.config, 'expected_clients', self.config.min_clients)
+        
+        # If we have fewer clients than expected, wait for more to connect
+        # Only proceed if we've been waiting too long (timeout)
+        if expected_clients > len(self.connected_clients):
+            logger.info(f"Waiting for more clients to connect (have {len(self.connected_clients)}, need {expected_clients})")
+        
+        logger.info(f"Waiting for clients... (need {expected_clients}, currently {len(self.connected_clients)})")
 
         start_time = time.time()
-        while len(self.connected_clients) < self.config.min_clients:
+        max_wait_time = 120  # Wait up to 2 minutes for all clients
+        
+        while len(self.connected_clients) < expected_clients:
             elapsed = time.time() - start_time
-            if elapsed > self.config.timeout:
-                logger.warning(f"Timeout waiting for clients after {elapsed:.0f}s")
-                return False
+            if elapsed > max_wait_time:
+                logger.warning(f"Timeout waiting for all clients after {elapsed:.0f}s")
+                logger.warning(f"Proceeding with {len(self.connected_clients)} clients: {list(self.connected_clients.keys())}")
+                break
 
-            logger.info(f"Waiting for clients... ({len(self.connected_clients)}/{self.config.min_clients})")
+            logger.info(f"Waiting for clients... ({len(self.connected_clients)}/{expected_clients})")
+            logger.info(f"Connected clients: {list(self.connected_clients.keys())}")
             await asyncio.sleep(2)
 
-        logger.info(f"Minimum clients reached ({len(self.connected_clients)}), starting training")
-        return True
+        # Only proceed if we have the expected number of clients or timeout occurred
+        if len(self.connected_clients) >= expected_clients:
+            logger.info(f"✅ Starting training with {len(self.connected_clients)} clients: {list(self.connected_clients.keys())}")
+            return True
+        elif len(self.connected_clients) >= self.config.min_clients:
+            logger.warning(f"⚠️ Starting with {len(self.connected_clients)} clients (expected {expected_clients}): {list(self.connected_clients.keys())}")
+            return True
+        else:
+            logger.error(f"❌ Not enough clients connected ({len(self.connected_clients)}/{self.config.min_clients})")
+            return False
 
     async def run_federated_training(self):
         """Main federated training loop with synchronization"""
@@ -265,7 +331,7 @@ class FederatedServer:
         # Finalize training
         self.finalize_training()
 
-    async def wait_for_sync_acknowledgments(self, round_num: int, timeout: int = 30):
+    async def wait_for_sync_acknowledgments(self, round_num: int, timeout: int = 120):
         """Wait for synchronization acknowledgments from clients"""
         start_time = time.time()
         acks_received = set()
@@ -284,26 +350,62 @@ class FederatedServer:
         logger.warning(f"Timeout waiting for sync acknowledgments. Got {len(acks_received)}/{len(self.connected_clients)}")
         return False
 
-    async def collect_client_updates(self, round_num: int, timeout: int = 60):
-        """Collect client updates for a round"""
+    async def collect_client_updates(self, round_num: int, timeout: int = 600):
+        """Collect client updates for a round - wait for ALL connected clients"""
         start_time = time.time()
         updates_received = 0
-        expected_clients = len(self.connected_clients)
+        
+        # Use the expected clients from config, not current connected count
+        # This ensures we wait for all clients that were connected at round start
+        expected_clients = getattr(self.config, 'expected_clients', len(self.connected_clients))
+        
+        if expected_clients == 0:
+            logger.error("No clients expected!")
+            return False
 
-        logger.info(f"Waiting for client updates... (expecting {expected_clients})")
+        logger.info(f"Waiting for client updates... (expecting ALL {expected_clients} clients)")
+        logger.info(f"Currently connected clients: {list(self.connected_clients.keys())}")
 
         while time.time() - start_time < timeout:
             if round_num in self.client_updates:
                 updates_received = len(self.client_updates[round_num])
+                # Extract client IDs from the list of update dictionaries
+                received_clients = [update.get('client_id', 'unknown') for update in self.client_updates[round_num]]
+                missing_clients = [c for c in self.connected_clients.keys() if c not in received_clients]
+                
+                logger.info(f"Updates received: {updates_received}/{expected_clients}")
+                logger.info(f"Received from: {received_clients}")
+                if missing_clients:
+                    logger.info(f"Still waiting for: {missing_clients}")
 
+            # Wait for ALL connected clients to respond
             if updates_received >= expected_clients:
-                logger.info(f"All client updates received ({updates_received}/{expected_clients})")
+                logger.info(f"✅ All client updates received ({updates_received}/{expected_clients})")
                 return True
+
+            # Check if any clients disconnected during waiting
+            current_connected = len(self.connected_clients)
+            if current_connected < expected_clients:
+                logger.warning(f"Client count changed: {current_connected}/{expected_clients}")
+                # Don't reduce expected_clients - we still want to wait for all originally expected clients
+                if current_connected == 0:
+                    logger.error("No clients connected!")
+                    return False
+
+            # Show progress every 30 seconds
+            elapsed = time.time() - start_time
+            if int(elapsed) % 30 == 0 and int(elapsed) > 0:
+                logger.info(f"⏳ Still waiting... {elapsed:.0f}s elapsed, {updates_received}/{expected_clients} updates received")
 
             await asyncio.sleep(2)
 
-        logger.warning(f"Timeout collecting updates. Got {updates_received}/{expected_clients}")
-        return False
+        logger.warning(f"⏰ Timeout collecting updates. Got {updates_received}/{expected_clients}")
+        if updates_received > 0:
+            logger.warning(f"Proceeding with {updates_received} out of {expected_clients} clients")
+            return True
+        else:
+            logger.error("No client updates received!")
+            return False
 
     def generate_sample_inputs_for_kd(self) -> Dict[str, Dict]:
         """Generate sample inputs for teacher knowledge generation"""
@@ -355,8 +457,14 @@ class FederatedServer:
             self.csv_writer.writerow(row)
             self.csv_file.flush()
 
-            # Print progress
+            # Print progress with detailed participation info
+            responses_received = len(self.client_updates[round_num]) if round_num in self.client_updates else 0
+            total_clients = len(self.connected_clients)
+            participating_clients = [update.get('client_id', 'unknown') for update in self.client_updates[round_num]] if round_num in self.client_updates else []
+            
             print(f"🏃 Round {round_num} completed: {metrics['avg_accuracy']:.4f} avg accuracy")
+            print(f"📊 Participation: {responses_received}/{total_clients} clients")
+            print(f"👥 Participating clients: {participating_clients}")
 
     def calculate_aggregated_metrics(self, updates: List[Dict]) -> Dict:
         """Calculate aggregated metrics across all clients"""
@@ -408,7 +516,9 @@ class FederatedServer:
         """Finalize training and create summary"""
         try:
             self.csv_file.close()
-            logger.info(f"Results saved to {self.csv_filename}")
+            self.client_csv_file.close()
+            logger.info(f"Global results saved to {self.csv_filename}")
+            logger.info(f"Client results saved to {self.client_csv_filename}")
 
             # Create summary
             summary_file = os.path.join(self.config.results_dir, "training_summary.txt")
@@ -418,7 +528,8 @@ class FederatedServer:
                 f.write(f"Configuration: LoRA + KD + Synchronization\n")
                 f.write(f"Total Rounds: {self.config.num_rounds}\n")
                 f.write(f"Total Clients: {len(self.connected_clients)}\n")
-                f.write(f"Results File: {self.csv_filename}\n")
+                f.write(f"Global Results File: {os.path.basename(self.csv_filename)}\n")
+                f.write(f"Client Results File: {os.path.basename(self.client_csv_filename)}\n")
                 f.write(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
 
             logger.info(f"Summary saved to {summary_file}")
@@ -439,12 +550,31 @@ class FederatedServer:
             MessageProtocol.CLIENT_UPDATE,
             self.handle_client_update
         )
+        self.websocket_server.register_message_handler(
+            MessageProtocol.HEARTBEAT,
+            self.handle_heartbeat
+        )
 
         # Start server
         await self.websocket_server.start_server(self.client_handler)
 
+        # Start heartbeat task to keep connections alive
+        asyncio.create_task(self._heartbeat_task())
+
         # Run training
         await self.run_federated_training()
+
+    async def _heartbeat_task(self):
+        """Send periodic heartbeats to keep connections alive"""
+        while True:
+            try:
+                if self.connected_clients:
+                    heartbeat_message = MessageProtocol.create_heartbeat_message("server")
+                    await self.websocket_server.broadcast(heartbeat_message)
+                await asyncio.sleep(30)  # Send heartbeat every 30 seconds
+            except Exception as e:
+                logger.error(f"Error in heartbeat task: {e}")
+                await asyncio.sleep(30)
 
 async def run_server(config: FederatedConfig):
     """Run the federated server"""

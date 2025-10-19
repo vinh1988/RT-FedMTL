@@ -33,9 +33,10 @@ class WebSocketServer:
             message_handler,
             "localhost",
             self.port,
-            ping_interval=30,
-            ping_timeout=15,
-            max_size=100 * 1024 * 1024  # 100MB
+            ping_interval=None,  # Disable ping to prevent timeouts
+            ping_timeout=None,   # Disable ping timeout
+            close_timeout=None,  # Disable close timeout
+            max_size=500 * 1024 * 1024  # 500MB for large LoRA updates
         )
         logger.info(f"WebSocket server started on port {self.port}")
 
@@ -111,12 +112,21 @@ class WebSocketClient:
     async def connect(self):
         """Connect to WebSocket server"""
         try:
-            self.websocket = await websockets.connect(self.server_url)
+            self.websocket = await websockets.connect(
+                self.server_url,
+                ping_interval=None,  # Disable ping to prevent timeouts
+                ping_timeout=None,   # Disable ping timeout
+                close_timeout=None,  # Disable close timeout
+                max_size=500 * 1024 * 1024  # 500MB for large LoRA updates
+            )
             self.is_connected = True
             logger.info(f"Client {self.client_id} connected to server at {self.server_url}")
 
             # Start message handling loop
             asyncio.create_task(self._message_loop())
+            
+            # Start connection health check
+            asyncio.create_task(self._connection_health_check())
 
         except Exception as e:
             logger.error(f"Failed to connect client {self.client_id}: {e}")
@@ -130,22 +140,43 @@ class WebSocketClient:
             self.is_connected = False
             logger.info(f"Client {self.client_id} disconnected")
 
-    async def send(self, message: Dict):
-        """Send message to server"""
-        if not self.is_connected or not self.websocket:
-            logger.error(f"Client {self.client_id} not connected")
-            return False
+    async def send(self, message: Dict, max_retries: int = 3):
+        """Send message to server with retry logic"""
+        for attempt in range(max_retries):
+            if not self.is_connected or not self.websocket:
+                logger.warning(f"Client {self.client_id} not connected, attempting reconnection (attempt {attempt + 1}/{max_retries})")
+                try:
+                    await self.connect()
+                except Exception as e:
+                    logger.error(f"Reconnection failed: {e}")
+                    if attempt == max_retries - 1:
+                        logger.error(f"Client {self.client_id} failed to reconnect after {max_retries} attempts")
+                        return False
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                    continue
 
-        try:
-            # Serialize tensors before sending
-            serialized_message = MessageProtocol.serialize_tensors(message)
-            message_str = json.dumps(serialized_message)
-            await self.websocket.send(message_str)
-            return True
-        except Exception as e:
-            logger.error(f"Error sending message from client {self.client_id}: {e}")
-            self.is_connected = False
-            return False
+            try:
+                # Serialize tensors before sending
+                serialized_message = MessageProtocol.serialize_tensors(message)
+                message_str = json.dumps(serialized_message)
+                await self.websocket.send(message_str)
+                logger.info(f"Message sent successfully from client {self.client_id}")
+                return True
+            except websockets.exceptions.ConnectionClosed:
+                logger.warning(f"Connection closed during send, attempting reconnection (attempt {attempt + 1}/{max_retries})")
+                self.is_connected = False
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                    continue
+            except Exception as e:
+                logger.error(f"Error sending message from client {self.client_id}: {e}")
+                self.is_connected = False
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                    continue
+        
+        logger.error(f"Failed to send message after {max_retries} attempts")
+        return False
 
     async def _message_loop(self):
         """Handle incoming messages"""
@@ -173,6 +204,31 @@ class WebSocketClient:
         except Exception as e:
             logger.error(f"Error in message loop for client {self.client_id}: {e}")
             self.is_connected = False
+
+    async def _connection_health_check(self):
+        """Periodic connection health check"""
+        while True:
+            try:
+                await asyncio.sleep(30)  # Check every 30 seconds
+                
+                if not self.is_connected or not self.websocket:
+                    logger.warning(f"Connection lost for client {self.client_id}, attempting reconnection...")
+                    try:
+                        await self.connect()
+                        logger.info(f"Client {self.client_id} reconnected successfully")
+                    except Exception as e:
+                        logger.error(f"Failed to reconnect client {self.client_id}: {e}")
+                else:
+                    # Send a ping to keep connection alive
+                    try:
+                        await self.websocket.ping()
+                    except Exception as e:
+                        logger.warning(f"Ping failed for client {self.client_id}: {e}")
+                        self.is_connected = False
+                        
+            except Exception as e:
+                logger.error(f"Error in connection health check for client {self.client_id}: {e}")
+                await asyncio.sleep(30)
 
 class MessageProtocol:
     """Defines message protocols for federated learning"""
@@ -269,9 +325,9 @@ class MessageProtocol:
         }
 
     @staticmethod
-    def create_client_update_message(client_id: str, round_num: int, lora_updates: Dict, metrics: Dict) -> Dict:
+    def create_client_update_message(client_id: str, round_num: int, lora_updates: Dict, metrics: Dict, student_knowledge: Dict = None) -> Dict:
         """Create client update message"""
-        return {
+        message = {
             "type": MessageProtocol.CLIENT_UPDATE,
             "client_id": client_id,
             "round": round_num,
@@ -279,6 +335,11 @@ class MessageProtocol:
             "metrics": metrics,
             "timestamp": time.time()
         }
+        
+        if student_knowledge is not None:
+            message["student_knowledge"] = student_knowledge
+            
+        return message
 
     @staticmethod
     def create_global_model_sync_message(global_model_state: Dict) -> Dict:

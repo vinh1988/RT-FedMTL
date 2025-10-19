@@ -142,6 +142,9 @@ class FederatedClient:
         self.websocket_client.register_message_handler(
             "registration_ack", self.handle_registration_ack
         )
+        self.websocket_client.register_message_handler(
+            "heartbeat", self.handle_heartbeat
+        )
 
     async def handle_global_model_sync(self, data: Dict):
         """Handle incoming global model synchronization"""
@@ -165,6 +168,12 @@ class FederatedClient:
         else:
             logger.warning(f"Registration rejected: {message}")
 
+    async def handle_heartbeat(self, data: Dict):
+        """Handle heartbeat messages to keep connection alive"""
+        # Send heartbeat response to keep connection alive
+        heartbeat_response = MessageProtocol.create_heartbeat_message(self.client_id)
+        await self.websocket_client.send(heartbeat_response)
+
     async def handle_training_request(self, data: Dict):
         """Handle training request from server"""
         round_num = data["round"]
@@ -172,6 +181,7 @@ class FederatedClient:
         global_params = data.get("global_params", {})
 
         logger.info(f"Received training request for round {round_num}")
+        logger.info(f"Starting training for client {self.client_id} with tasks: {self.tasks}")
 
         # Update teacher knowledge for KD
         if teacher_knowledge:
@@ -204,14 +214,17 @@ class FederatedClient:
                 self.client_id,
                 round_num,
                 lora_updates,
-                {
-                    **local_metrics,
-                    "student_knowledge": student_knowledge
-                }
+                local_metrics,
+                student_knowledge
             )
 
-            await self.websocket_client.send(update_message)
-            logger.info(f"Sent update for round {round_num}")
+            # Use retry logic for sending updates
+            success = await self.websocket_client.send(update_message, max_retries=5)
+            if success:
+                logger.info(f"✅ Training completed and update sent for round {round_num}")
+                logger.info(f"📊 Client {self.client_id} metrics: {local_metrics}")
+            else:
+                logger.error(f"❌ Failed to send update for round {round_num} after retries")
 
         except Exception as e:
             logger.error(f"Error in local training for round {round_num}: {e}")
