@@ -206,7 +206,11 @@ class LoRAFederatedModel(nn.Module):
                 
                 # Convert labels to tensor
                 if not isinstance(labels, torch.Tensor):
-                    labels = torch.tensor(labels, dtype=torch.long)
+                    # Use float for regression tasks (stsb), long for classification
+                    if task in ['stsb']:
+                        labels = torch.tensor(labels, dtype=torch.float32)
+                    else:
+                        labels = torch.tensor(labels, dtype=torch.long)
                 
                 # Ensure all tensors have the same batch size
                 min_length = min(len(input_ids), len(attention_mask), len(labels))

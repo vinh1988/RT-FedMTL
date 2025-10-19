@@ -139,6 +139,7 @@ class FederatedConfig:
             ('training', 'num_rounds'): 'num_rounds',
             ('training', 'min_clients'): 'min_clients',
             ('training', 'max_clients'): 'max_clients',
+            ('training', 'expected_clients'): 'expected_clients',
             ('training', 'local_epochs'): 'local_epochs',
             ('training', 'batch_size'): 'batch_size',
             ('training', 'learning_rate'): 'learning_rate',
@@ -176,7 +177,10 @@ class FederatedConfig:
             for key, value in d.items():
                 current_key = prefix + (key,)
 
-                if isinstance(value, dict):
+                # Special handling for task_configs - keep it as a nested dict
+                if current_key == ('task_configs',):
+                    flattened['task_configs'] = value
+                elif isinstance(value, dict) and current_key not in [('task_configs',)]:
                     flatten_dict(value, current_key)
                 elif current_key in key_mapping:
                     flattened[key_mapping[current_key]] = value

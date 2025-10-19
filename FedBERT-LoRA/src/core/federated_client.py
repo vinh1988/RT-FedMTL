@@ -39,6 +39,20 @@ class FederatedClient:
         # Move model to device
         self.student_model = self.student_model.to(self.device)
 
+        # Initialize optimizer for training
+        self.optimizer = torch.optim.AdamW(
+            self.student_model.parameters(),
+            lr=config.learning_rate,
+            weight_decay=0.01
+        )
+        
+        # Initialize learning rate scheduler
+        self.scheduler = torch.optim.lr_scheduler.StepLR(
+            self.optimizer, 
+            step_size=1, 
+            gamma=0.9
+        )
+
         # Initialize KD engine
         self.kd_engine = LocalKDEngine(self.student_model, tasks, config)
 
@@ -254,6 +268,11 @@ class FederatedClient:
             task, self.config.batch_size, dataset_data=task_data
         )
 
+        # Set model to training mode
+        self.student_model.train()
+        
+        logger.info(f"🚀 Starting training for task {task} with {len(dataloader)} batches")
+
         # Training loop with proper metrics calculation
         total_loss = 0.0
         num_batches = 0
@@ -274,6 +293,9 @@ class FederatedClient:
             if len(input_ids) == 0:
                 continue
 
+            # Zero gradients
+            self.optimizer.zero_grad()
+
             # Forward pass
             logits = self.student_model(
                 input_ids,
@@ -286,21 +308,35 @@ class FederatedClient:
                 logits, task, labels
             )
 
+            # Backward pass
+            kd_loss.backward()
+            
+            # Update parameters
+            self.optimizer.step()
+
             total_loss += kd_loss.item()
             num_batches += 1
+
+            # Log progress every few batches
+            if num_batches % 5 == 0:
+                logger.info(f"📊 Task {task} - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
 
             # Calculate predictions and accuracy
             with torch.no_grad():
                 if task == 'stsb':  # Regression task
                     predictions = logits.squeeze()
-                    # For regression, use a simple threshold-based accuracy
-                    # (this is a simplified metric for demonstration)
-                    pred_labels = (predictions > 0.5).long()
+                    # For regression, use a tolerance-based accuracy
+                    # Consider predictions "correct" if they're within 0.1 of the true label
                     if labels.dim() == 0:
                         labels_reshaped = labels.unsqueeze(0)
                     else:
                         labels_reshaped = labels
-                    correct_predictions += (pred_labels == (labels_reshaped > 0.5).long()).sum().item()
+                    
+                    # Calculate tolerance-based accuracy for regression
+                    # Use a stricter tolerance for normalized 0-1 data
+                    tolerance = 0.05  # Within 0.05 of true value (5% tolerance)
+                    pred_reshaped = predictions.unsqueeze(0) if predictions.dim() == 0 else predictions
+                    correct_predictions += (torch.abs(pred_reshaped - labels_reshaped) <= tolerance).sum().item()
                 else:  # Classification tasks
                     predictions = torch.argmax(logits, dim=1)
                     correct_predictions += (predictions == labels).sum().item()
@@ -309,19 +345,66 @@ class FederatedClient:
                 all_predictions.extend(predictions.cpu().numpy())
                 all_labels.extend(labels.cpu().numpy())
 
-            # Update LoRA parameters (simplified)
-            # In practice, you'd use an optimizer here
+        # Update learning rate scheduler
+        self.scheduler.step()
 
         # Calculate metrics
         avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
         accuracy = correct_predictions / total_samples if total_samples > 0 else 0.0
+        
+        logger.info(f"✅ Task {task} training completed - Loss: {avg_loss:.4f}, Accuracy: {accuracy:.4f}")
 
-        return {
+        # Add regression-specific metrics for STSB
+        metrics = {
             'loss': avg_loss,
             'accuracy': accuracy,
             'samples_processed': total_samples,
             'correct_predictions': correct_predictions
         }
+        
+        if task == 'stsb' and len(all_predictions) > 0 and len(all_labels) > 0:
+            # Calculate additional regression metrics
+            import numpy as np
+            pred_array = np.array(all_predictions)
+            label_array = np.array(all_labels)
+            
+            # Mean Absolute Error
+            mae = np.mean(np.abs(pred_array - label_array))
+            # Mean Squared Error
+            mse = np.mean((pred_array - label_array) ** 2)
+            # Root Mean Squared Error
+            rmse = np.sqrt(mse)
+            
+            # Correlation coefficient (handle edge cases)
+            if len(pred_array) > 1 and np.std(pred_array) > 0 and np.std(label_array) > 0:
+                correlation = np.corrcoef(pred_array, label_array)[0, 1]
+                if np.isnan(correlation):
+                    correlation = 0.0
+            else:
+                correlation = 0.0
+            
+            # For regression, use correlation as the primary accuracy metric
+            # Convert correlation to 0-1 scale (correlation ranges from -1 to 1)
+            regression_accuracy = max(0, correlation)  # Clamp negative correlations to 0
+            
+            # For regression, correct_predictions doesn't make sense in the traditional way
+            # We'll use a tolerance-based count for correct_predictions but keep correlation for accuracy
+            # This provides both meaningful accuracy (correlation) and a count metric
+            tolerance = 0.1  # 10% tolerance for "correct" predictions
+            tolerance_correct = np.sum(np.abs(pred_array - label_array) <= tolerance)
+            
+            logger.info(f"📈 STSB Regression Metrics - MAE: {mae:.4f}, MSE: {mse:.4f}, Correlation: {correlation:.4f}")
+            
+            metrics.update({
+                'accuracy': float(regression_accuracy),  # Correlation-based accuracy
+                'correct_predictions': int(tolerance_correct),  # Tolerance-based correct count
+                'mae': float(mae),
+                'mse': float(mse),
+                'rmse': float(rmse),
+                'correlation': float(correlation)
+            })
+
+        return metrics
 
     def get_task_data_for_kd(self) -> Dict[str, Dict]:
         """Get task data for student knowledge preparation"""
