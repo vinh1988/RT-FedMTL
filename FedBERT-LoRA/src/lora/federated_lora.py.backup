@@ -45,29 +45,22 @@ class LoRALayer(nn.Module):
         # For classification, we need to project to output dimensions
         batch_size = x.size(0)
 
-        # Handle both 2D (batch_size, hidden_size) and 3D (batch_size, seq_len, hidden_size) inputs
-        if x.dim() == 3:
-            # 3D input: (batch_size, seq_len, hidden_size)
-            x_flat = x.view(-1, x.size(-1))  # (batch_size * seq_len, hidden_size)
-            has_sequence = True
-        else:
-            # 2D input: (batch_size, hidden_size) - this is what we get from [CLS] token
-            x_flat = x  # (batch_size, hidden_size)
-            has_sequence = False
+        # Reshape for matrix multiplication
+        x_flat = x.view(-1, x.size(-1))  # (batch_size * seq_len, hidden_size)
 
         # Apply LoRA transformation: (x @ A^T) @ B^T * scaling
         lora_A_T = self.lora_A.T  # (in_features, rank)
         lora_B_T = self.lora_B.T  # (rank, out_features)
 
         # Compute: (x @ A^T) @ B^T * scaling
-        intermediate = x_flat @ lora_A_T  # (batch_size, rank) or (batch_size * seq_len, rank)
-        lora_output = intermediate @ lora_B_T * self.scaling  # (batch_size, out_features) or (batch_size * seq_len, out_features)
+        intermediate = x_flat @ lora_A_T  # (batch_size * seq_len, rank)
+        lora_output_flat = intermediate @ lora_B_T * self.scaling  # (batch_size * seq_len, out_features)
 
         # Reshape back to include sequence dimension if needed
-        if has_sequence:
-            lora_output = lora_output.view(batch_size, -1, self.out_features)
+        if len(x.shape) == 3:
+            lora_output_flat = lora_output_flat.view(batch_size, -1, self.out_features)
 
-        return lora_output
+        return lora_output_flat
 
     def get_lora_params(self) -> Dict[str, torch.Tensor]:
         """Get LoRA parameters for serialization"""
@@ -80,10 +73,8 @@ class LoRALayer(nn.Module):
 
     def load_lora_params(self, params: Dict[str, torch.Tensor]):
         """Load LoRA parameters from serialized data"""
-        # Ensure parameters are on the same device as the current parameters
-        device = self.lora_A.device
-        self.lora_A.data = params['lora_A'].clone().to(device)
-        self.lora_B.data = params['lora_B'].clone().to(device)
+        self.lora_A.data = params['lora_A'].clone()
+        self.lora_B.data = params['lora_B'].clone()
         self.rank = params['rank']
         self.alpha = params['alpha']
 
@@ -135,24 +126,13 @@ class LoRAFederatedModel(nn.Module):
         )
 
         # Get hidden states from last layer
-        hidden_states = outputs.hidden_states[-1]  # (batch_size, seq_len, hidden_size)
+        hidden_states = outputs.hidden_states[-1]
 
         # Apply task-specific LoRA adaptation
         if task_name in self.task_adapters:
-            # LoRA layer expects (batch_size, hidden_size) or (batch_size, seq_len, hidden_size)
-            # For BERT, we typically use the [CLS] token or pool the sequence
-            if hidden_states.dim() == 3:
-                # Use [CLS] token for classification: (batch_size, hidden_size)
-                cls_hidden = hidden_states[:, 0, :]  # Take first token
-            else:
-                cls_hidden = hidden_states
-
-            lora_output = self.task_adapters[task_name](cls_hidden)
-
-            # Ensure output is 2D: (batch_size, num_labels)
-            if lora_output.dim() == 3:
-                lora_output = lora_output.squeeze(1)  # Remove sequence dimension if present
-
+            lora_output = self.task_adapters[task_name](hidden_states)
+            # For KD compatibility, we return only the LoRA-adapted output
+            # The base model logits are not used in the final output
             combined_logits = lora_output
         else:
             # Fallback to base model logits if no adapter found
@@ -176,43 +156,26 @@ class LoRAFederatedModel(nn.Module):
     def get_task_dataloader(self, task: str, batch_size: int = 8, dataset_data: Dict = None):
         """Get DataLoader for a specific task"""
         from torch.utils.data import DataLoader, TensorDataset
-        from transformers import AutoTokenizer
 
         if dataset_data is not None:
-            # Tokenize the text data properly
-            texts = dataset_data.get('texts', [])
-            labels = dataset_data.get('labels', [])
-            
-            if not texts or not labels:
-                # Fallback to dummy data if no real data
-                input_ids = torch.randint(0, 1000, (10, 128), dtype=torch.long)
-                attention_mask = torch.ones(10, 128, dtype=torch.long)
-                labels = torch.randint(0, 2, (10,), dtype=torch.long)
-            else:
-                # Tokenize the texts
-                tokenizer = AutoTokenizer.from_pretrained(self.base_model.config.name_or_path)
-                
-                # Tokenize all texts
-                tokenized = tokenizer(
-                    texts,
-                    padding=True,
-                    truncation=True,
-                    max_length=128,
-                    return_tensors="pt"
-                )
-                
-                input_ids = tokenized['input_ids']
-                attention_mask = tokenized['attention_mask']
-                
-                # Convert labels to tensor
-                if not isinstance(labels, torch.Tensor):
-                    labels = torch.tensor(labels, dtype=torch.long)
-                
-                # Ensure all tensors have the same batch size
-                min_length = min(len(input_ids), len(attention_mask), len(labels))
-                input_ids = input_ids[:min_length]
-                attention_mask = attention_mask[:min_length]
-                labels = labels[:min_length]
+            # Use provided dataset data
+            input_ids = dataset_data.get('input_ids', torch.randint(0, 1000, (10, 128)))
+            attention_mask = dataset_data.get('attention_mask', torch.ones(10, 128))
+            labels = dataset_data.get('labels', torch.randint(0, 2, (10,)))
+
+            # Convert to tensors if they're not already
+            if not isinstance(input_ids, torch.Tensor):
+                input_ids = torch.tensor(input_ids, dtype=torch.long)
+            if not isinstance(attention_mask, torch.Tensor):
+                attention_mask = torch.tensor(attention_mask, dtype=torch.long)
+            if not isinstance(labels, torch.Tensor):
+                labels = torch.tensor(labels, dtype=torch.long)
+
+            # Ensure all tensors have the same batch size
+            min_length = min(len(input_ids), len(attention_mask), len(labels))
+            input_ids = input_ids[:min_length]
+            attention_mask = attention_mask[:min_length]
+            labels = labels[:min_length]
         else:
             # Create dummy data for demonstration (fallback)
             input_ids = torch.randint(0, 1000, (10, 128), dtype=torch.long)

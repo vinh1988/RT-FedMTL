@@ -21,7 +21,7 @@ synchronization:
   global_model_sharing: true      # Share global model with clients
 
 training:
-  num_rounds: 2                   # Number of federated rounds
+  num_rounds: 5                   # Number of federated rounds
   min_clients: 1                  # Minimum clients required
   max_clients: 3                  # Maximum clients supported
   local_epochs: 1                 # Local epochs per round

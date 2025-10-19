@@ -8,6 +8,7 @@ import asyncio
 import json
 import logging
 import websockets
+import torch
 from typing import Dict, List, Any, Callable
 import time
 
@@ -44,7 +45,9 @@ class WebSocketServer:
             logger.warning("No clients connected for broadcast")
             return
 
-        message_str = json.dumps(message)
+        # Serialize tensors before broadcasting
+        serialized_message = MessageProtocol.serialize_tensors(message)
+        message_str = json.dumps(serialized_message)
         disconnected_clients = []
 
         for client_id, client in self.clients.items():
@@ -68,7 +71,9 @@ class WebSocketServer:
             return False
 
         try:
-            message_str = json.dumps(message)
+            # Serialize tensors before sending
+            serialized_message = MessageProtocol.serialize_tensors(message)
+            message_str = json.dumps(serialized_message)
             await self.clients[client_id].send(message_str)
             return True
         except Exception as e:
@@ -132,7 +137,9 @@ class WebSocketClient:
             return False
 
         try:
-            message_str = json.dumps(message)
+            # Serialize tensors before sending
+            serialized_message = MessageProtocol.serialize_tensors(message)
+            message_str = json.dumps(serialized_message)
             await self.websocket.send(message_str)
             return True
         except Exception as e:
@@ -146,6 +153,8 @@ class WebSocketClient:
             async for message in self.websocket:
                 try:
                     data = json.loads(message)
+                    # Deserialize tensors in received messages
+                    data = MessageProtocol.deserialize_tensors(data, device="cpu")
                     message_type = data.get("type")
 
                     if message_type in self.message_handlers:
@@ -185,6 +194,57 @@ class MessageProtocol:
     HEARTBEAT = "heartbeat"
     ERROR = "error"
     DISCONNECT = "disconnect"
+
+    @staticmethod
+    def serialize_tensors(data: Dict) -> Dict:
+        """Convert tensors to JSON-serializable format"""
+        if isinstance(data, dict):
+            return {k: MessageProtocol.serialize_tensors(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [MessageProtocol.serialize_tensors(item) for item in data]
+        elif isinstance(data, torch.Tensor):
+            return {
+                "__tensor__": True,
+                "data": data.detach().cpu().tolist(),
+                "shape": list(data.shape),
+                "dtype": str(data.dtype)
+            }
+        else:
+            return data
+
+    @staticmethod
+    def deserialize_tensors(data: Dict, device: str = "cpu") -> Dict:
+        """Convert serialized tensors back to torch tensors"""
+        if isinstance(data, dict):
+            if "__tensor__" in data:
+                # Reconstruct tensor
+                dtype_str = data["dtype"]
+                # Handle different dtype formats
+                if dtype_str.startswith("torch."):
+                    dtype_str = dtype_str[6:]  # Remove "torch." prefix
+                
+                # Map string to torch dtype
+                dtype_map = {
+                    "float32": torch.float32,
+                    "float64": torch.float64,
+                    "int32": torch.int32,
+                    "int64": torch.int64,
+                    "long": torch.long,
+                    "float": torch.float,
+                    "double": torch.double,
+                    "int": torch.int
+                }
+                
+                dtype = dtype_map.get(dtype_str, torch.float32)
+                tensor_data = torch.tensor(data["data"], dtype=dtype)
+                tensor_data = tensor_data.reshape(data["shape"])
+                return tensor_data.to(device)
+            else:
+                return {k: MessageProtocol.deserialize_tensors(v, device) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [MessageProtocol.deserialize_tensors(item, device) for item in data]
+        else:
+            return data
 
     @staticmethod
     def create_registration_message(client_id: str, tasks: List[str], capabilities: Dict) -> Dict:

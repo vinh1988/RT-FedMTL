@@ -93,6 +93,7 @@ class FederatedConfig:
                 }
             }
 
+    @classmethod
     def from_yaml_file(cls, config_path: str) -> 'FederatedConfig':
         """Load configuration from YAML file"""
         if not os.path.exists(config_path):
@@ -107,6 +108,7 @@ class FederatedConfig:
         # Create config instance
         return cls(**flattened_config)
 
+    @classmethod
     def _flatten_config_dict(cls, config_dict: Dict) -> Dict:
         """Flatten nested dictionary to match dataclass field names"""
         flattened = {}

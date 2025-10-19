@@ -50,9 +50,29 @@ class SynchronizationManager:
 
     def get_global_model_state(self) -> Dict:
         """Get current global model state for synchronization"""
+        # Convert tensors to JSON-serializable format
+        serializable_teacher_logits = {}
+        if hasattr(self.server, 'global_teacher_logits'):
+            for task, tensor in self.server.global_teacher_logits.items():
+                if isinstance(tensor, torch.Tensor):
+                    serializable_teacher_logits[task] = tensor.tolist()
+                else:
+                    serializable_teacher_logits[task] = tensor
+
+        serializable_lora_params = {}
+        if hasattr(self.server, 'global_lora_params'):
+            for task, params in self.server.global_lora_params.items():
+                serializable_task_params = {}
+                for param_name, param_value in params.items():
+                    if isinstance(param_value, torch.Tensor):
+                        serializable_task_params[param_name] = param_value.tolist()
+                    else:
+                        serializable_task_params[param_name] = param_value
+                serializable_lora_params[task] = serializable_task_params
+
         return {
-            "teacher_logits": getattr(self.server, 'global_teacher_logits', {}),
-            "global_lora_params": getattr(self.server, 'global_lora_params', {}),
+            "teacher_logits": serializable_teacher_logits,
+            "global_lora_params": serializable_lora_params,
             "model_version": self.global_model_version,
             "aggregation_round": getattr(self.server, 'current_round', 0)
         }
@@ -105,7 +125,21 @@ class ClientModelSynchronizer:
             # Update local knowledge base with global teacher knowledge
             global_teacher_logits = global_state.get("teacher_logits", {})
             if global_teacher_logits:
-                self.local_model.update_with_global_knowledge(global_teacher_logits)
+                # Convert lists back to tensors
+                tensor_logits = {}
+                for task, logits_list in global_teacher_logits.items():
+                    if isinstance(logits_list, list):
+                        # Get device from the model's parameters
+                        model_device = next(self.local_model.parameters()).device
+                        tensor_logits[task] = torch.tensor(logits_list, device=model_device)
+                    else:
+                        # Ensure existing tensors are on the correct device
+                        if isinstance(logits_list, torch.Tensor):
+                            model_device = next(self.local_model.parameters()).device
+                            tensor_logits[task] = logits_list.to(model_device)
+                        else:
+                            tensor_logits[task] = logits_list
+                self.local_model.update_with_global_knowledge(tensor_logits)
 
             # Update cache
             self.global_model_cache = global_state
@@ -142,8 +176,23 @@ class ClientModelSynchronizer:
         """Update local LoRA parameters with global parameters"""
         for task, lora_params in global_lora_params.items():
             if task in self.local_model.task_adapters:
+                # Convert lists back to tensors for LoRA parameters
+                tensor_params = {}
+                for param_name, param_value in lora_params.items():
+                    if isinstance(param_value, list):
+                        # Get device from the model's parameters
+                        model_device = next(self.local_model.parameters()).device
+                        tensor_params[param_name] = torch.tensor(param_value, device=model_device)
+                    else:
+                        # Ensure existing tensors are on the correct device
+                        if isinstance(param_value, torch.Tensor):
+                            model_device = next(self.local_model.parameters()).device
+                            tensor_params[param_name] = param_value.to(model_device)
+                        else:
+                            tensor_params[param_name] = param_value
+
                 # Update local LoRA with global LoRA
-                self.local_model.task_adapters[task].load_lora_params(lora_params)
+                self.local_model.task_adapters[task].load_lora_params(tensor_params)
                 logger.debug(f"Updated LoRA parameters for task {task}")
 
     async def send_synchronization_acknowledgment(self, sync_result: Dict):

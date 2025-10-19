@@ -20,22 +20,33 @@ class BidirectionalKDManager:
         self.alpha = alpha
         self.distillation_history = []
 
-    def teacher_to_student_kd_loss(self, student_logits, teacher_logits, labels):
+    def teacher_to_student_kd_loss(self, student_logits, teacher_logits, labels, task_type="classification"):
         """Traditional KD: Teacher teaches student"""
-        # Soft targets from teacher
-        soft_teacher = F.softmax(teacher_logits / self.temperature, dim=-1)
-        soft_student = F.log_softmax(student_logits / self.temperature, dim=-1)
-
-        # KL divergence loss for soft targets
-        kd_loss = F.kl_div(soft_student, soft_teacher, reduction='batchmean')
-
-        # Hard loss from ground truth labels
-        if labels is not None:
-            hard_loss = F.cross_entropy(student_logits, labels)
-            # Combined loss
-            total_loss = self.alpha * kd_loss + (1 - self.alpha) * hard_loss
+        if task_type == "regression":
+            # For regression tasks, use MSE loss for both KD and hard loss
+            kd_loss = F.mse_loss(student_logits, teacher_logits)
+            
+            if labels is not None:
+                hard_loss = F.mse_loss(student_logits.squeeze(), labels.float())
+                total_loss = self.alpha * kd_loss + (1 - self.alpha) * hard_loss
+            else:
+                total_loss = kd_loss
         else:
-            total_loss = kd_loss
+            # For classification tasks, use KL divergence
+            # Soft targets from teacher
+            soft_teacher = F.softmax(teacher_logits / self.temperature, dim=-1)
+            soft_student = F.log_softmax(student_logits / self.temperature, dim=-1)
+
+            # KL divergence loss for soft targets
+            kd_loss = F.kl_div(soft_student, soft_teacher, reduction='batchmean')
+
+            # Hard loss from ground truth labels
+            if labels is not None:
+                hard_loss = F.cross_entropy(student_logits, labels)
+                # Combined loss
+                total_loss = self.alpha * kd_loss + (1 - self.alpha) * hard_loss
+            else:
+                total_loss = kd_loss
 
         return total_loss
 
@@ -100,7 +111,11 @@ class LocalKDEngine:
         if task_name not in self.teacher_knowledge_cache:
             # No teacher knowledge available, use only hard loss
             if labels is not None:
-                return F.cross_entropy(student_logits, labels)
+                # Use appropriate loss function based on task type
+                if task_name == 'stsb':  # Regression task
+                    return F.mse_loss(student_logits.squeeze(), labels.float())
+                else:  # Classification tasks
+                    return F.cross_entropy(student_logits, labels)
             return torch.tensor(0.0, device=student_logits.device)
 
         teacher_logits = self.teacher_knowledge_cache[task_name]
@@ -112,7 +127,9 @@ class LocalKDEngine:
             alpha=self.config.kd_alpha
         )
 
-        return kd_manager.teacher_to_student_kd_loss(student_logits, teacher_logits, labels)
+        # Determine task type
+        task_type = "regression" if task_name == "stsb" else "classification"
+        return kd_manager.teacher_to_student_kd_loss(student_logits, teacher_logits, labels, task_type)
 
     def prepare_student_knowledge_for_teacher(self, task_data: Dict) -> Dict[str, torch.Tensor]:
         """Prepare student knowledge to send back to teacher"""
@@ -120,11 +137,29 @@ class LocalKDEngine:
 
         for task_name in self.tasks:
             if task_name in task_data:
+                # Get the data for this task
+                task_data_item = task_data[task_name]
+                
+                # Check if we have tokenized data or need to tokenize
+                if 'input_ids' in task_data_item and 'attention_mask' in task_data_item:
+                    # Data is already tokenized
+                    input_ids = task_data_item['input_ids']
+                    attention_mask = task_data_item['attention_mask']
+                else:
+                    # Data needs tokenization - this shouldn't happen with our current setup
+                    # but we'll handle it gracefully
+                    continue
+                
+                # Ensure tensors are on the correct device
+                device = next(self.student_model.parameters()).device
+                input_ids = input_ids.to(device)
+                attention_mask = attention_mask.to(device)
+                
                 # Generate student predictions for this task
                 with torch.no_grad():
                     student_logits = self.student_model(
-                        task_data[task_name]['input_ids'],
-                        task_data[task_name]['attention_mask'],
+                        input_ids,
+                        attention_mask,
                         task_name
                     )
                     student_knowledge[task_name] = student_logits
@@ -138,7 +173,11 @@ class GlobalKDManager:
         self.teacher_model = teacher_model
         self.config = config
         self.global_knowledge_base = {}
-        self.kd_optimizer = torch.optim.AdamW(self.teacher_model.parameters(), lr=1e-4)
+        self.kd_optimizer = None
+
+        # Only create optimizer if teacher model is available
+        if teacher_model is not None:
+            self.kd_optimizer = torch.optim.AdamW(self.teacher_model.parameters(), lr=1e-4)
 
     def generate_teacher_knowledge(self, sample_inputs: Dict[str, Dict] = None) -> Dict[str, torch.Tensor]:
         """Generate teacher knowledge (soft labels) for all tasks"""
@@ -146,13 +185,24 @@ class GlobalKDManager:
 
         if sample_inputs:
             # Generate knowledge using sample inputs
-            with torch.no_grad():
+            if self.teacher_model is not None:
+                with torch.no_grad():
+                    for task_name, inputs in sample_inputs.items():
+                        teacher_logits = self.teacher_model(
+                            inputs['input_ids'],
+                            inputs['attention_mask']
+                        )
+                        teacher_knowledge[task_name] = teacher_logits
+            else:
+                # Generate placeholder knowledge if no teacher model
                 for task_name, inputs in sample_inputs.items():
-                    teacher_logits = self.teacher_model(
-                        inputs['input_ids'],
-                        inputs['attention_mask']
-                    )
-                    teacher_knowledge[task_name] = teacher_logits
+                    batch_size = inputs['input_ids'].shape[0]
+                    if task_name in ['sst2', 'qqp']:
+                        # Binary classification: (batch_size, 2)
+                        teacher_knowledge[task_name] = torch.randn(batch_size, 2, dtype=torch.float32)
+                    else:
+                        # Regression: (batch_size, 1)
+                        teacher_knowledge[task_name] = torch.randn(batch_size, 1, dtype=torch.float32)
         else:
             # Generate placeholder knowledge (can be enhanced with actual data)
             for task in ['sst2', 'qqp', 'stsb']:
@@ -180,20 +230,22 @@ class GlobalKDManager:
 
             for task_name, student_logits in student_knowledge.items():
                 if task_name in self.global_knowledge_base:
-                    # Teacher learns from student's predictions
-                    teacher_logits = self.teacher_model(student_logits)
+                    # Teacher learns from student's predictions only if teacher model exists
+                    if self.teacher_model is not None:
+                        teacher_logits = self.teacher_model(student_logits)
 
-                    # Reverse KD loss
-                    reverse_loss = F.mse_loss(teacher_logits, student_logits)
+                        # Reverse KD loss
+                        reverse_loss = F.mse_loss(teacher_logits, student_logits)
 
-                    total_loss += reverse_loss.item()
-                    num_updates += 1
+                        total_loss += reverse_loss.item()
+                        num_updates += 1
 
         if num_updates > 0:
-            # Update teacher model
-            avg_loss = total_loss / num_updates
-            self.kd_optimizer.step()
-            self.kd_optimizer.zero_grad()
+            # Update teacher model only if optimizer exists
+            if self.kd_optimizer is not None:
+                avg_loss = total_loss / num_updates
+                self.kd_optimizer.step()
+                self.kd_optimizer.zero_grad()
 
             return {
                 "updated": True,

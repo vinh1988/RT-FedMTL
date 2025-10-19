@@ -241,30 +241,29 @@ class FederatedClient:
             task, self.config.batch_size, dataset_data=task_data
         )
 
-        # Training loop with proper metrics calculation
+        # Training loop (simplified for demonstration)
         total_loss = 0.0
         num_batches = 0
-        all_predictions = []
-        all_labels = []
-        correct_predictions = 0
-        total_samples = 0
 
         for batch in dataloader:
             # Unpack batch tuple (input_ids, attention_mask, labels)
             input_ids, attention_mask, labels = batch
 
-            # Move tensors to the correct device
-            input_ids = input_ids.to(self.device)
-            attention_mask = attention_mask.to(self.device)
-            labels = labels.to(self.device)
+            # Convert to tensors if they're not already, on the correct device
+            if not isinstance(input_ids, torch.Tensor):
+                input_ids = torch.tensor(input_ids, dtype=torch.long, device=self.device)
+            if not isinstance(attention_mask, torch.Tensor):
+                attention_mask = torch.tensor(attention_mask, dtype=torch.long, device=self.device)
+            if not isinstance(labels, torch.Tensor):
+                labels = torch.tensor(labels, dtype=torch.long, device=self.device)
 
             if len(input_ids) == 0:
                 continue
 
             # Forward pass
             logits = self.student_model(
-                input_ids,
-                attention_mask,
+                input_ids.to(self.device),
+                attention_mask.to(self.device),
                 task
             )
 
@@ -276,67 +275,25 @@ class FederatedClient:
             total_loss += kd_loss.item()
             num_batches += 1
 
-            # Calculate predictions and accuracy
-            with torch.no_grad():
-                if task == 'stsb':  # Regression task
-                    predictions = logits.squeeze()
-                    # For regression, use a simple threshold-based accuracy
-                    # (this is a simplified metric for demonstration)
-                    pred_labels = (predictions > 0.5).long()
-                    if labels.dim() == 0:
-                        labels_reshaped = labels.unsqueeze(0)
-                    else:
-                        labels_reshaped = labels
-                    correct_predictions += (pred_labels == (labels_reshaped > 0.5).long()).sum().item()
-                else:  # Classification tasks
-                    predictions = torch.argmax(logits, dim=1)
-                    correct_predictions += (predictions == labels).sum().item()
-                
-                total_samples += labels.size(0)
-                all_predictions.extend(predictions.cpu().numpy())
-                all_labels.extend(labels.cpu().numpy())
-
             # Update LoRA parameters (simplified)
             # In practice, you'd use an optimizer here
 
-        # Calculate metrics
+        # Calculate metrics (simplified)
         avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
-        accuracy = correct_predictions / total_samples if total_samples > 0 else 0.0
 
         return {
             'loss': avg_loss,
-            'accuracy': accuracy,
-            'samples_processed': total_samples,
-            'correct_predictions': correct_predictions
+            'samples_processed': len(task_data.get('input_ids', [])) if task_data else 0
         }
 
     def get_task_data_for_kd(self) -> Dict[str, Dict]:
         """Get task data for student knowledge preparation"""
-        from transformers import AutoTokenizer
-        
         task_data = {}
-        tokenizer = AutoTokenizer.from_pretrained(self.config.client_model)
 
         for task in self.tasks:
             if task in self.dataset_handlers:
                 dataset = self.dataset_handlers[task]
                 data = dataset.prepare_data()
-                
-                # Tokenize the texts for KD
-                texts = data.get('texts', [])
-                if texts:
-                    tokenized = tokenizer(
-                        texts,
-                        padding=True,
-                        truncation=True,
-                        max_length=128,
-                        return_tensors="pt"
-                    )
-                    
-                    # Add tokenized data to the task data
-                    data['input_ids'] = tokenized['input_ids']
-                    data['attention_mask'] = tokenized['attention_mask']
-                
                 task_data[task] = data
 
         return task_data

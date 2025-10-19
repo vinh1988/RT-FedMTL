@@ -12,6 +12,7 @@ import csv
 import os
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+import torch
 
 from federated_config import FederatedConfig
 from src.lora.federated_lora import LoRAAggregator
@@ -76,12 +77,14 @@ class FederatedServer:
         self.csv_writer.writerow(headers)
         self.csv_file.flush()
 
-    async def client_handler(self, websocket, path):
+    async def client_handler(self, websocket):
         """Handle individual client connections"""
         client_id = None
         try:
             async for message in websocket:
                 data = json.loads(message)
+                # Deserialize tensors in received messages
+                data = MessageProtocol.deserialize_tensors(data, device="cpu")
                 message_type = data.get("type")
 
                 if message_type == MessageProtocol.CLIENT_REGISTER:
@@ -99,6 +102,9 @@ class FederatedServer:
             if client_id and client_id in self.connected_clients:
                 logger.info(f"Client {client_id} disconnected")
                 del self.connected_clients[client_id]
+                # Also remove from WebSocket server clients
+                if client_id in self.websocket_server.clients:
+                    del self.websocket_server.clients[client_id]
 
     async def handle_client_registration(self, websocket, data: Dict) -> str:
         """Handle client registration"""
@@ -106,7 +112,10 @@ class FederatedServer:
         tasks = data.get("tasks", [])
         capabilities = data.get("capabilities", {})
 
-        # Register client
+        # Register client in WebSocket server
+        self.websocket_server.clients[client_id] = websocket
+
+        # Register client in federated server
         self.connected_clients[client_id] = {
             "websocket": websocket,
             "tasks": tasks,
@@ -213,9 +222,17 @@ class FederatedServer:
                 sample_inputs = self.generate_sample_inputs_for_kd()
                 teacher_knowledge = self.kd_manager.generate_teacher_knowledge(sample_inputs)
 
+                # Convert teacher knowledge tensors to serializable format
+                serializable_teacher_knowledge = {}
+                for task, tensor in teacher_knowledge.items():
+                    if isinstance(tensor, torch.Tensor):
+                        serializable_teacher_knowledge[task] = tensor.tolist()
+                    else:
+                        serializable_teacher_knowledge[task] = tensor
+
                 # Step 3: Send training request to clients
                 training_request = MessageProtocol.create_training_request_message(
-                    round_num, self.global_lora_params, teacher_knowledge
+                    round_num, self.global_lora_params, serializable_teacher_knowledge
                 )
                 await self.websocket_server.broadcast(training_request)
 
@@ -359,16 +376,19 @@ class FederatedServer:
         regression_accuracies = []
 
         for update in updates:
-            metrics = update.get('metrics', {})
-
-            if 'accuracy' in metrics:
-                all_accuracies.append(metrics['accuracy'])
-
-            if 'classification_accuracy' in metrics:
-                classification_accuracies.append(metrics['classification_accuracy'])
-
-            if 'regression_accuracy' in metrics:
-                regression_accuracies.append(metrics['regression_accuracy'])
+            client_metrics = update.get('metrics', {})
+            
+            # Process task-specific metrics
+            for task_name, task_metrics in client_metrics.items():
+                if isinstance(task_metrics, dict) and 'accuracy' in task_metrics:
+                    accuracy = task_metrics['accuracy']
+                    all_accuracies.append(accuracy)
+                    
+                    # Categorize by task type
+                    if task_name in ['sst2', 'qqp']:
+                        classification_accuracies.append(accuracy)
+                    elif task_name == 'stsb':
+                        regression_accuracies.append(accuracy)
 
         # Calculate averages
         avg_accuracy = sum(all_accuracies) / len(all_accuracies) if all_accuracies else 0.0
