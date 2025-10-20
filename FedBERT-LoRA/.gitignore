@@ -135,7 +135,7 @@ Thumbs.db
 # Project Specific
 federated_results/
 *.log
-*.csv
+# *.csv
 *.txt
 !requirements.txt
 !README.md
