@@ -263,15 +263,31 @@ class FederatedClient:
 
     async def train_task_with_kd(self, task: str, task_data: Dict) -> Dict[str, float]:
         """Train on a specific task with KD"""
-        # Get dataloader for this task using actual dataset data
-        dataloader = self.student_model.get_task_dataloader(
-            task, self.config.batch_size, dataset_data=task_data
+        # Split data into training and validation
+        # Dataset handler returns: texts/labels (train) and val_texts/val_labels (validation)
+        train_data = {
+            'texts': task_data.get('texts', []),
+            'labels': task_data.get('labels', [])
+        }
+        val_data = {
+            'texts': task_data.get('val_texts', []),
+            'labels': task_data.get('val_labels', [])
+        }
+        
+        # Get dataloaders
+        train_dataloader = self.student_model.get_task_dataloader(
+            task, self.config.batch_size, dataset_data=train_data
         )
+        val_dataloader = None
+        if val_data['texts'] and val_data['labels']:
+            val_dataloader = self.student_model.get_task_dataloader(
+                task, self.config.batch_size, dataset_data=val_data
+            )
 
         # Set model to training mode
         self.student_model.train()
         
-        logger.info(f"🚀 Starting training for task {task} with {len(dataloader)} batches")
+        logger.info(f"🚀 Starting training for task {task} with {len(train_dataloader)} batches")
 
         # Training loop with proper metrics calculation
         total_loss = 0.0
@@ -281,7 +297,7 @@ class FederatedClient:
         correct_predictions = 0
         total_samples = 0
 
-        for batch in dataloader:
+        for batch in train_dataloader:
             # Unpack batch tuple (input_ids, attention_mask, labels)
             input_ids, attention_mask, labels = batch
 
@@ -404,6 +420,113 @@ class FederatedClient:
                 'correlation': float(correlation)
             })
 
+        # Add validation metrics if validation data is available
+        if val_dataloader is not None:
+            val_metrics = self.evaluate_on_validation(task, val_dataloader)
+            metrics['val_accuracy'] = val_metrics['accuracy']
+            metrics['val_loss'] = val_metrics['loss']
+            metrics['val_samples'] = val_metrics['samples_processed']
+            metrics['val_correct_predictions'] = val_metrics['correct_predictions']
+            if 'correlation' in val_metrics:
+                metrics['val_correlation'] = val_metrics['correlation']
+                metrics['val_mae'] = val_metrics['mae']
+            logger.info(f"✅ Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
+
+        return metrics
+
+    def evaluate_on_validation(self, task: str, val_dataloader) -> Dict[str, float]:
+        """Evaluate model on validation data"""
+        import numpy as np
+        
+        # Set model to evaluation mode
+        self.student_model.eval()
+        
+        total_loss = 0.0
+        num_batches = 0
+        all_predictions = []
+        all_labels = []
+        correct_predictions = 0
+        total_samples = 0
+        
+        with torch.no_grad():
+            for batch in val_dataloader:
+                input_ids, attention_mask, labels = batch
+                
+                # Move tensors to the correct device
+                input_ids = input_ids.to(self.device)
+                attention_mask = attention_mask.to(self.device)
+                labels = labels.to(self.device)
+                
+                if len(input_ids) == 0:
+                    continue
+                
+                # Forward pass
+                logits = self.student_model(input_ids, attention_mask, task)
+                
+                # Calculate loss
+                loss = self.kd_engine.calculate_kd_loss(logits, task, labels)
+                total_loss += loss.item()
+                num_batches += 1
+                
+                # Calculate predictions
+                if task == 'stsb':  # Regression task
+                    predictions = logits.squeeze()
+                    tolerance = 0.1
+                    if labels.dim() == 0:
+                        labels_reshaped = labels.unsqueeze(0)
+                    else:
+                        labels_reshaped = labels
+                    pred_reshaped = predictions.unsqueeze(0) if predictions.dim() == 0 else predictions
+                    correct_predictions += (torch.abs(pred_reshaped - labels_reshaped) <= tolerance).sum().item()
+                else:  # Classification tasks
+                    predictions = torch.argmax(logits, dim=1)
+                    correct_predictions += (predictions == labels).sum().item()
+                
+                total_samples += labels.size(0)
+                all_predictions.extend(predictions.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
+        
+        # Calculate metrics
+        avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
+        accuracy = correct_predictions / total_samples if total_samples > 0 else 0.0
+        
+        metrics = {
+            'loss': avg_loss,
+            'accuracy': accuracy,
+            'samples_processed': total_samples,
+            'correct_predictions': correct_predictions
+        }
+        
+        # Add regression-specific metrics for STSB
+        if task == 'stsb' and len(all_predictions) > 0 and len(all_labels) > 0:
+            pred_array = np.array(all_predictions)
+            label_array = np.array(all_labels)
+            
+            mae = np.mean(np.abs(pred_array - label_array))
+            mse = np.mean((pred_array - label_array) ** 2)
+            
+            # Correlation coefficient
+            if len(pred_array) > 1 and np.std(pred_array) > 0 and np.std(label_array) > 0:
+                correlation = np.corrcoef(pred_array, label_array)[0, 1]
+                if np.isnan(correlation):
+                    correlation = 0.0
+            else:
+                correlation = 0.0
+            
+            regression_accuracy = max(0, correlation)
+            tolerance_correct = np.sum(np.abs(pred_array - label_array) <= 0.1)
+            
+            metrics.update({
+                'accuracy': float(regression_accuracy),
+                'correct_predictions': int(tolerance_correct),
+                'mae': float(mae),
+                'mse': float(mse),
+                'correlation': float(correlation)
+            })
+        
+        # Set model back to training mode
+        self.student_model.train()
+        
         return metrics
 
     def get_task_data_for_kd(self) -> Dict[str, Dict]:

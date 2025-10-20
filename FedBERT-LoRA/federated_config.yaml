@@ -21,7 +21,7 @@ synchronization:
   global_model_sharing: true      # Share global model with clients
 
 training:
-  num_rounds: 10                   # Number of federated rounds
+  num_rounds: 3                   # Number of federated rounds
   min_clients: 1                  # Minimum clients required
   max_clients: 3                  # Maximum clients supported
   expected_clients: 3             # Expected clients to wait for (SST2, QQP, STSB)
@@ -36,13 +36,13 @@ task_configs:
     random_seed: 42              # Reproducibility
 
   qqp:                           # QQP question pairs
-    train_samples: 300            # Training samples
-    val_samples: 60               # Validation samples
+    train_samples: 500            # Training samples
+    val_samples: 100               # Validation samples
     random_seed: 42              # Reproducibility
 
   stsb:                          # STSB semantic similarity
-    train_samples: 200            # Training samples
-    val_samples: 40               # Validation samples
+    train_samples: 500            # Training samples
+    val_samples: 100               # Validation samples
     random_seed: 42              # Reproducibility
 
 communication:

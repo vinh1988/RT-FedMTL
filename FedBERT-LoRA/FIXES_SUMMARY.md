@@ -159,5 +159,28 @@ python federated_main.py --mode client --client_id stsb_client --tasks stsb --sa
 
 ---
 
+---
+
+### 5. **STSB Predictions Out of Range**
+**Problem:** STSB predictions were very small values (e.g., 0.0055, -0.001) instead of 0-1 range, causing extremely low accuracy.
+
+**Root Cause:** The LoRA model was outputting raw logits without sigmoid activation for regression tasks. Since labels are normalized to 0-1, predictions need to be in the same range.
+
+**Fix Location:** `src/lora/federated_lora.py`, lines 158-160
+
+**Added:**
+```python
+# Apply sigmoid activation for regression tasks to constrain output to 0-1
+if task_name == 'stsb':
+    combined_logits = torch.sigmoid(combined_logits)
+```
+
+**Before:** Predictions ranged from -0.005 to 0.006 (MAE: 0.514, Correlation: 0-43%)
+**After:** Predictions now range from 0 to 1, matching label scale
+
+**Result:** STSB should now show realistic correlation-based accuracy and meaningful predictions
+
+---
+
 ## Date: October 19, 2025
-## Status: ✅ All Issues Resolved
+## Status: ✅ All Critical Issues Resolved - Ready for Testing

@@ -89,7 +89,8 @@ class FederatedServer:
         # Write CSV headers for client results
         client_headers = [
             "round", "client_id", "task", "accuracy", "loss", "samples_processed",
-            "correct_predictions", "timestamp"
+            "correct_predictions", "val_accuracy", "val_loss", "val_samples", 
+            "val_correct_predictions", "timestamp"
         ]
         self.client_csv_writer.writerow(client_headers)
         self.client_csv_file.flush()
@@ -113,6 +114,10 @@ class FederatedServer:
                     task_metrics.get('loss', 0.0),
                     task_metrics.get('samples_processed', 0),
                     task_metrics.get('correct_predictions', 0),
+                    task_metrics.get('val_accuracy', 0.0),
+                    task_metrics.get('val_loss', 0.0),
+                    task_metrics.get('val_samples', 0),
+                    task_metrics.get('val_correct_predictions', 0),
                     timestamp
                 ]
                 self.client_csv_writer.writerow(row)

@@ -154,6 +154,10 @@ class LoRAFederatedModel(nn.Module):
                 lora_output = lora_output.squeeze(1)  # Remove sequence dimension if present
 
             combined_logits = lora_output
+            
+            # Apply sigmoid activation for regression tasks to constrain output to 0-1
+            if task_name == 'stsb':
+                combined_logits = torch.sigmoid(combined_logits)
         else:
             # Fallback to base model logits if no adapter found
             combined_logits = outputs.logits
