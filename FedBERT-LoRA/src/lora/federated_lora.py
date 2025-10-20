@@ -90,17 +90,72 @@ class LoRALayer(nn.Module):
 class LoRAFederatedModel(nn.Module):
     """Federated model with LoRA adapters for multi-task learning"""
 
-    def __init__(self, base_model_name: str, tasks: List[str], lora_rank: int = 8, lora_alpha: float = 16.0):
+    def __init__(self, base_model_name: str, tasks: List[str], lora_rank: int = 32, lora_alpha: float = 64.0, unfreeze_layers: int = 2):
         super().__init__()
 
-        # Load base model (parameters will be frozen)
+        # Load base model (parameters will be frozen initially)
         self.base_model = AutoModelForSequenceClassification.from_pretrained(
             base_model_name, num_labels=1  # For KD compatibility
         )
 
-        # Freeze base model parameters
+        # Freeze all base model parameters initially
         for param in self.base_model.parameters():
             param.requires_grad = False
+
+        # PHASE 2 IMPROVEMENT: Selectively unfreeze top layers for better learning capacity
+        if unfreeze_layers > 0:
+            trainable_params = 0
+            total_params = 0
+            
+            # Try to unfreeze top transformer layers (works for BERT, RoBERTa, etc.)
+            if hasattr(self.base_model, 'bert'):
+                # For BERT-based models
+                encoder = self.base_model.bert.encoder
+                num_layers = len(encoder.layer)
+                layers_to_unfreeze = min(unfreeze_layers, num_layers)
+                
+                for layer in encoder.layer[-layers_to_unfreeze:]:
+                    for param in layer.parameters():
+                        param.requires_grad = True
+                        trainable_params += param.numel()
+                    total_params += sum(p.numel() for p in layer.parameters())
+                
+                # Also unfreeze the pooler and classification head
+                if hasattr(self.base_model.bert, 'pooler') and self.base_model.bert.pooler is not None:
+                    for param in self.base_model.bert.pooler.parameters():
+                        param.requires_grad = True
+                        trainable_params += param.numel()
+                    total_params += sum(p.numel() for p in self.base_model.bert.pooler.parameters())
+                
+                if hasattr(self.base_model, 'classifier'):
+                    for param in self.base_model.classifier.parameters():
+                        param.requires_grad = True
+                        trainable_params += param.numel()
+                    total_params += sum(p.numel() for p in self.base_model.classifier.parameters())
+                
+                print(f"✅ Unfroze top {layers_to_unfreeze} BERT layers + pooler + classifier")
+                print(f"📊 Trainable parameters in unfrozen layers: {trainable_params:,}")
+                
+            elif hasattr(self.base_model, 'roberta'):
+                # For RoBERTa-based models
+                encoder = self.base_model.roberta.encoder
+                num_layers = len(encoder.layer)
+                layers_to_unfreeze = min(unfreeze_layers, num_layers)
+                
+                for layer in encoder.layer[-layers_to_unfreeze:]:
+                    for param in layer.parameters():
+                        param.requires_grad = True
+                        trainable_params += param.numel()
+                
+                if hasattr(self.base_model, 'classifier'):
+                    for param in self.base_model.classifier.parameters():
+                        param.requires_grad = True
+                        trainable_params += param.numel()
+                
+                print(f"✅ Unfroze top {layers_to_unfreeze} RoBERTa layers + classifier")
+                print(f"📊 Trainable parameters: {trainable_params:,}")
+            else:
+                print(f"⚠️ Could not identify model architecture for layer unfreezing")
 
         # Task-specific LoRA adapters
         self.task_adapters = nn.ModuleDict({
@@ -115,6 +170,7 @@ class LoRAFederatedModel(nn.Module):
         self.tasks = tasks
         self.lora_rank = lora_rank
         self.lora_alpha = lora_alpha
+        self.unfreeze_layers = unfreeze_layers
 
     def get_num_labels(self, task: str) -> int:
         """Get number of labels for each task"""

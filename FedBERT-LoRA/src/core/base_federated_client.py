@@ -32,11 +32,13 @@ class BaseFederatedClient(ABC):
         self.config = config
         self.device = self.get_device()
 
-        # Initialize models
+        # Initialize models (PHASE 2: Now unfreezes top layers!)
         self.student_model = LoRAFederatedModel(
             base_model_name=config.client_model,
             tasks=self.tasks,
-            lora_rank=config.lora_rank
+            lora_rank=config.lora_rank,
+            lora_alpha=config.lora_alpha,
+            unfreeze_layers=getattr(config, 'unfreeze_layers', 2)  # Unfreeze top 2 layers by default
         )
         # Move model to device
         self.student_model = self.student_model.to(self.device)

@@ -81,13 +81,19 @@ class STSBFederatedClient(BaseFederatedClient):
             # For STSB regression, logits.squeeze() to get scalar predictions
             predictions = logits.squeeze()
 
-            # Calculate KD loss (regression task)
+            # Calculate KD loss (regression task) (IMPROVED: pass current_round)
             kd_loss = self.kd_engine.calculate_kd_loss(
-                logits, task, labels
+                logits, task, labels, current_round=self.current_round
             )
 
             # Backward pass
             kd_loss.backward()
+            
+            # PHASE 2: Add gradient clipping for stability
+            torch.nn.utils.clip_grad_norm_(
+                self.student_model.parameters(),
+                max_norm=1.0
+            )
 
             # Update parameters
             self.optimizer.step()
@@ -202,8 +208,8 @@ class STSBFederatedClient(BaseFederatedClient):
                 # For STSB regression, logits.squeeze() to get scalar predictions
                 predictions = logits.squeeze()
 
-                # Calculate loss
-                loss = self.kd_engine.calculate_kd_loss(logits, task, labels)
+                # Calculate loss (IMPROVED: pass current_round)
+                loss = self.kd_engine.calculate_kd_loss(logits, task, labels, current_round=self.current_round)
                 total_loss += loss.item()
                 num_batches += 1
 

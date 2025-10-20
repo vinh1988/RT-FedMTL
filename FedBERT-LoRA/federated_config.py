@@ -19,11 +19,14 @@ class FederatedConfig:
     client_model: str = "prajjwal1/bert-tiny"
 
     # LoRA settings
-    lora_rank: int = 8
-    lora_alpha: float = 16.0
+    lora_rank: int = 32  # IMPROVED: Increased from 8 to 32 for better capacity
+    lora_alpha: float = 64.0  # IMPROVED: Scaled proportionally
     lora_dropout: float = 0.1
+    unfreeze_layers: int = 2  # PHASE 2: Unfreeze top 2 BERT layers for better learning
 
     # Knowledge Distillation settings
+    use_knowledge_distillation: bool = False  # NEW: Start with simple loss
+    kd_start_round: int = 5  # NEW: Enable KD after 5 rounds
     kd_temperature: float = 3.0
     kd_alpha: float = 0.5
     bidirectional_kd: bool = True
@@ -78,18 +81,18 @@ class FederatedConfig:
         if not self.task_configs:
             self.task_configs = {
                 'sst2': {
-                    'train_samples': 50,
-                    'val_samples': 10,
+                    'train_samples': 5000,  # IMPROVED: Increased 100x from 50
+                    'val_samples': 1000,    # IMPROVED: Increased 100x from 10
                     'random_seed': 42
                 },
                 'qqp': {
-                    'train_samples': 30,
-                    'val_samples': 6,
+                    'train_samples': 3000,  # IMPROVED: Increased 100x from 30
+                    'val_samples': 600,     # IMPROVED: Increased 100x from 6
                     'random_seed': 42
                 },
                 'stsb': {
-                    'train_samples': 20,
-                    'val_samples': 4,
+                    'train_samples': 5000,  # IMPROVED: Increased 250x from 20
+                    'val_samples': 1000,    # IMPROVED: Increased 250x from 4
                     'random_seed': 42
                 }
             }

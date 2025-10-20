@@ -76,13 +76,19 @@ class SST2FederatedClient(BaseFederatedClient):
                 task
             )
 
-            # Calculate KD loss
+            # Calculate KD loss (IMPROVED: pass current_round for progressive KD)
             kd_loss = self.kd_engine.calculate_kd_loss(
-                logits, task, labels
+                logits, task, labels, current_round=self.current_round
             )
 
             # Backward pass
             kd_loss.backward()
+            
+            # PHASE 2: Add gradient clipping for stability
+            torch.nn.utils.clip_grad_norm_(
+                self.student_model.parameters(),
+                max_norm=1.0
+            )
 
             # Update parameters
             self.optimizer.step()
@@ -152,8 +158,8 @@ class SST2FederatedClient(BaseFederatedClient):
                 # Forward pass
                 logits = self.student_model(input_ids, attention_mask, task)
 
-                # Calculate loss
-                loss = self.kd_engine.calculate_kd_loss(logits, task, labels)
+                # Calculate loss (IMPROVED: pass current_round)
+                loss = self.kd_engine.calculate_kd_loss(logits, task, labels, current_round=self.current_round)
                 total_loss += loss.item()
                 num_batches += 1
 

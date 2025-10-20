@@ -106,10 +106,21 @@ class LocalKDEngine:
         """Update cached teacher knowledge for KD"""
         self.teacher_knowledge_cache.update(teacher_knowledge)
 
-    def calculate_kd_loss(self, student_logits: torch.Tensor, task_name: str, labels: torch.Tensor = None) -> torch.Tensor:
-        """Calculate KD loss for a specific task"""
-        if task_name not in self.teacher_knowledge_cache:
-            # No teacher knowledge available, use only hard loss
+    def calculate_kd_loss(self, student_logits: torch.Tensor, task_name: str, labels: torch.Tensor = None, current_round: int = 0) -> torch.Tensor:
+        """Calculate KD loss for a specific task
+        
+        IMPROVED: Now supports disabling KD for initial rounds to establish baseline learning
+        """
+        # NEW: Check if KD should be used based on configuration
+        use_kd = getattr(self.config, 'use_knowledge_distillation', False)
+        kd_start_round = getattr(self.config, 'kd_start_round', 5)
+        
+        # Use simple loss if:
+        # 1. KD is disabled in config, OR
+        # 2. Current round is before kd_start_round, OR
+        # 3. Teacher knowledge not available
+        if not use_kd or current_round < kd_start_round or task_name not in self.teacher_knowledge_cache:
+            # IMPROVED: Use only hard loss for better initial learning
             if labels is not None:
                 # Use appropriate loss function based on task type
                 if task_name == 'stsb':  # Regression task
@@ -118,6 +129,7 @@ class LocalKDEngine:
                     return F.cross_entropy(student_logits, labels)
             return torch.tensor(0.0, device=student_logits.device)
 
+        # Use KD only after baseline learning is established
         teacher_logits = self.teacher_knowledge_cache[task_name]
 
         # Create KD manager for this calculation
