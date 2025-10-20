@@ -40,7 +40,7 @@ python federated_main.py --mode client --client_id qqp_client --tasks qqp
 python federated_main.py --mode client --client_id stsb_client --tasks stsb
 ```
 
-**Note**: Sample sizes are now configured in `federated_config.yaml` (5000 for SST-2/STS-B, 3000 for QQP).
+**Note**: Configuration is in `federated_config.yaml`. See [TRAINING_CONFIG_REFERENCE.md](TRAINING_CONFIG_REFERENCE.md) for the exact settings that achieved 91% accuracy.
 
 ### 4. Monitor Results
 ```bash
@@ -108,22 +108,68 @@ tail -f federated_client_*.log
 ## ⚙️ Configuration
 
 ### Key Settings (Phase 2 Optimized)
-- **Model**: BERT-base (server) ↔ Tiny-BERT (clients)
-- **LoRA**: Rank 32, Alpha 64.0 (4x increased for better capacity)
-- **Layer Unfreezing**: Top 2 BERT layers + pooler + classifier (15% trainable)
-- **KD**: Disabled for first 5 rounds, then enabled (progressive training)
-- **Training Data**: 5000 samples (SST-2/STS-B), 3000 samples (QQP)
-- **Synchronization**: Real-time model updates via WebSocket
-- **Tasks**: SST2 (sentiment), QQP (questions), STSB (similarity)
 
-### Phase 2 Improvements
-✅ **Increased LoRA rank** from 8 to 32 (4x capacity)  
-✅ **Unfroze top 2 BERT layers** (170x more trainable parameters)  
-✅ **Simplified loss function** (no KD for first 5 rounds)  
-✅ **10x more training data** (500 → 5000 samples)  
-✅ **Added gradient clipping** (stability with more parameters)  
+**Actual Configuration Used for 91% Results** (from `federated_config.yaml`):
 
-**Result**: Accuracy improved from 40% to 78%!
+#### Model Architecture
+- **Server Model**: `bert-base-uncased` (Teacher)
+- **Client Model**: `prajjwal1/bert-tiny` (Student)
+
+#### LoRA Settings
+- **Rank**: 32 (increased 4x from 8)
+- **Alpha**: 64.0 (scaled proportionally)
+- **Dropout**: 0.1
+- **Unfreeze Layers**: 2 (Top 2 BERT layers + pooler + classifier)
+
+#### Knowledge Distillation
+- **Use KD**: False initially (progressive training)
+- **KD Start Round**: 5 (enable after baseline learning)
+- **Temperature**: 3.0
+- **Alpha**: 0.5 (soft vs hard loss weighting)
+- **Bidirectional**: True
+
+#### Training Parameters
+- **Rounds**: 22 (trained to convergence)
+- **Local Epochs**: 1 per round
+- **Batch Size**: 8
+- **Learning Rate**: 0.0002
+- **Expected Clients**: 3 (SST-2, QQP, STS-B)
+
+#### Task-Specific Data
+| Task | Training Samples | Validation Samples |
+|------|-----------------|-------------------|
+| **SST-2** | 500 | 100 |
+| **QQP** | 300 | 60 |
+| **STS-B** | 500 | 100 |
+
+#### Communication
+- **Port**: 8771 (WebSocket)
+- **Timeout**: 60 seconds
+- **Retry Attempts**: 3
+
+### Phase 2 Key Improvements
+
+The critical changes that achieved 91% accuracy:
+
+✅ **Unfroze top 2 BERT layers** (MOST CRITICAL)
+   - From: 100K parameters (0.1% trainable)
+   - To: 17M parameters (15% trainable)  
+   - **170x more learning capacity!**
+
+✅ **Increased LoRA rank** from 8 to 32
+   - Better adapter capacity (4x increase)
+
+✅ **Progressive training strategy**
+   - Simple loss for rounds 1-5 (baseline learning)
+   - Knowledge distillation after round 5
+
+✅ **Gradient clipping** (max_norm=1.0)
+   - Stability with more trainable parameters
+
+✅ **Extended training** to 22 rounds
+   - Allowed model to fully converge
+
+**Result**: Accuracy improved from 40% → 91.2% (SST-2)!
 
 ### Custom Configuration
 ```bash
@@ -250,7 +296,10 @@ tail -f federated_server_*.log | grep -i "error\|warning"
 
 ### Performance & Analysis
 - **[Phase 2 Results Summary](PHASE2_RESULTS_SUMMARY.md)**: ⭐ **NEW** - Complete analysis of 91% accuracy achievement
+- **[Training Config Reference](TRAINING_CONFIG_REFERENCE.md)**: ⭐ **NEW** - Exact configuration that achieved 91%
 - **[Phase 2 Implementation Guide](PHASE2_IMPROVEMENTS_APPLIED.md)**: Technical details of accuracy improvements
+- **[Success Summary](SUCCESS_SUMMARY.md)**: Journey from 40% to 91% accuracy
+- **[Quick Reference](QUICK_REFERENCE.md)**: Fast lookup for key results
 - **[Accuracy Comparison Analysis](ACCURACY_COMPARISON_ANALYSIS.md)**: Deep dive into local vs federated performance
 - **[Architecture Comparison](ARCHITECTURE_COMPARISON.md)**: Visual comparison of training approaches
 - **[Improvement Guide](FEDERATED_ACCURACY_IMPROVEMENT_GUIDE.md)**: Step-by-step optimization strategies
