@@ -133,7 +133,7 @@ Thumbs.db
 *~
 
 # Project Specific
-federated_results/
+# federated_results/
 *.log
 # *.csv
 # *.txt
