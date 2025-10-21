@@ -1,0 +1,15 @@
+Local Training Results for SST2
+==================================================
+
+Model: prajjwal1/bert-tiny
+Training completed at: 2025-10-20 07:26:35
+
+Epoch Results:
+------------------------------
+Epoch 1:
+.4f.4f
+
+Validation Results:
+------------------------------
+Epoch 1 Validation:
+.4f.4f

@@ -1,0 +1,23 @@
+Local Training Results for STSB
+==================================================
+
+Model: bert-base-uncased
+Training completed at: 2025-10-20 07:43:20
+
+Epoch Results:
+------------------------------
+Epoch 1:
+.4f.4f.4f.4f
+Epoch 2:
+.4f.4f.4f.4f
+Epoch 3:
+.4f.4f.4f.4f
+
+Validation Results:
+------------------------------
+Epoch 1 Validation:
+.4f.4f.4f.4f
+Epoch 2 Validation:
+.4f.4f.4f.4f
+Epoch 3 Validation:
+.4f.4f.4f.4f

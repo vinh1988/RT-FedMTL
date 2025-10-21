@@ -24,7 +24,7 @@ synchronization:
   global_model_sharing: true      # Share global model with clients
 
 training:
-  num_rounds: 22                   # Number of federated rounds
+  num_rounds: 30                   # Number of federated rounds
   min_clients: 1                  # Minimum clients required
   max_clients: 3                  # Maximum clients supported
   expected_clients: 3             # Expected clients to wait for (SST2, QQP, STSB)

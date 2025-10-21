@@ -22,7 +22,7 @@ class FederatedConfig:
     lora_rank: int = 32  # IMPROVED: Increased from 8 to 32 for better capacity
     lora_alpha: float = 64.0  # IMPROVED: Scaled proportionally
     lora_dropout: float = 0.1
-    unfreeze_layers: int = 2  # PHASE 2: Unfreeze top 2 BERT layers for better learning
+    unfreeze_layers: int = 3  # PHASE 2: Unfreeze top 2 BERT layers for better learning
 
     # Knowledge Distillation settings
     use_knowledge_distillation: bool = False  # NEW: Start with simple loss

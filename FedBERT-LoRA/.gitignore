@@ -136,7 +136,7 @@ Thumbs.db
 federated_results/
 *.log
 # *.csv
-*.txt
+# *.txt
 !requirements.txt
 !README.md
 
