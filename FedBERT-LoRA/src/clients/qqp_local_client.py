@@ -272,29 +272,30 @@ def run_qqp_local_training(config_path: str = None):
     """Run standalone QQP local training"""
     client = QQPLocalClient(config_path)
 
-    print("❓ Starting QQP Local Training")
+    print("[TRAINING] Starting QQP Local Training")
     print("=" * 40)
 
     try:
         results = client.run_training()
 
-        print("\n✅ QQP Training Completed Successfully!")
-        print("=" * 40)
-        print(f"📊 Final Training Loss: {results['final_metrics'].get('loss', 0):.4f}")
-        print(f"📊 Final Training Accuracy: {results['final_metrics'].get('accuracy', 0):.4f}")
+        print("\n[SUCCESS] QQP Training Completed Successfully!")
+        print(f"[STATS] Final Training Loss: {results['final_metrics'].get('loss', 0):.4f}")
+        print(f"[STATS] Final Training Accuracy: {results['final_metrics'].get('accuracy', 0):.4f}")
 
         if results['val_metrics']:
             final_val = results['val_metrics'][-1]
-            print(f"📊 Final Validation Loss: {final_val.get('loss', 0):.4f}")
-            print(f"📊 Final Validation Accuracy: {final_val.get('accuracy', 0):.4f}")
+            print(f"[STATS] Final Validation Loss: {final_val.get('loss', 0):.4f}")
+            print(f"[STATS] Final Validation Accuracy: {final_val.get('accuracy', 0):.4f}")
 
-        print(f"📁 Results saved to: {client.config['output_dir']}")
+        print(f"[ERROR] Training failed: {str(e)}")
+
+        print(f"[INFO] Results saved to: {client.config['output_dir']}")
 
         return results
 
     except Exception as e:
         logger.error(f"QQP training failed: {str(e)}")
-        print(f"❌ Training failed: {str(e)}")
+        print(f"[ERROR] Training failed: {str(e)}")
         raise
 
 if __name__ == "__main__":

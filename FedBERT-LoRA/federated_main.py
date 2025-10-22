@@ -79,41 +79,37 @@ def main():
         if args.kd_alpha != 0.5:
             config.kd_alpha = args.kd_alpha
 
-        # Print configuration summary
-        print("🔧 Federated Learning Configuration (Enhanced)")
+        print("[CONFIG] Federated Learning Configuration (Enhanced)")
         print("=" * 60)
-        print(f"📊 Model: {config.server_model} (server), {config.client_model} (client)")
-        print(f"🔧 LoRA: Rank={config.lora_rank}, Alpha={config.lora_alpha}")
-        print(f"👨‍🏫 KD: T={config.kd_temperature}, α={config.kd_alpha}, Bidirectional={config.bidirectional_kd}")
-        print(f"🔄 Sync: {'Enabled' if config.enable_synchronization else 'Disabled'} ({config.sync_frequency})")
-        print(f"🎯 Training: {config.num_rounds} rounds, {config.local_epochs} epochs, batch_size={config.batch_size}")
-        print(f"📚 Data: {config.samples_per_client} samples/client, distribution={config.data_distribution}")
-        print(f"🌐 Communication: Port {config.port}, timeout={config.timeout}s")
-        print(f"📁 Output: Results in '{config.results_dir}', log_level={config.log_level}")
+        print(f"[MODEL] Model: {config.server_model} (server), {config.client_model} (client)")
+        print(f"[LORA] LoRA: Rank={config.lora_rank}, Alpha={config.lora_alpha}")
+        print(f"[KD] KD: T={config.kd_temperature}, α={config.kd_alpha}, Bidirectional={config.bidirectional_kd}")
+        print(f"[SYNC] Sync: {'Enabled' if config.enable_synchronization else 'Disabled'} ({config.sync_frequency})")
+        print(f"[TRAINING] Training: {config.num_rounds} rounds, {config.local_epochs} epochs, batch_size={config.batch_size}")
+        print(f"[DATA] Data: {config.samples_per_client} samples/client, distribution={config.data_distribution}")
+        print(f"[NETWORK] Communication: Port {config.port}, timeout={config.timeout}s")
+        print(f"[OUTPUT] Output: Results in '{config.results_dir}', log_level={config.log_level}")
         print("=" * 60)
-
         # Run federated system
         if args.mode == "server":
-            print("🖥️ Starting Federated Server...")
+            print("[SERVER] Starting Federated Server...")
             asyncio.run(run_server(config))
         else:
-            print(f"👥 Starting Federated Client: {args.client_id}...")
+            print(f"[CLIENT] Starting Federated Client: {args.client_id}...")
             if not args.client_id:
-                print("❌ Error: Client ID is required for client mode")
+                print("[ERROR] Error: Client ID is required for client mode")
                 sys.exit(1)
             if not args.tasks:
-                print("❌ Error: Tasks are required for client mode")
+                print("[ERROR] Error: Tasks are required for client mode")
                 sys.exit(1)
-
-            # Run client in a way that doesn't block
             client_config = config
             run_client(args.client_id, args.tasks, client_config)
 
     except KeyboardInterrupt:
-        print("\n🛑 Interrupted by user")
+        print("\n[INTERRUPTED] Interrupted by user")
         sys.exit(0)
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"[ERROR] Error: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

@@ -264,23 +264,22 @@ def run_sst2_local_training(config_path: str = None):
     """Run standalone SST-2 local training"""
     client = SST2LocalClient(config_path)
 
-    print("🎭 Starting SST-2 Local Training")
+    print("[TRAINING] Starting SST-2 Local Training")
     print("=" * 40)
 
     try:
         results = client.run_training()
 
-        print("\n✅ SST-2 Training Completed Successfully!")
-        print("=" * 40)
-        print(f"📊 Final Training Loss: {results['final_metrics'].get('loss', 0):.4f}")
-        print(f"📊 Final Training Accuracy: {results['final_metrics'].get('accuracy', 0):.4f}")
+        print("\n[SUCCESS] SST-2 Training Completed Successfully!")
+        print(f"[STATS] Final Training Loss: {results['final_metrics'].get('loss', 0):.4f}")
+        print(f"[STATS] Final Training Accuracy: {results['final_metrics'].get('accuracy', 0):.4f}")
 
         if results['val_metrics']:
             final_val = results['val_metrics'][-1]
-            print(f"📊 Final Validation Loss: {final_val.get('loss', 0):.4f}")
-            print(f"📊 Final Validation Accuracy: {final_val.get('accuracy', 0):.4f}")
+            print(f"[STATS] Final Validation Loss: {final_val.get('loss', 0):.4f}")
+            print(f"[STATS] Final Validation Accuracy: {final_val.get('accuracy', 0):.4f}")
 
-        print(f"📁 Results saved to: {client.config['output_dir']}")
+        print(f"[INFO] Results saved to: {client.config['output_dir']}")
 
         return results
 
