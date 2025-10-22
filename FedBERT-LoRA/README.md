@@ -273,7 +273,7 @@ After Phase 2 (Unfroze):    78% overall accuracy  (+38%)
 - **Memory Usage**: ~2GB server, ~1GB per client
 - **Communication**: <5% of total training time
 
-## 🚨 Troubleshooting
+## 🚨 Troubleshooting (Federated Mode)
 
 ### Common Issues
 1. **Import Errors**: Ensure all dependencies are installed
@@ -282,12 +282,12 @@ After Phase 2 (Unfroze):    78% overall accuracy  (+38%)
 4. **Timeout Errors**: Increase timeout values in config
 5. **QQP Client Not Participating**: QQP dataset is large (363K samples) - use smaller sample sizes (--samples 10)
 6. **Client Joining Mid-Training**: Clients can join after training starts - they'll participate in subsequent rounds
+7. **Unicode Encoding Errors (Windows)**: Fixed - all logging messages use ASCII-compatible format
 
 ### Debug Mode
 ```bash
 # Enable debug logging
 python federated_main.py --mode server --log_level DEBUG
-
 # Check resource usage
 tail -f federated_server_*.log | grep -i "error\|warning"
 ```
