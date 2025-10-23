@@ -133,7 +133,7 @@ class QQPFederatedClient(BaseFederatedClient):
 
     def evaluate_on_validation(self, task: str, val_dataloader) -> Dict[str, float]:
         """Evaluate model on validation data for QQP"""
-{{ ... }}
+        
         self.student_model.eval()
 
         total_loss = 0.0

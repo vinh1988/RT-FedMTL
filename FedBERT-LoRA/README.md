@@ -288,6 +288,7 @@ After Phase 2 (Unfroze):    78% overall accuracy  (+38%)
 - **RoBERTa Layer Unfreezing**: Fixed missing encoder layer unfreezing in specialized clients
 - **Correlation Calculation**: Fixed indentation bug that broke STS-B regression metrics
 - **Unicode Compatibility**: Replaced all emoji characters with ASCII-compatible labels
+- **Log File Cleanup**: Removed old log files containing Unicode characters
 
 ### Debug Mode
 ```bash
