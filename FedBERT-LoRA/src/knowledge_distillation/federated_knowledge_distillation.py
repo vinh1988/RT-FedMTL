@@ -24,10 +24,16 @@ class BidirectionalKDManager:
         """Traditional KD: Teacher teaches student"""
         if task_type == "regression":
             # For regression tasks, use MSE loss for both KD and hard loss
+            # Ensure tensors have compatible shapes
+            if student_logits.shape != teacher_logits.shape:
+                # Squeeze both tensors to ensure compatibility
+                student_logits = student_logits.squeeze()
+                teacher_logits = teacher_logits.squeeze()
+
             kd_loss = F.mse_loss(student_logits, teacher_logits)
             
             if labels is not None:
-                hard_loss = F.mse_loss(student_logits.squeeze(), labels.float())
+                hard_loss = F.mse_loss(student_logits.squeeze(), labels.float().squeeze())
                 total_loss = self.alpha * kd_loss + (1 - self.alpha) * hard_loss
             else:
                 total_loss = kd_loss
@@ -52,7 +58,19 @@ class BidirectionalKDManager:
 
     def student_to_teacher_kd_loss(self, student_logits, teacher_logits):
         """Reverse KD: Student teaches teacher"""
-        # Teacher learns to match student's predictions (MSE loss)
+        # Ensure both tensors have the same shape for MSE loss
+        if student_logits.shape != teacher_logits.shape:
+            # If shapes don't match, squeeze or reshape to make them compatible
+            student_logits = student_logits.squeeze()
+            teacher_logits = teacher_logits.squeeze()
+
+            # If still different shapes, take the minimum shape or broadcast
+            if student_logits.shape != teacher_logits.shape:
+                # Use the smaller dimension or broadcast to match
+                min_shape = min(student_logits.shape, teacher_logits.shape)
+                student_logits = student_logits.view(min_shape) if len(student_logits.shape) > len(min_shape) else student_logits
+                teacher_logits = teacher_logits.view(min_shape) if len(teacher_logits.shape) > len(min_shape) else teacher_logits
+
         return F.mse_loss(teacher_logits, student_logits)
 
     def bidirectional_kd_loss(self, student_logits, teacher_logits, labels, reverse_weight: float = 0.1):
@@ -124,7 +142,7 @@ class LocalKDEngine:
             if labels is not None:
                 # Use appropriate loss function based on task type
                 if task_name == 'stsb':  # Regression task
-                    return F.mse_loss(student_logits.squeeze(), labels.float())
+                    return F.mse_loss(student_logits.squeeze(), labels.float().squeeze())
                 else:  # Classification tasks
                     return F.cross_entropy(student_logits, labels)
             return torch.tensor(0.0, device=student_logits.device)
@@ -246,7 +264,12 @@ class GlobalKDManager:
                     if self.teacher_model is not None:
                         teacher_logits = self.teacher_model(student_logits)
 
-                        # Reverse KD loss
+                        # Reverse KD loss - ensure tensors have compatible shapes
+                        if teacher_logits.shape != student_logits.shape:
+                            # Squeeze both tensors to ensure compatibility
+                            teacher_logits = teacher_logits.squeeze()
+                            student_logits = student_logits.squeeze()
+
                         reverse_loss = F.mse_loss(teacher_logits, student_logits)
 
                         total_loss += reverse_loss.item()

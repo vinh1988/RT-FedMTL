@@ -42,7 +42,7 @@ class ModelEvaluator:
 
                 # Forward pass
                 outputs = model(**inputs, task_name=task_type)
-                loss = F.cross_entropy(outputs, labels) if task_type in ['sst2', 'qqp'] else F.mse_loss(outputs.squeeze(), labels.float())
+                loss = F.cross_entropy(outputs, labels) if task_type in ['sst2', 'qqp'] else F.mse_loss(outputs.squeeze(), labels.float().squeeze())
                 total_loss += loss.item()
                 num_batches += 1
 

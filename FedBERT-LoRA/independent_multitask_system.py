@@ -506,7 +506,7 @@ class IndependentMultiTaskClient:
 
         if task_type == 'regression':
             kd_loss = F.mse_loss(student_logits.squeeze(), teacher_logits.squeeze())
-            task_loss = F.mse_loss(student_logits.squeeze(), labels)
+            task_loss = F.mse_loss(student_logits.squeeze(), labels.squeeze())
         else:
             soft_teacher = F.softmax(teacher_logits / temperature, dim=-1)
             soft_student = F.log_softmax(student_logits / temperature, dim=-1)
