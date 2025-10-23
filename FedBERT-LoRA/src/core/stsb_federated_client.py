@@ -117,7 +117,7 @@ class STSBFederatedClient(BaseFederatedClient):
 
             # Log progress every few batches
             if num_batches % 5 == 0:
-                logger.info(f"[STATS] STSB - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
+                logger.info(f"STSB - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
 
         # Update learning rate scheduler
         self.scheduler.step()

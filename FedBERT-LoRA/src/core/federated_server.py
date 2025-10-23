@@ -257,13 +257,13 @@ class FederatedServer:
 
         # Only proceed if we have the expected number of clients or timeout occurred
         if len(self.connected_clients) >= expected_clients:
-            logger.info(f"[SUCCESS] Starting training with {len(self.connected_clients)} clients: {list(self.connected_clients.keys())}")
+            logger.info(f"Starting training with {len(self.connected_clients)} clients: {list(self.connected_clients.keys())}")
             return True
         elif len(self.connected_clients) >= self.config.min_clients:
-            logger.warning(f"[WARNING] Starting with {len(self.connected_clients)} clients (expected {expected_clients}): {list(self.connected_clients.keys())}")
+            logger.warning(f"Starting with {len(self.connected_clients)} clients (expected {expected_clients}): {list(self.connected_clients.keys())}")
             return True
         else:
-            logger.error(f"[ERROR] Not enough clients connected ({len(self.connected_clients)}/{self.config.min_clients})")
+            logger.error(f"Not enough clients connected ({len(self.connected_clients)}/{self.config.min_clients})")
             return False
 
     async def run_federated_training(self):
@@ -389,7 +389,7 @@ class FederatedServer:
 
             # Wait for ALL connected clients to respond
             if updates_received >= expected_clients:
-                logger.info(f"[SUCCESS] All client updates received ({updates_received}/{expected_clients})")
+                logger.info(f"✅ All client updates received ({updates_received}/{expected_clients})")
                 return True
 
             # Check if any clients disconnected during waiting
@@ -404,11 +404,11 @@ class FederatedServer:
             # Show progress every 30 seconds
             elapsed = time.time() - start_time
             if int(elapsed) % 30 == 0 and int(elapsed) > 0:
-                logger.info(f"[WAITING] Still waiting... {elapsed:.0f}s elapsed, {updates_received}/{expected_clients} updates received")
+                logger.info(f"⏳ Still waiting... {elapsed:.0f}s elapsed, {updates_received}/{expected_clients} updates received")
 
             await asyncio.sleep(2)
 
-        logger.warning(f"[TIMEOUT] Timeout collecting updates. Got {updates_received}/{expected_clients}")
+        logger.warning(f"⏰ Timeout collecting updates. Got {updates_received}/{expected_clients}")
         if updates_received > 0:
             logger.warning(f"Proceeding with {updates_received} out of {expected_clients} clients")
             return True
@@ -471,9 +471,9 @@ class FederatedServer:
             total_clients = len(self.connected_clients)
             participating_clients = [update.get('client_id', 'unknown') for update in self.client_updates[round_num]] if round_num in self.client_updates else []
             
-            print(f"[TRAINING] Round {round_num} completed: {metrics['avg_accuracy']:.4f} avg accuracy")
-            print(f"[STATS] Participation: {responses_received}/{total_clients} clients")
-            print(f"[CLIENTS] Participating clients: {participating_clients}")
+            print(f"🏃 Round {round_num} completed: {metrics['avg_accuracy']:.4f} avg accuracy")
+            print(f"📊 Participation: {responses_received}/{total_clients} clients")
+            print(f"👥 Participating clients: {participating_clients}")
 
     def calculate_aggregated_metrics(self, updates: List[Dict]) -> Dict:
         """Calculate aggregated metrics across all clients"""

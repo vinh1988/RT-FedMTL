@@ -29,23 +29,23 @@ training:
   max_clients: 3                  # Maximum clients supported
   expected_clients: 3             # Expected clients to wait for (SST2, QQP, STSB)
   local_epochs: 1                 # Local epochs per round
-  batch_size: 8                   # Batch size for training
+  batch_size: 16                   # Batch size for training
   learning_rate: 0.0002          # Learning rate
 
 task_configs:
   sst2:                          # SST-2 sentiment analysis
-    train_samples: 500           # IMPROVED: Increased 10x from 500 to 5000
-    val_samples: 100             # IMPROVED: Increased 10x from 100 to 1000
+    train_samples: 66477           # IMPROVED: Increased 10x from 500 to 5000
+    val_samples: 872             # IMPROVED: Increased 10x from 100 to 1000
     random_seed: 42              # Reproducibility
 
   qqp:                           # QQP question pairs
-    train_samples: 300           # IMPROVED: Increased 6x from 500 to 3000
-    val_samples: 60              # IMPROVED: Increased 6x from 100 to 600
+    train_samples: 323415           # IMPROVED: Increased 6x from 500 to 3000
+    val_samples: 40431              # IMPROVED: Increased 6x from 100 to 600
     random_seed: 42              # Reproducibility
 
   stsb:                          # STSB semantic similarity
-    train_samples: 500           # IMPROVED: Increased 10x from 500 to 5000
-    val_samples: 100             # IMPROVED: Increased 10x from 100 to 1000
+    train_samples: 4249           # IMPROVED: Increased 10x from 500 to 5000
+    val_samples: 1500             # IMPROVED: Increased 10x from 100 to 1000
     random_seed: 42              # Reproducibility
 
 communication:
