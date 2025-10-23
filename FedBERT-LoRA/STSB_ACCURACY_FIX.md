@@ -70,10 +70,10 @@ This matches the normalized STSB label range perfectly!
 
 **Test Results** (`test_sigmoid_fix.py`):
 ```
-✅ SST2 (classification) output range: [-0.0559, -0.0221] (raw logits)
-✅ QQP (classification) output range: [-0.0058, 0.0154] (raw logits)
-✅ STSB (regression) output range: [0.4922, 0.4944] (sigmoid-activated)
-   ✅ ALL VALUES IN 0-1 RANGE!
+ SST2 (classification) output range: [-0.0559, -0.0221] (raw logits)
+ QQP (classification) output range: [-0.0058, 0.0154] (raw logits)
+ STSB (regression) output range: [0.4922, 0.4944] (sigmoid-activated)
+    ALL VALUES IN 0-1 RANGE!
 ```
 
 ## Expected Results After Fix
@@ -95,10 +95,10 @@ round,client_id,task,accuracy,mae,correlation
 ```
 
 **Key Improvements:**
-- ✅ Predictions now in 0-1 range (matching labels)
-- ✅ MAE should drop from ~0.514 to ~0.10-0.15
-- ✅ Correlation-based accuracy should reach 40-60%
-- ✅ Model can actually learn the regression task
+-  Predictions now in 0-1 range (matching labels)
+-  MAE should drop from ~0.514 to ~0.10-0.15
+-  Correlation-based accuracy should reach 40-60%
+-  Model can actually learn the regression task
 
 ## Why This Is Critical
 
@@ -135,4 +135,4 @@ round,client_id,task,accuracy,mae,correlation
 ---
 
 **Date**: October 19, 2025  
-**Status**: ✅ Fixed - Ready for Testing
+**Status**:  Fixed - Ready for Testing

@@ -13,10 +13,10 @@ def test_evaluation_imports():
     """Test that all evaluation modules can be imported"""
     try:
         from src.evaluation.federated_evaluation import ModelEvaluator, GlobalModelEvaluator, EvaluationReporter
-        print("✅ Evaluation modules imported successfully")
+        print(" Evaluation modules imported successfully")
         return True
     except ImportError as e:
-        print(f"❌ Import error: {e}")
+        print(f" Import error: {e}")
         return False
 
 def test_basic_evaluation():
@@ -40,11 +40,11 @@ def test_basic_evaluation():
         dataloader = DataLoader(dataset, batch_size=4)
 
         # Create dummy model (would need actual model in real scenario)
-        print("✅ Basic evaluation setup completed")
+        print(" Basic evaluation setup completed")
         return True
 
     except Exception as e:
-        print(f"❌ Evaluation test error: {e}")
+        print(f" Evaluation test error: {e}")
         return False
 
 def test_evaluation_structure():
@@ -63,16 +63,16 @@ def test_evaluation_structure():
         }
 
         dataloaders = create_evaluation_dataloaders(client_data)
-        print(f"✅ Created evaluation dataloaders for {len(dataloaders)} clients")
+        print(f" Created evaluation dataloaders for {len(dataloaders)} clients")
         return True
 
     except Exception as e:
-        print(f"❌ Structure test error: {e}")
+        print(f" Structure test error: {e}")
         return False
 
 def main():
     """Run all evaluation tests"""
-    print("🧪 Testing Federated Learning Evaluation Module")
+    print(" Testing Federated Learning Evaluation Module")
     print("=" * 50)
 
     tests = [
@@ -85,18 +85,18 @@ def main():
     total = len(tests)
 
     for test_name, test_func in tests:
-        print(f"\n🔍 Running {test_name}...")
+        print(f"\n Running {test_name}...")
         if test_func():
             passed += 1
-            print(f"✅ {test_name} passed")
+            print(f" {test_name} passed")
         else:
-            print(f"❌ {test_name} failed")
+            print(f" {test_name} failed")
 
-    print(f"\n📊 Test Results: {passed}/{total} tests passed")
+    print(f"\n Test Results: {passed}/{total} tests passed")
 
     if passed == total:
-        print("🎉 All evaluation tests passed!")
-        print("\n📋 Evaluation Module Features:")
+        print(" All evaluation tests passed!")
+        print("\n Evaluation Module Features:")
         print("  • ModelEvaluator: Individual model evaluation")
         print("  • GlobalModelEvaluator: Cross-client evaluation")
         print("  • EvaluationReporter: Report generation")
@@ -104,7 +104,7 @@ def main():
         print("  • Comprehensive metrics: Accuracy, F1, MSE, correlation, etc.")
         return True
     else:
-        print("❌ Some tests failed. Check the errors above.")
+        print(" Some tests failed. Check the errors above.")
         return False
 
 if __name__ == "__main__":

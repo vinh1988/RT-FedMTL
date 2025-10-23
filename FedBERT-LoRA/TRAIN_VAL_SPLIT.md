@@ -68,9 +68,9 @@ Round 2: Training acc = 0.80  ← Might be overfitting!
 
 ### With Validation:
 ```
-Round 1: Training acc = 0.50, Val acc = 0.45 ✅ Learning
-Round 2: Training acc = 0.80, Val acc = 0.50 ✅ Still learning
-Round 3: Training acc = 0.95, Val acc = 0.48 ⚠️ Overfitting!
+Round 1: Training acc = 0.50, Val acc = 0.45  Learning
+Round 2: Training acc = 0.80, Val acc = 0.50  Still learning
+Round 3: Training acc = 0.95, Val acc = 0.48  Overfitting!
 ```
 
 ## Key Differences
@@ -148,4 +148,4 @@ The 446 and 400 are completely different things:
 ---
 
 **Date**: October 19, 2025  
-**Status**: ✅ Training/Validation Split Implemented
+**Status**:  Training/Validation Split Implemented

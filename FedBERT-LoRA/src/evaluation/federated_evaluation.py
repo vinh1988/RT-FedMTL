@@ -275,7 +275,7 @@ class EvaluationReporter:
     def _generate_human_readable_summary(self, results: Dict[str, Any], round_num: int) -> str:
         """Generate human-readable evaluation summary"""
         summary = []
-        summary.append("🔍 Federated Learning Evaluation Report")
+        summary.append(" Federated Learning Evaluation Report")
         summary.append("=" * 50)
         summary.append(f"Round: {round_num}")
         summary.append(f"Evaluation Time: {results['evaluation_timestamp']}")
@@ -283,7 +283,7 @@ class EvaluationReporter:
 
         # Overall metrics
         overall = results['overall_metrics']
-        summary.append("📊 Overall Performance:")
+        summary.append(" Overall Performance:")
         summary.append(f"  • Overall Accuracy: {overall['overall_accuracy']:.4f}")
         summary.append(f"  • Macro F1 Score: {overall['macro_f1_score']:.4f}")
         summary.append(f"  • Weighted F1 Score: {overall['weighted_f1_score']:.4f}")
@@ -292,7 +292,7 @@ class EvaluationReporter:
         summary.append("")
 
         # Task-specific metrics
-        summary.append("📋 Task-Specific Performance:")
+        summary.append(" Task-Specific Performance:")
         for task_name, metrics in results['global_metrics'].items():
             summary.append(f"  • {task_name.upper()}:")
             if task_name in ['sst2', 'qqp']:

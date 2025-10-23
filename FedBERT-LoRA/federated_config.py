@@ -264,16 +264,16 @@ class FederatedConfig:
 
     def print_summary(self):
         """Print configuration summary"""
-        print("🔧 Federated Learning Configuration (Enhanced)")
+        print(" Federated Learning Configuration (Enhanced)")
         print("=" * 60)
-        print(f"📊 Model: {self.server_model} (server), {self.client_model} (client)")
-        print(f"🔧 LoRA: Rank={self.lora_rank}, Alpha={self.lora_alpha}")
-        print(f"👨‍🏫 KD: T={self.kd_temperature}, α={self.kd_alpha}, Bidirectional={self.bidirectional_kd}")
-        print(f"🔄 Sync: {'Enabled' if self.enable_synchronization else 'Disabled'} ({self.sync_frequency})")
-        print(f"🎯 Training: {self.num_rounds} rounds, {self.local_epochs} epochs, batch_size={self.batch_size}")
-        print(f"📚 Data: {self.samples_per_client} samples/client, distribution={self.data_distribution}")
-        print(f"🌐 Communication: Port {self.port}, timeout={self.timeout}s")
-        print(f"📁 Output: Results in '{self.results_dir}', log_level={self.log_level}")
+        print(f" Model: {self.server_model} (server), {self.client_model} (client)")
+        print(f" LoRA: Rank={self.lora_rank}, Alpha={self.lora_alpha}")
+        print(f" KD: T={self.kd_temperature}, α={self.kd_alpha}, Bidirectional={self.bidirectional_kd}")
+        print(f" Sync: {'Enabled' if self.enable_synchronization else 'Disabled'} ({self.sync_frequency})")
+        print(f" Training: {self.num_rounds} rounds, {self.local_epochs} epochs, batch_size={self.batch_size}")
+        print(f" Data: {self.samples_per_client} samples/client, distribution={self.data_distribution}")
+        print(f" Communication: Port {self.port}, timeout={self.timeout}s")
+        print(f" Output: Results in '{self.results_dir}', log_level={self.log_level}")
         print("=" * 60)
 
     def get_dataset_configs(self, tasks: List[str]) -> Dict[str, Any]:

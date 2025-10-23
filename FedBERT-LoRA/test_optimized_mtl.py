@@ -23,12 +23,12 @@ logger = logging.getLogger(__name__)
 
 async def test_optimized_system():
     """Test the optimized MTL federated system"""
-    print("🧪 Testing Optimized MTL Federated Learning System")
+    print(" Testing Optimized MTL Federated Learning System")
     print("=" * 60)
 
     try:
         # Test 1: Configuration loading
-        print("🔧 Testing configuration loading...")
+        print(" Testing configuration loading...")
         config = OptimizedConfig(
             num_rounds=2,
             min_clients=1,
@@ -38,15 +38,15 @@ async def test_optimized_system():
             data_distribution="non_iid",
             non_iid_alpha=0.3
         )
-        print("✅ Configuration loaded successfully")
+        print(" Configuration loaded successfully")
         print(f"   - Rounds: {config.num_rounds}")
         print(f"   - Learning Rate: {config.learning_rate}")
         print(f"   - Samples per client: {config.samples_per_client}")
 
         # Test 2: Server initialization
-        print("\n🖥️ Testing server initialization...")
+        print("\n Testing server initialization...")
         server = OptimizedMTLFederatedServer(config)
-        print("✅ Server initialized successfully")
+        print(" Server initialized successfully")
         print(f"   - Model: {config.server_model}")
         print(f"   - Global model parameters: {sum(p.numel() for p in server.global_model.parameters()):,}")
 
@@ -58,18 +58,18 @@ async def test_optimized_system():
             config=config,
             total_clients=2
         )
-        print("✅ Client initialized successfully")
+        print(" Client initialized successfully")
         print(f"   - Tasks: {client.tasks}")
         print(f"   - Total samples: {sum(len(client.dataset.task_data[task]['texts']) for task in client.tasks)}")
 
         # Test 4: Data distribution analysis
-        print("\n📊 Testing data distribution...")
+        print("\n Testing data distribution...")
         for task_name in client.tasks:
             task_info = client.dataset.get_task_info(task_name)
             print(f"   - {task_name}: {len(task_info['texts'])} samples, type: {task_info['task_type']}")
 
         # Test 5: STSB regression optimization check
-        print("\n📈 Testing STSB regression optimization...")
+        print("\n Testing STSB regression optimization...")
         stsb_info = client.dataset.get_task_info("stsb")
         if stsb_info['task_type'] == "regression":
             labels = stsb_info['labels']
@@ -82,9 +82,9 @@ async def test_optimized_system():
                 print(f"   - STSB label mean: {mean_label:.3f}")
 
                 if 0 <= min_label and max_label <= 1:
-                    print("   ✅ STSB labels properly normalized")
+                    print("    STSB labels properly normalized")
                 else:
-                    print("   ⚠️ STSB labels may need normalization")
+                    print("    STSB labels may need normalization")
 
         # Test 6: Model parameter efficiency
         print("\n⚡ Testing model efficiency...")
@@ -98,9 +98,9 @@ async def test_optimized_system():
         print(f"   - Total student parameters: {total_params:,}")
         print(f"   - Teacher parameters: {sum(p.numel() for p in client.teacher_model.parameters()):,}")
 
-        print("\n🎉 All optimization tests passed!")
-        print("\n🚀 Ready for optimized MTL federated learning!")
-        print("\n📋 Next Steps:")
+        print("\n All optimization tests passed!")
+        print("\n Ready for optimized MTL federated learning!")
+        print("\n Next Steps:")
         print("1. Start server: python optimized_mtl_federated.py --mode server")
         print("2. Start client: python optimized_mtl_federated.py --mode client --client_id client_1 --tasks sst2 qqp stsb")
         print("3. Monitor improved STSB regression performance")
@@ -108,7 +108,7 @@ async def test_optimized_system():
         return True
 
     except Exception as e:
-        print(f"❌ Test failed: {e}")
+        print(f" Test failed: {e}")
         import traceback
         traceback.print_exc()
         return False

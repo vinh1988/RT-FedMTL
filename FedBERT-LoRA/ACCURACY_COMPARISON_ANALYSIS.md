@@ -10,7 +10,7 @@ The `src/clients` implementation achieves **significantly better accuracy** than
 
 ### 1. **Model Architecture Complexity**
 
-#### ✅ Local Clients (`src/clients`) - SIMPLE
+####  Local Clients (`src/clients`) - SIMPLE
 ```python
 # Direct BERT model usage
 self.model = AutoModelForSequenceClassification.from_pretrained(
@@ -22,7 +22,7 @@ self.model = AutoModelForSequenceClassification.from_pretrained(
 - Direct classification head
 - Standard PyTorch/Transformers training
 
-#### ❌ Federated Clients (`src/core`) - COMPLEX
+####  Federated Clients (`src/core`) - COMPLEX
 ```python
 # LoRA-wrapped model with frozen base
 self.student_model = LoRAFederatedModel(
@@ -44,7 +44,7 @@ for param in self.base_model.parameters():
 
 ### 2. **Training Loss Functions**
 
-#### ✅ Local Clients - DIRECT SUPERVISION
+####  Local Clients - DIRECT SUPERVISION
 ```python
 # Simple cross-entropy loss
 loss = self.criterion(logits, labels)
@@ -53,7 +53,7 @@ loss = self.criterion(logits, labels)
 - Clear gradient signal
 - Standard classification/regression loss
 
-#### ❌ Federated Clients - KNOWLEDGE DISTILLATION COMPLEXITY
+####  Federated Clients - KNOWLEDGE DISTILLATION COMPLEXITY
 ```python
 # Complex KD loss with multiple components
 kd_loss = self.kd_engine.calculate_kd_loss(logits, task, labels)
@@ -76,7 +76,7 @@ kd_loss = alpha * kl_div(student, teacher) + (1-alpha) * cross_entropy(student, 
 
 ### 3. **Model Forward Pass**
 
-#### ✅ Local Clients - STRAIGHTFORWARD
+####  Local Clients - STRAIGHTFORWARD
 ```python
 # Direct forward pass
 outputs = self.model(
@@ -88,7 +88,7 @@ logits = outputs.logits  # Shape: (batch_size, num_labels)
 - Single forward pass through full model
 - Direct logit computation
 
-#### ❌ Federated Clients - MULTI-STAGE
+####  Federated Clients - MULTI-STAGE
 ```python
 # Stage 1: Frozen base model
 outputs = self.base_model(
@@ -118,7 +118,7 @@ combined_logits = base_logits + lora_output
 
 ### 4. **Training Loop Efficiency**
 
-#### ✅ Local Clients - CLEAN TRAINING
+####  Local Clients - CLEAN TRAINING
 ```python
 for batch in train_loader:
     # Move to device
@@ -144,7 +144,7 @@ for batch in train_loader:
 - Direct gradient flow
 - All components work on same model
 
-#### ❌ Federated Clients - COMPLEX COORDINATION
+####  Federated Clients - COMPLEX COORDINATION
 ```python
 for batch in train_loader:
     # Unpack and move
@@ -175,7 +175,7 @@ for batch in train_loader:
 
 ### 5. **Data Type Handling**
 
-#### ✅ Local Clients - CORRECT DATA TYPES
+####  Local Clients - CORRECT DATA TYPES
 ```python
 # Proper handling of regression vs classification
 if self.task == 'stsb':
@@ -187,7 +187,7 @@ else:
 - Correctly handles long for classification
 - **Working from the start**
 
-#### ❌ Federated Clients - FIXED AFTER BUGS
+####  Federated Clients - FIXED AFTER BUGS
 ```python
 # Had to be fixed (was causing all labels to become 0)
 if task in ['stsb']:
@@ -203,7 +203,7 @@ else:
 
 ### 6. **Metrics Calculation**
 
-#### ✅ Local Clients - COMPREHENSIVE
+####  Local Clients - COMPREHENSIVE
 ```python
 def calculate_metrics(self, predictions, labels):
     if self.task == 'stsb':
@@ -222,7 +222,7 @@ def calculate_metrics(self, predictions, labels):
 - Appropriate metrics for each task
 - **Validates training is working correctly**
 
-#### ❌ Federated Clients - COMPLEX AND ERROR-PRONE
+####  Federated Clients - COMPLEX AND ERROR-PRONE
 ```python
 # Spread across multiple files and classes
 # In sst2_federated_client.py:
@@ -277,12 +277,12 @@ Note: "NOW LEARNING!" after multiple critical bug fixes
 
 ### Why Local Clients Perform Better:
 
-1. **🎯 Full Model Training**
+1. ** Full Model Training**
    - All 110M BERT parameters are trainable
    - Maximum learning capacity
    - No parameter freezing
 
-2. **📊 Direct Supervision**
+2. ** Direct Supervision**
    - Simple cross-entropy/MSE loss
    - Clear gradient signals
    - No knowledge distillation complexity
@@ -292,12 +292,12 @@ Note: "NOW LEARNING!" after multiple critical bug fixes
    - Fewer potential failure points
    - Easier to debug and validate
 
-4. **✅ Battle-Tested Code**
+4. ** Battle-Tested Code**
    - Follows standard Transformers patterns
    - Well-understood training approach
    - Fewer custom components to go wrong
 
-5. **🧪 Proper Validation**
+5. ** Proper Validation**
    - Clear metrics from the start
    - Easy to verify training is working
    - Comprehensive logging
@@ -325,7 +325,7 @@ Note: "NOW LEARNING!" after multiple critical bug fixes
    - Optimizer was missing initially!
    - **May still have undiscovered issues**
 
-5. **📉 Federated Learning Overhead**
+5. ** Federated Learning Overhead**
    - Communication delays
    - Aggregation noise
    - Non-IID data distribution
@@ -335,7 +335,7 @@ Note: "NOW LEARNING!" after multiple critical bug fixes
 
 ## Recommendations
 
-### Option 1: Use Local Clients for Best Performance ✅
+### Option 1: Use Local Clients for Best Performance 
 - Simple, proven architecture
 - Best accuracy possible
 - Use `src/clients` implementation

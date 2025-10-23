@@ -1,17 +1,17 @@
 # Phase 2 Improvements Applied - Critical Accuracy Fix
 
-## 🚨 Problem Identified
+##  Problem Identified
 
 After Phase 1, results showed **NO significant improvement**:
-- SST-2: 52-53% (Target: 85-92%) ❌
-- QQP: 62-64% (Target: 80-88%) ❌  
-- STS-B: 0-13% correlation (Target: 0.80-0.90) ❌
+- SST-2: 52-53% (Target: 85-92%) 
+- QQP: 62-64% (Target: 80-88%)   
+- STS-B: 0-13% correlation (Target: 0.80-0.90) 
 
 **Root Cause**: Even with LoRA rank increase and simplified loss, **99.9% of BERT model remained frozen**. Only tiny LoRA adapters were learning, providing insufficient capacity.
 
 ---
 
-## ✅ Phase 2 Solution: Unfreeze Top BERT Layers
+##  Phase 2 Solution: Unfreeze Top BERT Layers
 
 ### Critical Change: Selective Layer Unfreezing
 
@@ -119,15 +119,15 @@ Applied to:
 
 ---
 
-## 🎯 Expected Improvements
+##  Expected Improvements
 
 ### With Phase 1 + Phase 2:
 
 | Task  | Before | Phase 1 Only | Phase 2 Target | Improvement |
 |-------|--------|--------------|----------------|-------------|
-| SST-2 | 68%    | 52% ❌       | **85-90%** ✅  | +22-35%     |
-| QQP   | 70%    | 64% ❌       | **80-85%** ✅  | +16-21%     |
-| STS-B | 0.43   | 0.13 ❌      | **0.75-0.85** ✅| +0.62       |
+| SST-2 | 68%    | 52%        | **85-90%**   | +22-35%     |
+| QQP   | 70%    | 64%        | **80-85%**   | +16-21%     |
+| STS-B | 0.43   | 0.13       | **0.75-0.85** | +0.62       |
 
 **Why Phase 2 is Critical:**
 - Phase 1 alone: Only 0.1% of model trainable (still frozen)
@@ -139,21 +139,21 @@ Applied to:
 ## 📂 Files Modified (10 files)
 
 ### Phase 2 Additions:
-1. ✅ `src/lora/federated_lora.py` - Added layer unfreezing logic
-2. ✅ `federated_config.py` - Added `unfreeze_layers` parameter
-3. ✅ `federated_config.yaml` - Added `unfreeze_layers: 2`
-4. ✅ `src/core/base_federated_client.py` - Pass `unfreeze_layers` to model
-5. ✅ `src/core/sst2_federated_client.py` - Added gradient clipping
-6. ✅ `src/core/qqp_federated_client.py` - Added gradient clipping
-7. ✅ `src/core/stsb_federated_client.py` - Added gradient clipping
-8. ✅ `src/core/federated_client.py` - Added gradient clipping
+1.  `src/lora/federated_lora.py` - Added layer unfreezing logic
+2.  `federated_config.py` - Added `unfreeze_layers` parameter
+3.  `federated_config.yaml` - Added `unfreeze_layers: 2`
+4.  `src/core/base_federated_client.py` - Pass `unfreeze_layers` to model
+5.  `src/core/sst2_federated_client.py` - Added gradient clipping
+6.  `src/core/qqp_federated_client.py` - Added gradient clipping
+7.  `src/core/stsb_federated_client.py` - Added gradient clipping
+8.  `src/core/federated_client.py` - Added gradient clipping
 
 ### Phase 1 Files (Already Applied):
-9. ✅ `src/knowledge_distillation/federated_knowledge_distillation.py`
+9.  `src/knowledge_distillation/federated_knowledge_distillation.py`
 
 ---
 
-## 🚀 How to Test
+##  How to Test
 
 ### Step 1: Start the Server
 ```bash
@@ -191,8 +191,8 @@ Watch for these key indicators:
 
 **1. At startup, you should see:**
 ```
-✅ Unfroze top 2 BERT layers + pooler + classifier
-📊 Trainable parameters in unfrozen layers: 17,000,000
+ Unfroze top 2 BERT layers + pooler + classifier
+ Trainable parameters in unfrozen layers: 17,000,000
 ```
 
 **2. During training:**
@@ -213,14 +213,14 @@ cat federated_results/client_results_*.csv
 
 ---
 
-## 🔍 What to Look For
+##  What to Look For
 
-### ✅ Signs of Success:
+###  Signs of Success:
 
 1. **Console output shows unfrozen layers:**
    ```
-   ✅ Unfroze top 2 BERT layers + pooler + classifier
-   📊 Trainable parameters: 17,000,000+
+    Unfroze top 2 BERT layers + pooler + classifier
+    Trainable parameters: 17,000,000+
    ```
 
 2. **Accuracy improves across rounds:**
@@ -232,7 +232,7 @@ cat federated_results/client_results_*.csv
    - Not plateauing
    - Continuous improvement
 
-### ❌ Signs of Problems:
+###  Signs of Problems:
 
 1. **No unfreezing message** - Config not loaded properly
 2. **Accuracy stuck at 50-55%** - Model still frozen
@@ -241,20 +241,20 @@ cat federated_results/client_results_*.csv
 
 ---
 
-## 📊 Comparison Table
+##  Comparison Table
 
 | Metric | Local Clients (src/clients) | Federated BEFORE | Federated AFTER Phase 2 |
 |--------|----------------------------|------------------|-------------------------|
 | **Trainable Params** | 110M (100%) | 100K (0.1%) | 17M (15%) |
-| **SST-2 Accuracy** | 85-92% ✅ | 52-68% ❌ | **85-90%** ✅ |
-| **QQP Accuracy** | 80-88% ✅ | 62-70% ❌ | **80-85%** ✅ |
-| **STS-B Correlation** | 0.80-0.90 ✅ | 0.00-0.43 ❌ | **0.75-0.85** ✅ |
+| **SST-2 Accuracy** | 85-92%  | 52-68%  | **85-90%**  |
+| **QQP Accuracy** | 80-88%  | 62-70%  | **80-85%**  |
+| **STS-B Correlation** | 0.80-0.90  | 0.00-0.43  | **0.75-0.85**  |
 | **Training Time** | Fast | Fast | Medium (more params) |
 | **Communication** | None | Low | Medium (more params) |
 
 ---
 
-## 🎉 Summary
+##  Summary
 
 **Phase 1** improved configuration but didn't fix the core problem.
 

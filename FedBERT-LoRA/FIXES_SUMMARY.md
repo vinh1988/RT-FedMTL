@@ -11,15 +11,15 @@
 
 **Before:**
 ```python
-labels = torch.tensor(labels, dtype=torch.long)  # ❌ Always integer
+labels = torch.tensor(labels, dtype=torch.long)  #  Always integer
 ```
 
 **After:**
 ```python
 if task in ['stsb']:
-    labels = torch.tensor(labels, dtype=torch.float32)  # ✅ Float for regression
+    labels = torch.tensor(labels, dtype=torch.float32)  #  Float for regression
 else:
-    labels = torch.tensor(labels, dtype=torch.long)     # ✅ Long for classification
+    labels = torch.tensor(labels, dtype=torch.long)     #  Long for classification
 ```
 
 **Result:** STSB now shows meaningful correlation-based accuracy (5% → 28% → 43%)
@@ -104,28 +104,28 @@ rmse = np.sqrt(mse)
 
 #### SST-2 (Classification):
 - Round 1-5: 54% → 68% → 62% → 62% → 62%
-- ✅ Learning and stable
+-  Learning and stable
 
 #### QQP (Classification):
 - Round 1-5: 40% → 37% → 53% → 70% → 60%
-- ✅ Learning with some variance
+-  Learning with some variance
 
 #### STSB (Regression):
 - Round 1-5: 5.3% → 27.8% → 7.5% → 37.0% → 43.1%
-- ✅ **NOW LEARNING!** Correlation-based accuracy increasing
+-  **NOW LEARNING!** Correlation-based accuracy increasing
 - MAE: 0.514, MSE: 0.360, RMSE: 0.600, Correlation: 0.431
 
 ---
 
-## System Status: ✅ **FULLY FUNCTIONAL**
+## System Status:  **FULLY FUNCTIONAL**
 
 All three tasks (SST-2, QQP, STSB) are:
-- ✅ Training with proper gradient updates
-- ✅ Using correct data types (float for regression, long for classification)
-- ✅ Calculating appropriate metrics
-- ✅ Loading configuration from YAML
-- ✅ All clients participating from round 1
-- ✅ WebSocket connections stable
+-  Training with proper gradient updates
+-  Using correct data types (float for regression, long for classification)
+-  Calculating appropriate metrics
+-  Loading configuration from YAML
+-  All clients participating from round 1
+-  WebSocket connections stable
 
 ---
 
@@ -183,4 +183,4 @@ if task_name == 'stsb':
 ---
 
 ## Date: October 19, 2025
-## Status: ✅ All Critical Issues Resolved - Ready for Testing
+## Status:  All Critical Issues Resolved - Ready for Testing

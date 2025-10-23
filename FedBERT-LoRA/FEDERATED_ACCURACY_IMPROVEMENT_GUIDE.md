@@ -43,7 +43,7 @@ STS-B | 0.80-0.90     | 0.05-0.43        | -0.47
 
 ## Improvement Strategies
 
-### Strategy 1: Increase Trainable Parameters (HIGHEST IMPACT) 🎯
+### Strategy 1: Increase Trainable Parameters (HIGHEST IMPACT) 
 
 #### Option 1A: Increase LoRA Rank
 
@@ -107,7 +107,7 @@ print(f"Unfrozen top 2 layers + classification head")
 
 ---
 
-#### Option 1C: Hybrid Approach (BEST BALANCE) ⭐⭐⭐
+#### Option 1C: Hybrid Approach (BEST BALANCE) 
 
 Combine increased LoRA rank with selective unfreezing:
 
@@ -148,7 +148,7 @@ class LoRAFederatedModel(nn.Module):
 
 ---
 
-### Strategy 2: Simplify Loss Function (HIGH IMPACT) 🎯
+### Strategy 2: Simplify Loss Function (HIGH IMPACT) 
 
 #### Current State (Complex KD Loss)
 
@@ -397,7 +397,7 @@ def train_task_with_kd(self, task, task_data):
             
             # Warning if gradients are too small
             if total_norm < 1e-6:
-                logger.warning("⚠️ Very small gradients detected! "
+                logger.warning(" Very small gradients detected! "
                               "Model may not be learning properly.")
 ```
 
@@ -427,10 +427,10 @@ def validate_parameters_updated(self, task, before_params, after_params):
     logger.info(f"Average parameter change: {avg_change:.6f}")
     
     if avg_change < 1e-6:
-        logger.error(f"❌ Parameters did NOT update! Model is NOT learning.")
+        logger.error(f" Parameters did NOT update! Model is NOT learning.")
         return False
     else:
-        logger.info(f"✅ Parameters updated successfully")
+        logger.info(f" Parameters updated successfully")
         return True
 ```
 
@@ -443,17 +443,17 @@ def validate_parameters_updated(self, task, before_params, after_params):
 
 ### Phase 1: Quick Wins (1-2 hours) ⚡
 
-1. **Increase LoRA rank from 8 to 32** ✅
+1. **Increase LoRA rank from 8 to 32** 
    - File: `src/lora/federated_lora.py`
    - Change: `lora_rank=32` instead of 8
    - Expected: +10% accuracy
 
-2. **Disable KD initially** ✅
+2. **Disable KD initially** 
    - File: `federated_knowledge_distillation.py`
    - Add: Use hard loss only for first 5 rounds
    - Expected: +5% accuracy
 
-3. **Increase training samples** ✅
+3. **Increase training samples** 
    - File: `federated_config.yaml`
    - Change: 10x more training data
    - Expected: +5% accuracy
@@ -463,19 +463,19 @@ def validate_parameters_updated(self, task, before_params, after_params):
 
 ---
 
-### Phase 2: Medium Improvements (4-6 hours) 🔧
+### Phase 2: Medium Improvements (4-6 hours) 
 
-1. **Unfreeze top 2 BERT layers** ✅✅
+1. **Unfreeze top 2 BERT layers** 
    - File: `src/lora/federated_lora.py`
    - Add: Selective layer unfreezing
    - Expected: +15% accuracy
 
-2. **Improve optimizer/scheduler** ✅✅
+2. **Improve optimizer/scheduler** 
    - File: `src/core/base_federated_client.py`
    - Change: Better LR schedule
    - Expected: +3% accuracy
 
-3. **Add gradient clipping** ✅✅
+3. **Add gradient clipping** 
    - File: All federated client files
    - Add: Gradient clipping in training loop
    - Expected: +2% accuracy
@@ -664,15 +664,15 @@ After each phase, verify:
 ## Summary
 
 **Quick Wins (Phase 1)**:
-- ✅ Increase LoRA rank: 8 → 32
-- ✅ Disable KD initially  
-- ✅ 10x more training data
+-  Increase LoRA rank: 8 → 32
+-  Disable KD initially  
+-  10x more training data
 - **Expected**: +20% accuracy in 1-2 hours
 
 **Medium Improvements (Phase 2)**:
-- ✅✅ Unfreeze top 2 layers
-- ✅✅ Better optimizer/scheduler
-- ✅✅ Add gradient clipping
+-  Unfreeze top 2 layers
+-  Better optimizer/scheduler
+-  Add gradient clipping
 - **Expected**: +20% more accuracy in 4-6 hours
 
 **Major Refactoring (Phase 3)**:

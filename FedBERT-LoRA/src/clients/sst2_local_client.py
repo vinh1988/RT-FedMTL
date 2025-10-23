@@ -285,7 +285,7 @@ def run_sst2_local_training(config_path: str = None):
 
     except Exception as e:
         logger.error(f"SST-2 training failed: {str(e)}")
-        print(f"❌ Training failed: {str(e)}")
+        print(f" Training failed: {str(e)}")
         raise
 
 if __name__ == "__main__":

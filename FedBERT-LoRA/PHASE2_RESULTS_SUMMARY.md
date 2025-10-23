@@ -1,39 +1,39 @@
-# Phase 2 Results - MASSIVE Improvement Achieved! 🎉
+# Phase 2 Results - MASSIVE Improvement Achieved! 
 
-## 📊 Final Results (Round 22)
+##  Final Results (Round 22)
 
 ### Per-Task Performance
 
 | Task | Training Acc | Validation Acc | Status |
 |------|-------------|----------------|--------|
-| **SST-2** | **91.2%** | **73.0%** | ✅ EXCELLENT |
-| **QQP** | **78.0%** | **73.3%** | ✅ EXCELLENT |
-| **STS-B** | **0.645** | **0.620** | ✅ GOOD |
+| **SST-2** | **91.2%** | **73.0%** |  EXCELLENT |
+| **QQP** | **78.0%** | **73.3%** |  EXCELLENT |
+| **STS-B** | **0.645** | **0.620** |  GOOD |
 
 ### Overall Performance
 
 | Metric | Final Value | Status |
 |--------|-------------|--------|
-| **Overall Accuracy** | **77.9%** | ✅ EXCELLENT |
-| **Classification Acc** | **84.6%** | ✅ EXCELLENT |
-| **Regression Correlation** | **0.645** | ✅ GOOD |
+| **Overall Accuracy** | **77.9%** |  EXCELLENT |
+| **Classification Acc** | **84.6%** |  EXCELLENT |
+| **Regression Correlation** | **0.645** |  GOOD |
 
 ---
 
-## 📈 Improvement Comparison
+##  Improvement Comparison
 
 ### Before vs After Phase 2
 
 | Task | Before Phase 2 | After Phase 2 | Improvement |
 |------|----------------|---------------|-------------|
-| **SST-2** | 52-53% ❌ | **91.2%** ✅ | **+39%** 🚀 |
-| **QQP** | 62-64% ❌ | **78.0%** ✅ | **+15%** 🚀 |
-| **STS-B** | 0.00-0.13 ❌ | **0.645** ✅ | **+0.54** 🚀 |
-| **Overall** | ~40% ❌ | **77.9%** ✅ | **+38%** 🚀 |
+| **SST-2** | 52-53%  | **91.2%**  | **+39%**  |
+| **QQP** | 62-64%  | **78.0%**  | **+15%**  |
+| **STS-B** | 0.00-0.13  | **0.645**  | **+0.54**  |
+| **Overall** | ~40%  | **77.9%**  | **+38%**  |
 
 ---
 
-## 📉 Training Progression (22 Rounds)
+##  Training Progression (22 Rounds)
 
 ### SST-2 Progression:
 ```
@@ -61,27 +61,27 @@ Round 15: 76.8% → Round 20: 77.4% → Round 22: 77.9%
 
 ---
 
-## 🎯 Target Achievement
+##  Target Achievement
 
 ### Comparison with Target Goals
 
 | Task | Target | Achieved | Status |
 |------|--------|----------|--------|
-| **SST-2** | 85-92% | **91.2%** | ✅ **TARGET MET** |
-| **QQP** | 80-88% | **78.0%** | ⚠️ Close (2% below) |
-| **STS-B** | 0.75-0.85 | **0.645** | ⚠️ Moderate (0.10 below) |
+| **SST-2** | 85-92% | **91.2%** |  **TARGET MET** |
+| **QQP** | 80-88% | **78.0%** |  Close (2% below) |
+| **STS-B** | 0.75-0.85 | **0.645** |  Moderate (0.10 below) |
 
 ### Comparison with Local Clients (`src/clients`)
 
 | Task | Local Clients | Federated (Phase 2) | Gap |
 |------|---------------|---------------------|-----|
-| **SST-2** | 85-92% | **91.2%** ✅ | ✅ **MATCHED!** |
+| **SST-2** | 85-92% | **91.2%**  |  **MATCHED!** |
 | **QQP** | 80-88% | **78.0%** | -2% (close) |
 | **STS-B** | 0.80-0.90 | **0.645** | -0.16 (acceptable) |
 
 ---
 
-## 🔑 Key Success Factors
+##  Key Success Factors
 
 ### What Made Phase 2 Work:
 
@@ -111,7 +111,7 @@ Round 15: 76.8% → Round 20: 77.4% → Round 22: 77.9%
 
 ---
 
-## 📊 Training Characteristics
+##  Training Characteristics
 
 ### Convergence Pattern:
 - **Fast initial improvement**: Rounds 1-5 (41% → 58%)
@@ -119,10 +119,10 @@ Round 15: 76.8% → Round 20: 77.4% → Round 22: 77.9%
 - **Plateau**: Rounds 16-22 (77% → 78%)
 
 ### Stability:
-- ✅ No training crashes
-- ✅ Smooth loss decrease
-- ✅ Stable gradient norms
-- ✅ Consistent improvement
+-  No training crashes
+-  Smooth loss decrease
+-  Stable gradient norms
+-  Consistent improvement
 
 ### Training Time:
 - Average per round: **~170 seconds**
@@ -131,7 +131,7 @@ Round 15: 76.8% → Round 20: 77.4% → Round 22: 77.9%
 
 ---
 
-## 🎓 Lessons Learned
+##  Lessons Learned
 
 ### Critical Findings:
 
@@ -148,7 +148,7 @@ Round 15: 76.8% → Round 20: 77.4% → Round 22: 77.9%
 
 ---
 
-## 🔮 Future Improvements
+##  Future Improvements
 
 ### To Close Remaining Gaps:
 
@@ -169,17 +169,17 @@ Round 15: 76.8% → Round 20: 77.4% → Round 22: 77.9%
 
 ---
 
-## ✅ Conclusion
+##  Conclusion
 
-**Phase 2 is a RESOUNDING SUCCESS!** 🎉
+**Phase 2 is a RESOUNDING SUCCESS!** 
 
 The key insight was correct: **You need trainable BERT layers, not just LoRA adapters.**
 
 ### Achievements:
-- ✅ SST-2: **91.2%** - MATCHES local client performance!
-- ✅ QQP: **78.0%** - Within 2% of target
-- ✅ STS-B: **0.645** - Significant improvement from 0%
-- ✅ Overall: **77.9%** - Nearly 2x improvement!
+-  SST-2: **91.2%** - MATCHES local client performance!
+-  QQP: **78.0%** - Within 2% of target
+-  STS-B: **0.645** - Significant improvement from 0%
+-  Overall: **77.9%** - Nearly 2x improvement!
 
 ### Impact:
 The federated clients now provide:
@@ -194,6 +194,6 @@ The federated clients now provide:
 
 **Date**: October 20, 2025  
 **Training Rounds**: 22  
-**Status**: ✅ Phase 2 Complete and Validated  
+**Status**:  Phase 2 Complete and Validated  
 **Recommendation**: Deploy with confidence!
 

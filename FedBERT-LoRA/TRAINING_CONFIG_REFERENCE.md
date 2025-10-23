@@ -95,7 +95,7 @@ monitoring:
 
 ## Critical Success Factors
 
-### 🔑 Most Important Setting
+###  Most Important Setting
 
 ```yaml
 lora:
@@ -197,8 +197,8 @@ python federated_main.py --mode client --client_id stsb_client --tasks stsb
 
 You should see at startup:
 ```
-✅ Unfroze top 2 BERT layers + pooler + classifier
-📊 Trainable parameters in unfrozen layers: 17,000,000+
+ Unfroze top 2 BERT layers + pooler + classifier
+ Trainable parameters in unfrozen layers: 17,000,000+
 ```
 
 If you don't see this message, the unfreezing didn't work!
@@ -246,18 +246,18 @@ If you don't see this message, the unfreezing didn't work!
 
 ## What NOT to Change
 
-❌ **Don't change `unfreeze_layers`** - This is critical!  
-❌ **Don't lower LoRA rank below 32** - Reduces capacity  
-❌ **Don't enable KD from round 1** - Let model learn basics first  
-❌ **Don't stop before 15 rounds** - Needs time to converge  
+ **Don't change `unfreeze_layers`** - This is critical!  
+ **Don't lower LoRA rank below 32** - Reduces capacity  
+ **Don't enable KD from round 1** - Let model learn basics first  
+ **Don't stop before 15 rounds** - Needs time to converge  
 
 ## What You CAN Experiment With
 
-✅ **Training rounds** (20-30 for more convergence)  
-✅ **Learning rate** (0.0001-0.0003)  
-✅ **Batch size** (4-16, based on memory)  
-✅ **Sample sizes** (increase for more data)  
-✅ **Unfreeze 3 layers** (for even better accuracy)  
+ **Training rounds** (20-30 for more convergence)  
+ **Learning rate** (0.0001-0.0003)  
+ **Batch size** (4-16, based on memory)  
+ **Sample sizes** (increase for more data)  
+ **Unfreeze 3 layers** (for even better accuracy)  
 
 ---
 
@@ -267,13 +267,13 @@ Using this **exact configuration**, you should achieve:
 
 | Metric | Expected Range | Status |
 |--------|---------------|--------|
-| SST-2 Training | 88-92% | ✅ Excellent |
-| SST-2 Validation | 70-75% | ✅ Good |
-| QQP Training | 75-80% | ✅ Good |
-| QQP Validation | 70-75% | ✅ Good |
-| STS-B Training | 0.60-0.70 | ✅ Acceptable |
-| STS-B Validation | 0.55-0.65 | ✅ Acceptable |
-| Overall | 75-80% | ✅ Excellent |
+| SST-2 Training | 88-92% |  Excellent |
+| SST-2 Validation | 70-75% |  Good |
+| QQP Training | 75-80% |  Good |
+| QQP Validation | 70-75% |  Good |
+| STS-B Training | 0.60-0.70 |  Acceptable |
+| STS-B Validation | 0.55-0.65 |  Acceptable |
+| Overall | 75-80% |  Excellent |
 
 If you get significantly different results:
 1. Check the unfreezing message at startup
@@ -284,6 +284,6 @@ If you get significantly different results:
 ---
 
 **Configuration Verified**: October 20, 2025  
-**Status**: ✅ Production Ready  
-**Reproducibility**: ✅ Confirmed Working
+**Status**:  Production Ready  
+**Reproducibility**:  Confirmed Working
 

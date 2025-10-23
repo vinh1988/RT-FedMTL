@@ -1,6 +1,6 @@
-# 🔗 Federated Multi-Task Learning Integration Map
+#  Federated Multi-Task Learning Integration Map
 
-## 📋 Overview
+##  Overview
 Visual representation of how LoRA, Knowledge Distillation (KD), Federated Learning (FL), and Multi-Task Learning (MTL) integrate in the federated learning system.
 
 ## 🏗️ Integration Architecture
@@ -14,17 +14,17 @@ graph TB
     KD --> MTL
     
     %% Server Components
-    Server[🖥️ Federated Server<br/>BERT-base Teacher] --> FLAgg[⚖️ FL Aggregator<br/>LoRA Parameter Aggregation]
-    Server --> KDGlobal[👨‍🏫 Global KD Manager<br/>Teacher Knowledge Management]
+    Server[ Federated Server<br/>BERT-base Teacher] --> FLAgg[⚖️ FL Aggregator<br/>LoRA Parameter Aggregation]
+    Server --> KDGlobal[ Global KD Manager<br/>Teacher Knowledge Management]
     
     %% Client Components
-    Client1[👥 Client 1<br/>SST2 + QQP Tasks] --> LoRA1[🔧 Client LoRA<br/>Task-Specific Adapters]
-    Client1 --> LocalKD1[🔄 Local KD<br/>Student Learning]
-    Client1 --> LocalMTL1[🎯 Local MTL<br/>Multi-Task Training]
+    Client1[👥 Client 1<br/>SST2 + QQP Tasks] --> LoRA1[ Client LoRA<br/>Task-Specific Adapters]
+    Client1 --> LocalKD1[ Local KD<br/>Student Learning]
+    Client1 --> LocalMTL1[ Local MTL<br/>Multi-Task Training]
     
-    Client2[👥 Client 2<br/>STSB Task] --> LoRA2[🔧 Client LoRA<br/>Task-Specific Adapters]
-    Client2 --> LocalKD2[🔄 Local KD<br/>Student Learning]
-    Client2 --> LocalMTL2[🎯 Local MTL<br/>Single-Task Training]
+    Client2[👥 Client 2<br/>STSB Task] --> LoRA2[ Client LoRA<br/>Task-Specific Adapters]
+    Client2 --> LocalKD2[ Local KD<br/>Student Learning]
+    Client2 --> LocalMTL2[ Local MTL<br/>Single-Task Training]
     
     %% Knowledge Flow
     KDGlobal -.->|Teacher Knowledge| LocalKD1
@@ -57,40 +57,40 @@ graph TB
     style KDGlobal fill:#fce4ec
 ```
 
-## 🔄 Integration Flow Diagram
+##  Integration Flow Diagram
 
 ```mermaid
 flowchart TD
     %% Initialization
-    A[🚀 System Initialization] --> B[📋 Load Configuration]
-    B --> C[⚙️ Setup Components]
+    A[ System Initialization] --> B[ Load Configuration]
+    B --> C[ Setup Components]
     
     %% Server Setup
-    C --> D[🖥️ Initialize Server<br/>BERT-base Teacher]
-    D --> E[🔧 Setup LoRA Aggregator]
-    E --> F[👨‍🏫 Setup Global KD Manager]
+    C --> D[ Initialize Server<br/>BERT-base Teacher]
+    D --> E[ Setup LoRA Aggregator]
+    E --> F[ Setup Global KD Manager]
     
     %% Client Setup
     C --> G[👥 Initialize Clients<br/>Tiny-BERT + LoRA]
-    G --> H[🔄 Setup Local KD Engines]
-    H --> I[🎯 Setup Task Handlers]
+    G --> H[ Setup Local KD Engines]
+    H --> I[ Setup Task Handlers]
     
     %% Training Loop
-    I --> J{🔄 Federated Training Loop}
+    I --> J{ Federated Training Loop}
     
     %% Round Execution
     J --> K[�� Send Global Model to Clients]
-    K --> L[🔄 Clients Update with Global Knowledge]
-    L --> M[🏃 Local Multi-Task Training]
-    M --> N[📊 Generate Local Metrics]
-    N --> O[🔧 Extract LoRA Updates]
+    K --> L[ Clients Update with Global Knowledge]
+    L --> M[ Local Multi-Task Training]
+    M --> N[ Generate Local Metrics]
+    N --> O[ Extract LoRA Updates]
     O --> P[📤 Send Updates to Server]
     
     %% Server Processing
     P --> Q[⚖️ Aggregate LoRA Parameters]
-    Q --> R[📈 Update Global Model]
-    R --> S[👨‍🏫 Update Teacher Knowledge]
-    S --> T[💾 Record Round Results]
+    Q --> R[ Update Global Model]
+    R --> S[ Update Teacher Knowledge]
+    S --> T[ Record Round Results]
     
     %% Loop Control
     T --> U{Round Complete?}
@@ -98,9 +98,9 @@ flowchart TD
     U -->|Yes| V[🏁 Training Complete]
     
     %% Post-Training
-    V --> W[🔍 Run Post-Training Evaluation]
-    W --> X[📊 Generate Performance Reports]
-    X --> Y[📋 Save Final Results]
+    V --> W[ Run Post-Training Evaluation]
+    W --> X[ Generate Performance Reports]
+    X --> Y[ Save Final Results]
     
     %% Styling
     style A fill:#e3f2fd
@@ -146,9 +146,9 @@ graph TD
     F --> G[Continue Training<br/>with Enhanced Knowledge]
 ```
 
-## 📊 Integration Benefits
+##  Integration Benefits
 
-### ✅ Combined Advantages
+###  Combined Advantages
 
 | **Component** | **Primary Benefit** | **Integration Effect** |
 |---------------|-------------------|----------------------|
@@ -158,14 +158,14 @@ graph TD
 | **MTL** | Task Generalization | Leverages shared representations across tasks |
 | **WebSocket** | Real-time Sync | Enables dynamic model updates during training |
 
-### 🔄 Synergistic Effects
+###  Synergistic Effects
 
 1. **LoRA + MTL**: Task-specific parameter adaptation within shared model
 2. **KD + FL**: Global knowledge sharing across decentralized clients
 3. **LoRA + KD**: Efficient knowledge transfer with minimal parameters
 4. **FL + MTL**: Multi-task learning across distributed clients
 
-## 🎯 Integration Points
+##  Integration Points
 
 ### Core Integration Mechanisms
 
@@ -184,7 +184,7 @@ graph TD
    - Federated aggregation of LoRA parameters
    - Global model updates with knowledge distillation
 
-## 🚀 Usage Integration
+##  Usage Integration
 
 ### Complete System Usage
 ```bash
@@ -220,7 +220,7 @@ task_configs:
   stsb: {train_samples: 20}       # MTL task config
 ```
 
-## 📈 Integration Performance
+##  Integration Performance
 
 ### Expected Results with Full Integration
 - **Parameter Efficiency**: 99% reduction via LoRA
