@@ -1,6 +1,6 @@
 # Quick Reference: Federated Learning Results
 
-## 🎯 Final Accuracy Results
+##  Final Accuracy Results
 
 ```
 ╔═══════════════════════════════════════════════════════════╗
@@ -8,49 +8,49 @@
 ╚═══════════════════════════════════════════════════════════╝
 
 Task: SST-2 (Sentiment Analysis)
-├─ Training:    91.2%  ✅ EXCELLENT
-├─ Validation:  73.0%  ✅ GOOD
-└─ Target:      85-92% ✅ MET!
+├─ Training:    91.2%   EXCELLENT
+├─ Validation:  73.0%   GOOD
+└─ Target:      85-92%  MET!
 
 Task: QQP (Question Pairs)  
-├─ Training:    78.0%  ✅ GOOD
-├─ Validation:  73.3%  ✅ GOOD
-└─ Target:      80-88% ⚠️  Close (-2%)
+├─ Training:    78.0%   GOOD
+├─ Validation:  73.3%   GOOD
+└─ Target:      80-88%   Close (-2%)
 
 Task: STS-B (Semantic Similarity)
-├─ Training:    0.645  ✅ GOOD
-├─ Validation:  0.620  ✅ ACCEPTABLE
-└─ Target:      0.75+  ⚠️  Moderate
+├─ Training:    0.645   GOOD
+├─ Validation:  0.620   ACCEPTABLE
+└─ Target:      0.75+    Moderate
 
-Overall Accuracy: 77.9% (from 40%) +38% improvement! 🚀
+Overall Accuracy: 77.9% (from 40%) +38% improvement! 
 ```
 
 ---
 
-## 📊 Before vs After
+##  Before vs After
 
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
-| SST-2 | 52% ❌ | **91.2%** ✅ | **+39%** |
-| QQP | 64% ❌ | **78.0%** ✅ | **+14%** |
-| STS-B | 0% ❌ | **0.645** ✅ | **+0.65** |
-| Overall | 40% ❌ | **77.9%** ✅ | **+38%** |
+| SST-2 | 52%  | **91.2%**  | **+39%** |
+| QQP | 64%  | **78.0%**  | **+14%** |
+| STS-B | 0%  | **0.645**  | **+0.65** |
+| Overall | 40%  | **77.9%**  | **+38%** |
 
 ---
 
-## 🔑 What Made It Work
+##  What Made It Work
 
-✅ **Unfroze top 2 BERT layers** (15% of model trainable)  
-✅ **Increased LoRA rank** (8 → 32)  
-✅ **10x more training data** (500 → 5000 samples)  
-✅ **Simplified loss** (no KD for first 5 rounds)  
-✅ **Gradient clipping** (stability)  
+ **Unfroze top 2 BERT layers** (15% of model trainable)  
+ **Increased LoRA rank** (8 → 32)  
+ **10x more training data** (500 → 5000 samples)  
+ **Simplified loss** (no KD for first 5 rounds)  
+ **Gradient clipping** (stability)  
 
 **Key Insight**: Need actual BERT layers trainable, not just LoRA!
 
 ---
 
-## 🚀 Run Commands
+##  Run Commands
 
 ```bash
 # Server
@@ -64,7 +64,7 @@ python federated_main.py --mode client --client_id stsb_client --tasks stsb
 
 ---
 
-## 📁 Key Files
+##  Key Files
 
 **Results**: `federated_results/client_results_20251020_110808.csv`  
 **Config**: `federated_config.yaml`  
@@ -73,11 +73,11 @@ python federated_main.py --mode client --client_id stsb_client --tasks stsb
 
 ---
 
-## ✅ Status
+##  Status
 
-**Problem**: SOLVED ✅  
-**Accuracy**: 91.2% (SST-2) ✅  
-**Deployment**: Ready ✅  
+**Problem**: SOLVED   
+**Accuracy**: 91.2% (SST-2)   
+**Deployment**: Ready   
 
 **Date**: October 20, 2025
 

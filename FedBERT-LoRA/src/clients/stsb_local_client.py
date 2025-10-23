@@ -269,33 +269,33 @@ def run_stsb_local_training(config_path: str = None):
     """Run standalone STSB local training"""
     client = STSBLlocalClient(config_path)
 
-    print("📊 Starting STSB Local Training")
+    print("[STATS] Starting STSB Local Training")
     print("=" * 40)
 
     try:
         results = client.run_training()
 
-        print("\n✅ STSB Training Completed Successfully!")
+        print("\n[SUCCESS] STSB Training Completed Successfully!")
         print("=" * 40)
 
         final_metrics = results['final_metrics']
-        print(f"📊 Final Training Loss: {final_metrics.get('loss', 0):.4f}")
-        print(f"📊 Final Training MAE: {final_metrics.get('mae', 0):.4f}")
-        print(f"📊 Final Training Correlation: {final_metrics.get('correlation', 0):.4f}")
+        print(f"[STATS] Final Training Loss: {final_metrics.get('loss', 0):.4f}")
+        print(f"[STATS] Final Training MAE: {final_metrics.get('mae', 0):.4f}")
+        print(f"[STATS] Final Training Correlation: {final_metrics.get('correlation', 0):.4f}")
 
         if results['val_metrics']:
             final_val = results['val_metrics'][-1]
-            print(f"📊 Final Validation Loss: {final_val.get('loss', 0):.4f}")
-            print(f"📊 Final Validation MAE: {final_val.get('mae', 0):.4f}")
-            print(f"📊 Final Validation Correlation: {final_val.get('correlation', 0):.4f}")
+            print(f"[STATS] Final Validation Loss: {final_val.get('loss', 0):.4f}")
+            print(f"[STATS] Final Validation MAE: {final_val.get('mae', 0):.4f}")
+            print(f"[STATS] Final Validation Correlation: {final_val.get('correlation', 0):.4f}")
 
-        print(f"📁 Results saved to: {client.config['output_dir']}")
+        print(f"[INFO] Results saved to: {client.config['output_dir']}")
 
         return results
 
     except Exception as e:
-        logger.error(f"STSB training failed: {str(e)}")
-        print(f"❌ Training failed: {str(e)}")
+        logger.error(f"STS-B training failed: {str(e)}")
+        print(f"[ERROR] Training failed: {str(e)}")
         raise
 
 if __name__ == "__main__":

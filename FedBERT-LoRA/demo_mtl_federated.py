@@ -20,11 +20,11 @@ from no_lora_federated_system import (
 
 def demo_configuration():
     """Show example configurations for MTL federated learning"""
-    print("🔧 MTL Federated Learning Configuration Examples")
+    print(" MTL Federated Learning Configuration Examples")
     print("=" * 50)
 
     # Example 1: Basic MTL Federated Learning
-    print("\n📋 Example 1: Basic MTL Federated Learning")
+    print("\n Example 1: Basic MTL Federated Learning")
     config1 = NoLoRAConfig(
         server_model="prajjwal1/bert-tiny",
         client_model="prajjwal1/bert-tiny",
@@ -47,7 +47,7 @@ def demo_configuration():
     print(f"   Non-IID Alpha: {config1.non_iid_alpha}")
 
     # Example 2: High Heterogeneity MTL
-    print("\n📊 Example 2: High Heterogeneity MTL")
+    print("\n Example 2: High Heterogeneity MTL")
     config2 = NoLoRAConfig(
         server_model="prajjwal1/bert-tiny",
         client_model="prajjwal1/bert-tiny",
@@ -76,7 +76,7 @@ def demo_client_usage():
     print("=" * 50)
 
     # Example client initialization
-    print("\n🔧 Client Initialization:")
+    print("\n Client Initialization:")
     print("```python")
     print("from no_lora_federated_system import MultiTaskFederatedClient, NoLoRAConfig")
     print("")
@@ -100,7 +100,7 @@ def demo_client_usage():
     print("```")
 
     # Example command line usage
-    print("\n💻 Command Line Usage:")
+    print("\n Command Line Usage:")
     print("```bash")
     print("# Start server")
     print("python no_lora_federated_system.py --mode server --rounds 22 --total_clients 5")
@@ -115,14 +115,14 @@ def demo_key_features():
     print("=" * 50)
 
     features = [
-        "🔄 Multi-Task Learning: Each client handles multiple tasks simultaneously",
-        "🌐 Federated Learning: Knowledge sharing across distributed clients",
-        "📊 Knowledge Distillation: Teacher-student learning between tasks",
-        "🎲 Non-IID Distribution: Realistic heterogeneous data across clients",
-        "📈 Comprehensive Metrics: Detailed performance tracking per task",
+        " Multi-Task Learning: Each client handles multiple tasks simultaneously",
+        " Federated Learning: Knowledge sharing across distributed clients",
+        " Knowledge Distillation: Teacher-student learning between tasks",
+        " Non-IID Distribution: Realistic heterogeneous data across clients",
+        " Comprehensive Metrics: Detailed performance tracking per task",
         "⚡ Transfer Learning: Knowledge transfer between related tasks",
-        "🔧 Flexible Configuration: Easy customization of all parameters",
-        "📋 Advanced Binning: Sophisticated data distribution for regression tasks"
+        " Flexible Configuration: Easy customization of all parameters",
+        " Advanced Binning: Sophisticated data distribution for regression tasks"
     ]
 
     for feature in features:
@@ -164,7 +164,7 @@ def demo_architecture():
 
 async def main():
     """Main demo function"""
-    print("🚀 MTL Federated Learning System Demo")
+    print(" MTL Federated Learning System Demo")
     print("=" * 60)
 
     # Show configuration examples
@@ -179,22 +179,22 @@ async def main():
     # Show architecture
     demo_architecture()
 
-    print("\n🎯 Summary")
+    print("\n Summary")
     print("=" * 60)
-    print("✅ Multi-Task Learning: Each client learns multiple tasks")
-    print("✅ Federated Learning: Distributed training across clients")
-    print("✅ Transfer Learning: Knowledge sharing between tasks")
-    print("✅ Knowledge Distillation: Teacher-student learning")
-    print("✅ Non-IID Distribution: Realistic heterogeneous data")
-    print("✅ Comprehensive Metrics: Detailed performance tracking")
+    print(" Multi-Task Learning: Each client learns multiple tasks")
+    print(" Federated Learning: Distributed training across clients")
+    print(" Transfer Learning: Knowledge sharing between tasks")
+    print(" Knowledge Distillation: Teacher-student learning")
+    print(" Non-IID Distribution: Realistic heterogeneous data")
+    print(" Comprehensive Metrics: Detailed performance tracking")
 
-    print("\n🔗 The system combines the benefits of:")
+    print("\n The system combines the benefits of:")
     print("   • Multi-task learning for better generalization")
     print("   • Federated learning for privacy-preserving distributed training")
     print("   • Transfer learning for knowledge sharing between tasks")
     print("   • Knowledge distillation for model compression and learning")
 
-    print("\n📚 For more information, see:")
+    print("\n For more information, see:")
     print("   • MULTI_TASK_IMPLEMENTATION.md")
     print("   • FEDERATED_LEARNING_COMPARISON.md")
     print("   • Run: python test_mtl_federated.py")

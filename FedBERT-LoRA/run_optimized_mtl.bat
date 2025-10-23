@@ -1,11 +1,11 @@
 @echo off
-REM 🚀 Optimized MTL Federated Learning System - Windows Startup Script
+REM  Optimized MTL Federated Learning System - Windows Startup Script
 REM This batch file provides all commands needed to run the server and clients
 
-echo 🚀 Optimized MTL Federated Learning System
+echo  Optimized MTL Federated Learning System
 echo ==========================================
 echo.
-echo 📋 Available Commands:
+echo  Available Commands:
 echo.
 
 REM Colors for better output (Windows 10+)
@@ -101,39 +101,39 @@ echo    python optimized_mtl_federated.py --mode client --client_id client_3 --t
 echo.
 
 echo 10. Expected Output:
-echo    ✅ Server: 'Starting optimized server on port 8771'
-echo    ✅ Server: 'Waiting for clients... (0/1)'
-echo    ✅ Client: 'Client client_1 registered successfully'
-echo    ✅ Server: 'Starting training with X clients'
-echo    ✅ All: Performance metrics and completion status
+echo     Server: 'Starting optimized server on port 8771'
+echo     Server: 'Waiting for clients... (0/1)'
+echo     Client: 'Client client_1 registered successfully'
+echo     Server: 'Starting training with X clients'
+echo     All: Performance metrics and completion status
 echo.
 
 echo 11. Troubleshooting:
-echo    🔧 If clients fail to connect:
+echo     If clients fail to connect:
 echo       - Ensure server is running first
 echo       - Check firewall settings (netsh advfirewall firewall add rule)
 echo       - Verify port 8771 is available (netstat -an ^| find "8771")
 echo       - Check system resources (RAM, CPU)
 echo.
-echo    🔧 If training is slow:
+echo     If training is slow:
 echo       - Reduce --samples parameter
 echo       - Use --rounds 2 for testing
 echo       - Monitor system resources with Task Manager
 echo.
-echo    🔧 If getting import errors:
+echo     If getting import errors:
 echo       - Run: venv\Scripts\activate
 echo       - Check Python path (echo %PYTHONPATH%)
 echo       - Verify all dependencies installed (pip list)
 echo.
 
 echo 12. Performance Tips:
-echo    💡 Use SSD storage for better I/O performance
-echo    💡 Monitor RAM usage (each client ~500MB-1GB)
-echo    💡 Close unnecessary applications during training
-echo    💡 Use multiple Command Prompts for different clients
+echo     Use SSD storage for better I/O performance
+echo     Monitor RAM usage (each client ~500MB-1GB)
+echo     Close unnecessary applications during training
+echo     Use multiple Command Prompts for different clients
 echo.
 
-echo 🎯 Happy Federated Learning! 🚀
+echo  Happy Federated Learning! 
 echo.
 echo For more information, see:
 echo    - OPTIMIZATION_REPORT.md

@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# 🚀 Optimized MTL Federated Learning System - Complete Startup Script
+#  Optimized MTL Federated Learning System - Complete Startup Script
 # This script provides all commands needed to run the server and clients
 
-echo "🚀 Optimized MTL Federated Learning System"
+echo " Optimized MTL Federated Learning System"
 echo "=========================================="
 echo ""
-echo "📋 Available Commands:"
+echo " Available Commands:"
 echo ""
 
 # Colors for better output
@@ -103,39 +103,39 @@ echo "   python optimized_mtl_federated.py --mode client --client_id client_3 --
 echo ""
 
 echo -e "${BLUE}10. Expected Output:${NC}"
-echo "   ✅ Server: 'Starting optimized server on port 8771'"
-echo "   ✅ Server: 'Waiting for clients... (0/1)'"
-echo "   ✅ Client: 'Client client_1 registered successfully'"
-echo "   ✅ Server: 'Starting training with X clients'"
-echo "   ✅ All: Performance metrics and completion status"
+echo "    Server: 'Starting optimized server on port 8771'"
+echo "    Server: 'Waiting for clients... (0/1)'"
+echo "    Client: 'Client client_1 registered successfully'"
+echo "    Server: 'Starting training with X clients'"
+echo "    All: Performance metrics and completion status"
 echo ""
 
 echo -e "${BLUE}11. Troubleshooting:${NC}"
-echo "   🔧 If clients fail to connect:"
+echo "    If clients fail to connect:"
 echo "      - Ensure server is running first"
 echo "      - Check firewall settings"
 echo "      - Verify port 8771 is available"
 echo "      - Check system resources (RAM, CPU)"
 echo ""
-echo "   🔧 If training is slow:"
+echo "    If training is slow:"
 echo "      - Reduce --samples parameter"
 echo "      - Use --rounds 2 for testing"
 echo "      - Monitor system resources"
 echo ""
-echo "   🔧 If getting import errors:"
+echo "    If getting import errors:"
 echo "      - Run: source venv/bin/activate"
 echo "      - Check Python path"
 echo "      - Verify all dependencies installed"
 echo ""
 
 echo -e "${BLUE}12. Performance Tips:${NC}"
-echo "   💡 Use SSD storage for better I/O performance"
-echo "   💡 Monitor RAM usage (each client ~500MB-1GB)"
-echo "   💡 Close unnecessary applications during training"
-echo "   💡 Use terminal multiplexer (tmux/screen) for multiple clients"
+echo "    Use SSD storage for better I/O performance"
+echo "    Monitor RAM usage (each client ~500MB-1GB)"
+echo "    Close unnecessary applications during training"
+echo "    Use terminal multiplexer (tmux/screen) for multiple clients"
 echo ""
 
-echo "🎯 Happy Federated Learning! 🚀"
+echo " Happy Federated Learning! "
 echo ""
 echo "For more information, see:"
 echo "   - OPTIMIZATION_REPORT.md"

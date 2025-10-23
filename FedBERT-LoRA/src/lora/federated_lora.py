@@ -133,29 +133,30 @@ class LoRAFederatedModel(nn.Module):
                         trainable_params += param.numel()
                     total_params += sum(p.numel() for p in self.base_model.classifier.parameters())
                 
-                print(f"✅ Unfroze top {layers_to_unfreeze} BERT layers + pooler + classifier")
-                print(f"📊 Trainable parameters in unfrozen layers: {trainable_params:,}")
+                print(f"[SUCCESS] Unfroze top {layers_to_unfreeze} BERT layers + pooler + classifier")
+                print(f"[STATS] Trainable parameters in unfrozen layers: {trainable_params:,}")
                 
             elif hasattr(self.base_model, 'roberta'):
                 # For RoBERTa-based models
                 encoder = self.base_model.roberta.encoder
                 num_layers = len(encoder.layer)
                 layers_to_unfreeze = min(unfreeze_layers, num_layers)
-                
+
                 for layer in encoder.layer[-layers_to_unfreeze:]:
                     for param in layer.parameters():
                         param.requires_grad = True
                         trainable_params += param.numel()
-                
+                    total_params += sum(p.numel() for p in layer.parameters())
+
+                # Also unfreeze classifier for RoBERTa (if it exists)
                 if hasattr(self.base_model, 'classifier'):
                     for param in self.base_model.classifier.parameters():
                         param.requires_grad = True
                         trainable_params += param.numel()
-                
-                print(f"✅ Unfroze top {layers_to_unfreeze} RoBERTa layers + classifier")
-                print(f"📊 Trainable parameters: {trainable_params:,}")
-            else:
-                print(f"⚠️ Could not identify model architecture for layer unfreezing")
+                    total_params += sum(p.numel() for p in self.base_model.classifier.parameters())
+
+                print(f"[SUCCESS] Unfroze top {layers_to_unfreeze} RoBERTa layers + classifier")
+                print(f"[STATS] Trainable parameters in unfrozen layers: {trainable_params:,}")
 
         # Task-specific LoRA adapters
         self.task_adapters = nn.ModuleDict({

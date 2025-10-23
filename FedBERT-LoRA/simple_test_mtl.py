@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def test_imports():
     """Test that all necessary modules can be imported"""
-    print("🔍 Testing imports...")
+    print(" Testing imports...")
 
     try:
         # Test basic imports
@@ -23,24 +23,24 @@ def test_imports():
         from dataclasses import dataclass, asdict
         from collections import defaultdict
         from pathlib import Path
-        print("✅ Basic imports successful")
+        print(" Basic imports successful")
 
         # Test transformers import (without actually loading models)
         from transformers import AutoTokenizer, AutoModelForSequenceClassification
-        print("✅ Transformers imports successful")
+        print(" Transformers imports successful")
 
         # Test datasets import
         from datasets import load_dataset
-        print("✅ Datasets import successful")
+        print(" Datasets import successful")
 
         # Test sklearn imports
         from sklearn.metrics import accuracy_score, mean_squared_error, r2_score
-        print("✅ Scikit-learn imports successful")
+        print(" Scikit-learn imports successful")
 
         return True
 
     except Exception as e:
-        print(f"❌ Import failed: {e}")
+        print(f" Import failed: {e}")
         return False
 
 def test_class_definitions():
@@ -56,7 +56,7 @@ def test_class_definitions():
             MultiTaskFederatedClient,
             MTLFederatedServer
         )
-        print("✅ All classes imported successfully")
+        print(" All classes imported successfully")
 
         # Test configuration creation
         config = NoLoRAConfig(
@@ -69,15 +69,15 @@ def test_class_definitions():
             data_distribution="non_iid",
             non_iid_alpha=0.5
         )
-        print("✅ Configuration created successfully")
+        print(" Configuration created successfully")
 
         # Test dataset creation (without loading actual data)
-        print("✅ Class definitions test passed")
+        print(" Class definitions test passed")
 
         return True
 
     except Exception as e:
-        print(f"❌ Class definition test failed: {e}")
+        print(f" Class definition test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -103,27 +103,27 @@ def test_mtl_architecture():
         server_init = inspect.signature(MTLFederatedServer.__init__)
 
         if 'tasks' in client_init.parameters:
-            print("✅ MultiTaskFederatedClient accepts multiple tasks")
+            print(" MultiTaskFederatedClient accepts multiple tasks")
         else:
-            print("❌ MultiTaskFederatedClient missing tasks parameter")
+            print(" MultiTaskFederatedClient missing tasks parameter")
             return False
 
         if 'config' in server_init.parameters:
-            print("✅ MTLFederatedServer accepts config parameter")
+            print(" MTLFederatedServer accepts config parameter")
         else:
-            print("❌ MTLFederatedServer missing config parameter")
+            print(" MTLFederatedServer missing config parameter")
             return False
 
-        print("✅ MTL architecture test passed")
+        print(" MTL architecture test passed")
         return True
 
     except Exception as e:
-        print(f"❌ MTL architecture test failed: {e}")
+        print(f" MTL architecture test failed: {e}")
         return False
 
 def main():
     """Main test function"""
-    print("🧪 Simple MTL Federated Learning System Test")
+    print(" Simple MTL Federated Learning System Test")
     print("=" * 60)
 
     # Test 1: Imports
@@ -135,16 +135,16 @@ def main():
     # Test 3: MTL architecture
     arch_success = test_mtl_architecture()
 
-    print("\n📊 Test Results:")
-    print(f"   Imports: {'✅ PASS' if import_success else '❌ FAIL'}")
-    print(f"   Classes: {'✅ PASS' if class_success else '❌ FAIL'}")
-    print(f"   Architecture: {'✅ PASS' if arch_success else '❌ FAIL'}")
+    print("\n Test Results:")
+    print(f"   Imports: {' PASS' if import_success else ' FAIL'}")
+    print(f"   Classes: {' PASS' if class_success else ' FAIL'}")
+    print(f"   Architecture: {' PASS' if arch_success else ' FAIL'}")
 
     if import_success and class_success and arch_success:
-        print("\n🎉 All tests passed! MTL Federated Learning System structure is correct.")
-        print("\n🚀 Ready for full testing with model loading!")
+        print("\n All tests passed! MTL Federated Learning System structure is correct.")
+        print("\n Ready for full testing with model loading!")
 
-        print("\n📋 Next Steps:")
+        print("\n Next Steps:")
         print("1. Run full test: python test_mtl_federated.py")
         print("2. Run demo: python demo_mtl_federated.py")
         print("3. Start server: python no_lora_federated_system.py --mode server")
@@ -152,7 +152,7 @@ def main():
 
         return True
     else:
-        print("\n❌ Some tests failed. Please check the implementation.")
+        print("\n Some tests failed. Please check the implementation.")
         return False
 
 if __name__ == "__main__":

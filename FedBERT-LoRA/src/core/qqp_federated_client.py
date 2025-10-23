@@ -46,7 +46,7 @@ class QQPFederatedClient(BaseFederatedClient):
         # Set model to training mode
         self.student_model.train()
 
-        logger.info(f"🚀 Starting QQP training with {len(train_dataloader)} batches")
+        logger.info(f"[TRAINING] Starting QQP training with {len(train_dataloader)} batches")
 
         # Training loop with proper metrics calculation
         total_loss = 0.0
@@ -103,7 +103,7 @@ class QQPFederatedClient(BaseFederatedClient):
 
             # Log progress every few batches
             if num_batches % 5 == 0:
-                logger.info(f"📊 QQP - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
+                logger.info(f"[STATS] QQP - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
 
         # Update learning rate scheduler
         self.scheduler.step()
@@ -112,7 +112,7 @@ class QQPFederatedClient(BaseFederatedClient):
         avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
         accuracy = correct_predictions / total_samples if total_samples > 0 else 0.0
 
-        logger.info(f"✅ QQP training completed - Loss: {avg_loss:.4f}, Accuracy: {accuracy:.4f}")
+        logger.info(f"[SUCCESS] QQP training completed - Loss: {avg_loss:.4f}, Accuracy: {accuracy:.4f}")
 
         # Add validation metrics if validation data is available
         metrics = {
@@ -126,16 +126,14 @@ class QQPFederatedClient(BaseFederatedClient):
             val_metrics = self.evaluate_on_validation(task, val_dataloader)
             metrics.update({
                 'val_accuracy': val_metrics['accuracy'],
-                'val_loss': val_metrics['loss'],
-                'val_samples': val_metrics['samples_processed']
             })
-            logger.info(f"✅ QQP Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
+            logger.info(f"[SUCCESS] QQP Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
 
         return metrics
 
     def evaluate_on_validation(self, task: str, val_dataloader) -> Dict[str, float]:
         """Evaluate model on validation data for QQP"""
-        # Set model to evaluation mode
+        
         self.student_model.eval()
 
         total_loss = 0.0

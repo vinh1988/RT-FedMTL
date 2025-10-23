@@ -235,10 +235,10 @@ class FederatedClient:
             # Use retry logic for sending updates
             success = await self.websocket_client.send(update_message, max_retries=5)
             if success:
-                logger.info(f"✅ Training completed and update sent for round {round_num}")
-                logger.info(f"📊 Client {self.client_id} metrics: {local_metrics}")
+                logger.info(f"[SUCCESS] Training completed and update sent for round {round_num}")
+                logger.info(f"[METRICS] Client {self.client_id} metrics: {local_metrics}")
             else:
-                logger.error(f"❌ Failed to send update for round {round_num} after retries")
+                logger.error(f"[ERROR] Failed to send update for round {round_num} after retries")
 
         except Exception as e:
             logger.error(f"Error in local training for round {round_num}: {e}")
@@ -287,7 +287,7 @@ class FederatedClient:
         # Set model to training mode
         self.student_model.train()
         
-        logger.info(f"🚀 Starting training for task {task} with {len(train_dataloader)} batches")
+        logger.info(f"[TRAINING] Starting training for task {task} with {len(train_dataloader)} batches")
 
         # Training loop with proper metrics calculation
         total_loss = 0.0
@@ -341,7 +341,7 @@ class FederatedClient:
 
             # Log progress every few batches
             if num_batches % 5 == 0:
-                logger.info(f"📊 Task {task} - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
+                logger.info(f"[STATS] Task {task} - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
 
             # Calculate predictions and accuracy
             with torch.no_grad():
@@ -374,7 +374,7 @@ class FederatedClient:
         avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
         accuracy = correct_predictions / total_samples if total_samples > 0 else 0.0
         
-        logger.info(f"✅ Task {task} training completed - Loss: {avg_loss:.4f}, Accuracy: {accuracy:.4f}")
+        logger.info(f"[SUCCESS] Task {task} training completed - Loss: {avg_loss:.4f}, Accuracy: {accuracy:.4f}")
 
         # Add regression-specific metrics for STSB
         metrics = {
@@ -415,7 +415,7 @@ class FederatedClient:
             tolerance = 0.1  # 10% tolerance for "correct" predictions
             tolerance_correct = np.sum(np.abs(pred_array - label_array) <= tolerance)
             
-            logger.info(f"📈 STSB Regression Metrics - MAE: {mae:.4f}, MSE: {mse:.4f}, Correlation: {correlation:.4f}")
+            logger.info(f"[REGRESSION] STSB Regression Metrics - MAE: {mae:.4f}, MSE: {mse:.4f}, Correlation: {correlation:.4f}")
             
             metrics.update({
                 'accuracy': float(regression_accuracy),  # Correlation-based accuracy
@@ -436,7 +436,7 @@ class FederatedClient:
             if 'correlation' in val_metrics:
                 metrics['val_correlation'] = val_metrics['correlation']
                 metrics['val_mae'] = val_metrics['mae']
-            logger.info(f"✅ Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
+            logger.info(f"[VALIDATION] Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
 
         return metrics
 

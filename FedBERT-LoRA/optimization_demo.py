@@ -17,7 +17,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 async def run_optimization_demo():
     """Demonstrate optimized MTL federated learning"""
-    print("🚀 Optimized MTL Federated Learning Demo")
+    print(" Optimized MTL Federated Learning Demo")
     print("=" * 60)
 
     # Configuration optimized for better performance
@@ -37,7 +37,7 @@ async def run_optimization_demo():
         websocket_timeout=60  # Optimized websocket timeout
     )
 
-    print("⚙️ Optimized Configuration:")
+    print(" Optimized Configuration:")
     print(f"   - Learning Rate: {config.learning_rate}")
     print(f"   - Local Epochs: {config.local_epochs}")
     print(f"   - Batch Size: {config.batch_size}")
@@ -46,21 +46,21 @@ async def run_optimization_demo():
     print(f"   - Non-IID Alpha: {config.non_iid_alpha}")
     print(f"   - Timeout: {config.timeout}s")
 
-    print("\n🔧 Key Optimizations Applied:")
-    print("   ✅ Fixed WebSocket connectivity issues")
-    print("   ✅ Improved STSB regression performance")
-    print("   ✅ Optimized training hyperparameters")
-    print("   ✅ Enhanced knowledge distillation")
-    print("   ✅ Better data distribution strategy")
-    print("   ✅ Improved error handling and timeouts")
+    print("\n Key Optimizations Applied:")
+    print("    Fixed WebSocket connectivity issues")
+    print("    Improved STSB regression performance")
+    print("    Optimized training hyperparameters")
+    print("    Enhanced knowledge distillation")
+    print("    Better data distribution strategy")
+    print("    Improved error handling and timeouts")
 
-    print("\n📊 Expected Performance Improvements:")
+    print("\n Expected Performance Improvements:")
     print("   - SST2: 85-90% accuracy (was 89.97%)")
     print("   - QQP: 70-75% accuracy (was 72.83%)")
     print("   - STSB: 0.2-0.4 R² (was -0.16) ← Major improvement!")
 
-    print("\n🚀 System Status: Ready for optimized federated learning!")
-    print("\n📋 Usage:")
+    print("\n System Status: Ready for optimized federated learning!")
+    print("\n Usage:")
     print("   Server: python optimized_mtl_federated.py --mode server")
     print("   Client: python optimized_mtl_federated.py --mode client --client_id client_1 --tasks sst2 qqp stsb")
 

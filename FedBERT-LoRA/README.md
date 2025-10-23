@@ -1,22 +1,22 @@
-# 🔗 Federated Learning System with LoRA & KD
+#  Federated Learning System with LoRA & KD
 
-## 📋 Overview
+##  Overview
 
 A comprehensive federated learning system implementing LoRA (Low-Rank Adaptation), bidirectional Knowledge Distillation (KD), WebSocket communication, and model synchronization.
 
-## 🎉 Latest Achievement: 91% Accuracy with Phase 2!
+##  Latest Achievement: 91% Accuracy with Phase 2!
 
 **Phase 2 improvements achieved EXCELLENT results:**
-- 📈 **SST-2**: 91.2% accuracy (matches centralized training!)
-- 📈 **QQP**: 78.0% accuracy (within 2% of target)  
-- 📈 **STS-B**: 0.645 correlation (significant improvement)
-- 📈 **Overall**: 77.9% average accuracy
+-  **SST-2**: 91.2% accuracy (matches centralized training!)
+-  **QQP**: 78.0% accuracy (within 2% of target)  
+-  **STS-B**: 0.645 correlation (significant improvement)
+-  **Overall**: 77.9% average accuracy
 
 **Key improvement**: Unfroze top 2 BERT layers (15% of model trainable) vs only LoRA adapters (0.1%). This increased learning capacity by 170x!
 
 See [PHASE2_RESULTS_SUMMARY.md](PHASE2_RESULTS_SUMMARY.md) for detailed analysis.
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### 1. Install Dependencies
 ```bash
@@ -55,57 +55,57 @@ tail -f federated_server_*.log
 tail -f federated_client_*.log
 ```
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
-📦 FedBERT-LoRA/
-├── 🏠 federated_main.py                    # Main entry point & CLI
-├── ⚙️ federated_config.py                  # Configuration management
-├── 📋 federated_config.yaml               # Enhanced YAML configuration
-├── 📋 requirements.txt                    # Python dependencies
-├── 🚫 .gitignore                          # Git ignore patterns
+ FedBERT-LoRA/
+├──  federated_main.py                    # Main entry point & CLI
+├──  federated_config.py                  # Configuration management
+├──  federated_config.yaml               # Enhanced YAML configuration
+├──  requirements.txt                    # Python dependencies
+├──  .gitignore                          # Git ignore patterns
 │
-├── 📁 src/                                # Modular source code
-│   ├── 🏭 core/
+├──  src/                                # Modular source code
+│   ├──  core/
 │   │   ├── federated_server.py            # Server orchestration
 │   │   └── federated_client.py            # Client implementation
 │   │
-│   ├── 🔧 lora/
+│   ├──  lora/
 │   │   └── federated_lora.py             # LoRA implementation
 │   │
-│   ├── 👨‍🏫 knowledge_distillation/
+│   ├──  knowledge_distillation/
 │   │   └── federated_knowledge_distillation.py  # KD implementation
 │   │
-│   ├── 🌐 communication/
+│   ├──  communication/
 │   │   └── federated_websockets.py      # WebSocket communication
 │   │
-│   ├── 🔄 synchronization/
+│   ├──  synchronization/
 │   │   └── federated_synchronization.py  # Model synchronization
 │   │
-│   ├── 📚 datasets/
+│   ├──  datasets/
 │   │   └── federated_datasets.py         # Dataset handlers
 │   │
-│   └── 📈 evaluation/                      # Comprehensive evaluation system
+│   └──  evaluation/                      # Comprehensive evaluation system
 │       └── federated_evaluation.py        # Model evaluation & reporting
 │
-├── 📋 post_training_evaluation.py         # Post-training evaluation script
-├── 🧪 test_evaluation.py                   # Evaluation module tests
-├── 📖 FEDERATED_LEARNING_SYSTEM_GUIDE.md  # Complete implementation guide
-├── 🗺️ FEDERATED_MTL_INTEGRATION_MAP.md     # Integration architecture diagrams
-├── 📖 README.md                           # This file
+├──  post_training_evaluation.py         # Post-training evaluation script
+├──  test_evaluation.py                   # Evaluation module tests
+├──  FEDERATED_LEARNING_SYSTEM_GUIDE.md  # Complete implementation guide
+├──  FEDERATED_MTL_INTEGRATION_MAP.md     # Integration architecture diagrams
+├──  README.md                           # This file
 │
-├── 📁 federated_results/                  # Generated results & logs
+├──  federated_results/                  # Generated results & logs
 │   ├── results_*.csv                      # Training metrics
 │   ├── evaluation_*.txt                    # Evaluation reports
 │   └── performance_*.txt                   # Performance analysis
 │
-└── 📚 Research Papers/                     # Academic references
+└──  Research Papers/                     # Academic references
     ├── 2021-Multi-task federated learning for personalised deep neural networks in edge computing.pdf
     ├── 2024-FedBone Towards Large-Scale Federated Multi-Task Learning.pdf
     └── 2024-Fedmkt- Federated mutual knowledge transfer for large and small language models.pdf
 ```
 
-## ⚙️ Configuration
+##  Configuration
 
 ### Key Settings (Phase 2 Optimized)
 
@@ -151,22 +151,22 @@ tail -f federated_client_*.log
 
 The critical changes that achieved 91% accuracy:
 
-✅ **Unfroze top 2 BERT layers** (MOST CRITICAL)
+ **Unfroze top 2 BERT layers** (MOST CRITICAL)
    - From: 100K parameters (0.1% trainable)
    - To: 17M parameters (15% trainable)  
    - **170x more learning capacity!**
 
-✅ **Increased LoRA rank** from 8 to 32
+ **Increased LoRA rank** from 8 to 32
    - Better adapter capacity (4x increase)
 
-✅ **Progressive training strategy**
+ **Progressive training strategy**
    - Simple loss for rounds 1-5 (baseline learning)
    - Knowledge distillation after round 5
 
-✅ **Gradient clipping** (max_norm=1.0)
+ **Gradient clipping** (max_norm=1.0)
    - Stability with more trainable parameters
 
-✅ **Extended training** to 22 rounds
+ **Extended training** to 22 rounds
    - Allowed model to fully converge
 
 **Result**: Accuracy improved from 40% → 91.2% (SST-2)!
@@ -180,15 +180,15 @@ python federated_main.py --mode server --lora_rank 16 --kd_temperature 4.0
 python federated_main.py --mode client --client_id client_1 --samples 200
 ```
 
-## 📊 Performance Benchmarks
+##  Performance Benchmarks
 
 ### Phase 2 Results (22 Rounds)
 
 | Task | Training Acc | Validation Acc | vs Target | Status |
 |------|-------------|----------------|-----------|--------|
-| **SST-2** | 91.2% | 73.0% | ✅ Matches 85-92% | **EXCELLENT** |
-| **QQP** | 78.0% | 73.3% | ⚠️ Close to 80-88% | **GOOD** |
-| **STS-B** | 0.645 | 0.620 | ⚠️ Near 0.75-0.85 | **GOOD** |
+| **SST-2** | 91.2% | 73.0% |  Matches 85-92% | **EXCELLENT** |
+| **QQP** | 78.0% | 73.3% |  Close to 80-88% | **GOOD** |
+| **STS-B** | 0.645 | 0.620 |  Near 0.75-0.85 | **GOOD** |
 | **Overall** | 77.9% | - | - | **EXCELLENT** |
 
 ### Improvement Timeline
@@ -203,34 +203,34 @@ After Phase 2 (Unfroze):    78% overall accuracy  (+38%)
 
 | Approach | SST-2 | QQP | STS-B | Privacy | Communication |
 |----------|-------|-----|-------|---------|---------------|
-| **Local (`src/clients`)** | 85-92% | 80-88% | 0.80-0.90 | ❌ None | ❌ N/A |
-| **Federated (Phase 2)** | 91.2% | 78.0% | 0.645 | ✅ Full | ✅ Efficient |
+| **Local (`src/clients`)** | 85-92% | 80-88% | 0.80-0.90 |  None |  N/A |
+| **Federated (Phase 2)** | 91.2% | 78.0% | 0.645 |  Full |  Efficient |
 
 **Conclusion**: Federated learning now achieves **comparable accuracy** to centralized training while preserving privacy!
 
-## 🎯 Key Features
+##  Key Features
 
-### ✅ LoRA Integration
+###  LoRA Integration
 - **Parameter Efficiency**: 85% of model frozen, 15% trainable (Phase 2)
 - **Task-Specific Adapters**: Separate LoRA matrices for each task
 - **Federated Aggregation**: LoRA parameters + unfrozen layers averaged across clients
 
-### ✅ Bidirectional Knowledge Distillation
+###  Bidirectional Knowledge Distillation
 - **Teacher → Student**: Traditional KD with soft labels
 - **Student → Teacher**: Reverse KD where students teach the teacher
 - **Enhanced Learning**: Mutual knowledge transfer improves all models
 
-### ✅ Model Synchronization
+###  Model Synchronization
 - **Global → Local**: Server sends updated global model to clients
 - **Real-time Updates**: WebSocket-based synchronization
 - **Collaborative Training**: All participants benefit from collective knowledge
 
-### ✅ Client Specialization
+###  Client Specialization
 - **Single Task Focus**: Each client handles only one specific task
 - **Privacy Enhanced**: Reduced data exposure per client
 - **Resource Optimized**: Better performance and memory usage
 
-## 📊 Results Structure
+##  Results Structure
 
 ### Global Training Metrics (federated_results_*.csv)
 | Column | Description | Example |
@@ -259,7 +259,7 @@ After Phase 2 (Unfroze):    78% overall accuracy  (+38%)
 | correct_predictions | Correct predictions | 38 |
 | timestamp | When recorded | 2025-10-17 10:00:01 |
 
-## 🔬 Technical Details
+##  Technical Details
 
 ### Architecture
 - **Teacher Model**: BERT-base-uncased (frozen backbone)
@@ -273,7 +273,7 @@ After Phase 2 (Unfroze):    78% overall accuracy  (+38%)
 - **Memory Usage**: ~2GB server, ~1GB per client
 - **Communication**: <5% of total training time
 
-## 🚨 Troubleshooting
+##  Troubleshooting (Federated Mode)
 
 ### Common Issues
 1. **Import Errors**: Ensure all dependencies are installed
@@ -282,6 +282,13 @@ After Phase 2 (Unfroze):    78% overall accuracy  (+38%)
 4. **Timeout Errors**: Increase timeout values in config
 5. **QQP Client Not Participating**: QQP dataset is large (363K samples) - use smaller sample sizes (--samples 10)
 6. **Client Joining Mid-Training**: Clients can join after training starts - they'll participate in subsequent rounds
+7. **Unicode Encoding Errors (Windows)**:  **COMPLETELY FIXED** - All logging messages use ASCII-compatible format
+
+### Critical Bug Fixes Applied
+- **RoBERTa Layer Unfreezing**: Fixed missing encoder layer unfreezing in specialized clients
+- **Correlation Calculation**: Fixed indentation bug that broke STS-B regression metrics
+- **Unicode Compatibility**: Replaced all emoji characters with ASCII-compatible labels
+- **Log File Cleanup**: Removed old log files containing Unicode characters
 
 ### Debug Mode
 ```bash
@@ -292,11 +299,11 @@ python federated_main.py --mode server --log_level DEBUG
 tail -f federated_server_*.log | grep -i "error\|warning"
 ```
 
-## 📚 Documentation
-
+##  Documentation
+{{ ... }}
 ### Performance & Analysis
-- **[Phase 2 Results Summary](PHASE2_RESULTS_SUMMARY.md)**: ⭐ **NEW** - Complete analysis of 91% accuracy achievement
-- **[Training Config Reference](TRAINING_CONFIG_REFERENCE.md)**: ⭐ **NEW** - Exact configuration that achieved 91%
+- **[Phase 2 Results Summary](PHASE2_RESULTS_SUMMARY.md)**:  **NEW** - Complete analysis of 91% accuracy achievement
+- **[Training Config Reference](TRAINING_CONFIG_REFERENCE.md)**:  **NEW** - Exact configuration that achieved 91%
 - **[Phase 2 Implementation Guide](PHASE2_IMPROVEMENTS_APPLIED.md)**: Technical details of accuracy improvements
 - **[Success Summary](SUCCESS_SUMMARY.md)**: Journey from 40% to 91% accuracy
 - **[Quick Reference](QUICK_REFERENCE.md)**: Fast lookup for key results
@@ -311,7 +318,7 @@ tail -f federated_server_*.log | grep -i "error\|warning"
 - **[Post-Training Evaluation](post_training_evaluation.py)**: Automated evaluation after training
 - **[Evaluation Testing](test_evaluation.py)**: Verification tests for evaluation module
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -319,10 +326,10 @@ tail -f federated_server_*.log | grep -i "error\|warning"
 4. Add tests and documentation
 5. Submit a pull request
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License.
 
 ---
 
-*🔗 Complete federated learning system with LoRA, bidirectional KD, WebSockets, model synchronization, and comprehensive evaluation*
+* Complete federated learning system with LoRA, bidirectional KD, WebSockets, model synchronization, and comprehensive evaluation*

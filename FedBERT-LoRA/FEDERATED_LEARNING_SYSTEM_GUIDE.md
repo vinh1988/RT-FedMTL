@@ -1,6 +1,6 @@
-# 🔗 Federated Learning System Implementation Guide
+#  Federated Learning System Implementation Guide
 
-## 📋 System Overview
+##  System Overview
 
 This guide provides a comprehensive specification for implementing a federated learning system with LoRA, bidirectional Knowledge Distillation (KD), WebSocket communication, and model synchronization. The system supports heterogeneous clients with task-specific datasets.
 
@@ -36,7 +36,7 @@ This guide provides a comprehensive specification for implementing a federated l
    - Bidirectional model synchronization
    - WebSocket-based real-time updates
 
-## ⚙️ Configuration Structure
+##  Configuration Structure
 
 ### Enhanced YAML Configuration Format
 
@@ -102,7 +102,7 @@ monitoring:
   save_resource_logs: true       # Save resource usage logs
 ```
 
-## 📊 Comprehensive Metrics Structure
+##  Comprehensive Metrics Structure
 
 ### GPU/CPU Resource Metrics
 
@@ -213,7 +213,7 @@ monitoring:
 }
 ```
 
-## 🔧 Implementation Specifications
+##  Implementation Specifications
 
 ### 1. LoRA Implementation
 
@@ -314,7 +314,7 @@ def bidirectional_kd_loss(student_logits, teacher_logits, labels, temperature=3.
 6. Server updates global model
 7. Server sends updated global model back to clients
 
-## 📊 Data Structure Specifications
+##  Data Structure Specifications
 
 ### Dataset Handler Interface
 
@@ -370,7 +370,7 @@ round,global_accuracy,macro_f1,weighted_f1,sst2_accuracy,qqp_accuracy,stsb_mse,c
 2,0.863,0.851,0.859,0.887,0.834,0.076,0.94,0.96,0.82,0.71,2025-10-17 10:00:47
 ```
 
-## 🚀 Usage Instructions
+##  Usage Instructions
 
 ### Server Startup with Monitoring
 ```bash
@@ -399,7 +399,7 @@ python analyze_validation_metrics.py federated_results/
 python generate_resource_report.py federated_results/
 ```
 
-## 🔬 Algorithm Specifications
+##  Algorithm Specifications
 
 ### Federated Learning Algorithm with Resource Monitoring
 
@@ -533,7 +533,7 @@ def calculate_client_validation_metrics(model, dataloader, task_type: str) -> Di
         }
 ```
 
-## 📁 File Dependencies
+##  File Dependencies
 
 ### Core Dependencies
 ```python
@@ -565,7 +565,7 @@ import psutil
 import threading
 ```
 
-## 🔧 Technical Specifications
+##  Technical Specifications
 
 ### Model Architecture
 - **Teacher Model**: BERT-base-uncased (110M parameters, frozen)
@@ -586,7 +586,7 @@ import threading
 - **Memory Usage**: ~2GB for server, ~1GB per client
 - **Resource Monitoring**: Real-time GPU/CPU tracking
 
-## 📈 Expected Results with Monitoring
+##  Expected Results with Monitoring
 
 ### Performance Metrics
 - **Classification Accuracy**: 80-90% for SST2/QQP
@@ -607,7 +607,7 @@ import threading
 - **Training Summary**: `federated_results/training_summary.txt`
 - **Log Files**: `federated_server_*.log`, `federated_client_*.log`
 
-## 🚨 Error Handling with Resource Awareness
+##  Error Handling with Resource Awareness
 
 ### Resource-Related Issues
 - **GPU Memory Overflow**: Automatic fallback to CPU or batch size reduction
@@ -620,7 +620,7 @@ import threading
 - **Adaptive Training**: Adjust batch size based on resource availability
 - **Load Balancing**: Distribute workload based on client capabilities
 
-## 🔮 Extension Points
+##  Extension Points
 
 ### Enhanced Resource Monitoring
 1. **Power Consumption**: Track energy usage per training round
@@ -637,9 +637,9 @@ import threading
 2. **Model Compression**: Further parameter reduction techniques
 3. **Distributed Training**: Multi-GPU support for larger models
 
-## 📋 Implementation Checklist
+##  Implementation Checklist
 
-### Core Components ✅
+### Core Components 
 - [x] LoRA layer implementation
 - [x] Knowledge distillation manager
 - [x] WebSocket communication
@@ -647,14 +647,14 @@ import threading
 - [x] Dataset handlers
 - [x] Configuration management
 
-### Enhanced Monitoring ✅
+### Enhanced Monitoring 
 - [x] GPU/CPU resource monitoring
 - [x] Per-client validation metrics
 - [x] Global model validation metrics
 - [x] Resource-aware error handling
 - [x] Comprehensive logging and reporting
 
-### Advanced Features ✅
+### Advanced Features 
 - [x] Bidirectional KD
 - [x] Task-specific LoRA adapters
 - [x] Heterogeneous client support
@@ -663,9 +663,9 @@ import threading
 
 ---
 
-*🔗 Complete specification for federated learning system implementation with comprehensive monitoring*
+* Complete specification for federated learning system implementation with comprehensive monitoring*
 
-## 🔗 Client Task Specialization
+##  Client Task Specialization
 
 ### Overview
 The system supports specialized clients where each client handles only one specific task, offering enhanced privacy, performance, and operational benefits.
@@ -781,7 +781,7 @@ async def perform_local_training(self) -> Dict[str, float]:
     return {self.task: task_metrics}
 ```
 
-## 🚀 Advanced Usage Examples
+##  Advanced Usage Examples
 
 ### Multi-Client Task Distribution
 ```bash
@@ -808,7 +808,7 @@ python federated_main_modular.py --mode client --client_id sst2_client_1 --tasks
 tail -f federated_client_sst2_client_1_resource.log
 ```
 
-## 📋 Migration Guide
+##  Migration Guide
 
 ### From Multi-Task to Single-Task Clients
 
@@ -842,7 +842,7 @@ python federated_main_modular.py --mode client --client_id qqp_client --tasks qq
 - Verify reduced memory usage and faster training times
 - Confirm enhanced privacy through data isolation
 
-## 🎯 Best Practices for Client Specialization
+##  Best Practices for Client Specialization
 
 ### 1. Client Naming Convention
 ```python
@@ -866,7 +866,7 @@ university_qqp_client
 - **Resource Usage**: Monitor memory and compute per task type
 - **Communication**: Track message sizes and frequencies
 
-## 🔮 Future Enhancements
+##  Future Enhancements
 
 ### Advanced Specialization Features
 - **Dynamic Task Assignment**: Clients can switch tasks based on availability
@@ -880,4 +880,4 @@ university_qqp_client
 
 ---
 
-*🔗 Enhanced federated learning system with client task specialization support*
+* Enhanced federated learning system with client task specialization support*

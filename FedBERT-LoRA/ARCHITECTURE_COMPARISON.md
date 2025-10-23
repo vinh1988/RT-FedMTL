@@ -2,7 +2,7 @@
 
 ## Training Flow Comparison
 
-### Local Clients (src/clients) - HIGH ACCURACY ✅
+### Local Clients (src/clients) - HIGH ACCURACY 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -42,14 +42,14 @@ Input Text
    Updated Model
 
 RESULTS:
-✅ SST-2: 85-92% accuracy
-✅ QQP: 80-88% accuracy  
-✅ STS-B: 0.80-0.90 correlation
+ SST-2: 85-92% accuracy
+ QQP: 80-88% accuracy  
+ STS-B: 0.80-0.90 correlation
 ```
 
 ---
 
-### Federated Clients (src/core) - LOW ACCURACY ❌
+### Federated Clients (src/core) - LOW ACCURACY 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -107,16 +107,16 @@ Input Text
    Updated LoRA Weights Only
 
 RESULTS:
-❌ SST-2: 54-68% accuracy (-24% vs local)
-❌ QQP: 37-70% accuracy (unstable)
-❌ STS-B: 0.05-0.43 correlation (-0.47 vs local)
+ SST-2: 54-68% accuracy (-24% vs local)
+ QQP: 37-70% accuracy (unstable)
+ STS-B: 0.05-0.43 correlation (-0.47 vs local)
 ```
 
 ---
 
 ## Parameter Comparison
 
-### Local Clients ✅
+### Local Clients 
 
 ```
 ┌────────────────────────────────────┐
@@ -132,7 +132,7 @@ Learning Capacity: MAXIMUM
 Gradient Flow: DIRECT to all layers
 ```
 
-### Federated Clients ❌
+### Federated Clients 
 
 ```
 ┌────────────────────────────────────┐
@@ -159,7 +159,7 @@ Gradient Flow: ONLY to small adapters
 
 ## Data Flow Architecture
 
-### Local Clients - Simple Pipeline ✅
+### Local Clients - Simple Pipeline 
 
 ```
 ┌──────┐    ┌──────┐    ┌──────┐    ┌──────┐
@@ -173,7 +173,7 @@ Complexity: LOW
 Potential Issues: FEW
 ```
 
-### Federated Clients - Complex Pipeline ❌
+### Federated Clients - Complex Pipeline 
 
 ```
 ┌──────┐   ┌─────────┐   ┌─────┐   ┌──────┐   ┌──────┐   ┌──────┐   ┌──────┐
@@ -191,7 +191,7 @@ Potential Issues: MANY
 
 ## Loss Function Comparison
 
-### Local Clients - Direct Loss ✅
+### Local Clients - Direct Loss 
 
 ```python
 # Classification (SST-2, QQP)
@@ -201,13 +201,13 @@ loss = CrossEntropyLoss(predictions, labels)
 loss = MSELoss(predictions, labels)
 
 Characteristics:
-✅ Simple, well-understood
-✅ Direct supervision from labels
-✅ Clear gradient signal
-✅ No hyperparameters to tune
+ Simple, well-understood
+ Direct supervision from labels
+ Clear gradient signal
+ No hyperparameters to tune
 ```
 
-### Federated Clients - KD Loss ❌
+### Federated Clients - KD Loss 
 
 ```python
 # Complex multi-component loss
@@ -222,18 +222,18 @@ final_loss = alpha * soft_loss + (1-alpha) * hard_loss
             # α=0.5 weighting
 
 Characteristics:
-❌ Complex, requires tuning
-❌ Teacher may not be available
-❌ Weaker gradient signal
-❌ Multiple hyperparameters (T, α)
-❌ Can confuse learning
+ Complex, requires tuning
+ Teacher may not be available
+ Weaker gradient signal
+ Multiple hyperparameters (T, α)
+ Can confuse learning
 ```
 
 ---
 
 ## Code Complexity Comparison
 
-### Local Clients - Clean Code ✅
+### Local Clients - Clean Code 
 
 ```python
 # File count: 4 files
@@ -254,7 +254,7 @@ Bug Surface: SMALL
 Debugging: EASY
 ```
 
-### Federated Clients - Complex Code ❌
+### Federated Clients - Complex Code 
 
 ```python
 # File count: 10+ files
@@ -287,7 +287,7 @@ Debugging: DIFFICULT
 
 ## Training Stability
 
-### Local Clients ✅
+### Local Clients 
 
 ```
 Epoch 1: 75% → Epoch 2: 82% → Epoch 3: 87%
@@ -295,13 +295,13 @@ Epoch 1: 75% → Epoch 2: 82% → Epoch 3: 87%
       STABLE          STABLE          STABLE
 
 Characteristics:
-✅ Smooth convergence
-✅ Predictable behavior
-✅ No sudden drops
-✅ Reliable metrics
+ Smooth convergence
+ Predictable behavior
+ No sudden drops
+ Reliable metrics
 ```
 
-### Federated Clients ❌
+### Federated Clients 
 
 ```
 Round 1: 54% → Round 2: 68% → Round 3: 62%
@@ -313,17 +313,17 @@ Round 4: 62% → Round 5: 62%
       PLATEAU         STUCK
 
 Characteristics:
-❌ Unstable convergence
-❌ Unpredictable drops
-❌ Gets stuck in plateaus
-❌ High variance
+ Unstable convergence
+ Unpredictable drops
+ Gets stuck in plateaus
+ High variance
 ```
 
 ---
 
 ## Bug History
 
-### Local Clients ✅
+### Local Clients 
 
 ```
 Known Issues: NONE
@@ -335,24 +335,24 @@ Bug Fixes Required: 0
 Current State: PRODUCTION READY
 ```
 
-### Federated Clients ❌
+### Federated Clients 
 
 ```
 Known Issues (from FIXES_SUMMARY.md):
 
-1. ❌ STSB showed accuracy=0.0 for all rounds
+1.  STSB showed accuracy=0.0 for all rounds
    Fix: Correct label dtype (float vs long)
    
-2. ❌ Missing optimizer - model never updated!
+2.  Missing optimizer - model never updated!
    Fix: Added AdamW optimizer
    
-3. ❌ No training loop - parameters frozen!
+3.  No training loop - parameters frozen!
    Fix: Added backward pass
    
-4. ❌ Predictions out of range for STSB
+4.  Predictions out of range for STSB
    Fix: Added sigmoid activation
    
-5. ❌ Configuration not loading
+5.  Configuration not loading
    Fix: Fixed YAML parsing
 
 Bug Fixes Required: 5+ CRITICAL FIXES
@@ -365,29 +365,29 @@ Current State: "NOW LEARNING!" (after fixes)
 
 ## When to Use Each Approach
 
-### Use Local Clients (`src/clients`) When: ✅
+### Use Local Clients (`src/clients`) When: 
 
-- ✅ You need **maximum accuracy**
-- ✅ Privacy is **not a concern** (centralized data)
-- ✅ You want **simple, maintainable code**
-- ✅ You need **reliable, stable training**
-- ✅ You're establishing **baselines**
-- ✅ You want **quick prototyping**
+-  You need **maximum accuracy**
+-  Privacy is **not a concern** (centralized data)
+-  You want **simple, maintainable code**
+-  You need **reliable, stable training**
+-  You're establishing **baselines**
+-  You want **quick prototyping**
 
-### Use Federated Clients (`src/core`) When: ⚠️
+### Use Federated Clients (`src/core`) When: 
 
-- ⚠️ **Privacy is critical** (can't centralize data)
-- ⚠️ You **must** use federated learning
-- ⚠️ You have **distributed data sources**
-- ⚠️ You're willing to **accept lower accuracy**
-- ⚠️ You need **communication efficiency**
-- ⚠️ You can **invest time in debugging**
+-  **Privacy is critical** (can't centralize data)
+-  You **must** use federated learning
+-  You have **distributed data sources**
+-  You're willing to **accept lower accuracy**
+-  You need **communication efficiency**
+-  You can **invest time in debugging**
 
 ---
 
 ## Recommendations
 
-### For Best Accuracy (Recommended) ✅
+### For Best Accuracy (Recommended) 
 
 ```bash
 # Use local clients
@@ -438,7 +438,7 @@ Expected Results:
 
 ## Summary
 
-| Aspect | Local Clients ✅ | Federated Clients ❌ |
+| Aspect | Local Clients  | Federated Clients  |
 |--------|-----------------|---------------------|
 | **Accuracy** | 85-92% | 54-70% |
 | **Parameters Trained** | 110M (100%) | 100K (0.1%) |

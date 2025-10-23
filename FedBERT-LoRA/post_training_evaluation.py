@@ -15,7 +15,7 @@ from src.datasets.federated_datasets import DatasetFactory
 def run_post_training_evaluation(config_path: str = "federated_config.yaml", results_dir: str = "federated_results"):
     """Run comprehensive evaluation after training completion"""
     
-    print("🔍 Running Post-Training Evaluation")
+    print(" Running Post-Training Evaluation")
     print("=" * 50)
     
     # Load configuration
@@ -24,18 +24,18 @@ def run_post_training_evaluation(config_path: str = "federated_config.yaml", res
     # Find the latest results file
     results_files = [f for f in os.listdir(results_dir) if f.startswith("federated_results_") and f.endswith(".csv")]
     if not results_files:
-        print("❌ No training results found. Run training first.")
+        print(" No training results found. Run training first.")
         return
     
     latest_results = max(results_files, key=lambda x: os.path.getmtime(os.path.join(results_dir, x)))
     results_path = os.path.join(results_dir, latest_results)
     
-    print(f"📊 Analyzing results: {latest_results}")
+    print(f" Analyzing results: {latest_results}")
     
     # Load training summary if available
     summary_file = os.path.join(results_dir, "training_summary.txt")
     if os.path.exists(summary_file):
-        print("📋 Training Summary:")
+        print(" Training Summary:")
         with open(summary_file, 'r') as f:
             print(f.read())
     
@@ -45,7 +45,7 @@ def run_post_training_evaluation(config_path: str = "federated_config.yaml", res
     
     # Generate evaluation report
     print("
-🔬 Generating evaluation report..."    report_path = reporter.generate_evaluation_report({
+ Generating evaluation report..."    report_path = reporter.generate_evaluation_report({
         'evaluation_timestamp': datetime.now().isoformat(),
         'overall_metrics': {
             'overall_accuracy': 0.85,  # Example - would be calculated from actual data
@@ -102,19 +102,19 @@ def run_post_training_evaluation(config_path: str = "federated_config.yaml", res
         }
     }, round_num=2)
     
-    print(f"✅ Evaluation report generated: {report_path}")
+    print(f" Evaluation report generated: {report_path}")
     
     # Generate performance trends if historical data exists
-    print("📈 Analyzing performance trends...")
+    print(" Analyzing performance trends...")
     # This would analyze historical performance data
     
     print("
-🎉 Post-training evaluation completed\!"    print(f"📁 Check evaluation reports in: {results_dir}")
+ Post-training evaluation completed\!"    print(f" Check evaluation reports in: {results_dir}")
 
 def integrate_evaluation_into_training():
     """Show how to integrate evaluation into the training process"""
     
-    print("\n🔧 Integration Suggestion:")
+    print("\n Integration Suggestion:")
     print("=" * 30)
     print("""
 To automatically run evaluation after training completion, modify federated_server.py:
