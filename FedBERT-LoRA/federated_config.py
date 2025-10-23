@@ -11,6 +11,15 @@ import os
 import argparse
 
 @dataclass
+class CommunicationConfig:
+    """Communication settings for federated learning"""
+    port: int = 8771
+    timeout: int = 60
+    websocket_timeout: int = 30
+    retry_attempts: int = 3
+    round_timeout: int = 1800  # Default timeout for collecting client updates
+
+@dataclass
 class FederatedConfig:
     """Centralized configuration for federated learning system"""
 
@@ -61,6 +70,18 @@ class FederatedConfig:
     timeout: int = 60
     websocket_timeout: int = 30
     retry_attempts: int = 3
+
+    # Communication settings as nested object (for backward compatibility)
+    @property
+    def communication(self):
+        """Communication settings as a nested object for backward compatibility"""
+        return CommunicationConfig(
+            port=self.port,
+            timeout=self.timeout,
+            websocket_timeout=self.websocket_timeout,
+            retry_attempts=self.retry_attempts,
+            round_timeout=1800  # Default round timeout
+        )
 
     # Output settings
     results_dir: str = "federated_results"
