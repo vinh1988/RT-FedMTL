@@ -284,6 +284,11 @@ After Phase 2 (Unfroze):    78% overall accuracy  (+38%)
 6. **Client Joining Mid-Training**: Clients can join after training starts - they'll participate in subsequent rounds
 7. **Unicode Encoding Errors (Windows)**: ✅ **COMPLETELY FIXED** - All logging messages use ASCII-compatible format
 
+### Critical Bug Fixes Applied
+- **RoBERTa Layer Unfreezing**: Fixed missing encoder layer unfreezing in specialized clients
+- **Correlation Calculation**: Fixed indentation bug that broke STS-B regression metrics
+- **Unicode Compatibility**: Replaced all emoji characters with ASCII-compatible labels
+
 ### Debug Mode
 ```bash
 # Enable debug logging

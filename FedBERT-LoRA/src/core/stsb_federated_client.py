@@ -46,7 +46,7 @@ class STSBFederatedClient(BaseFederatedClient):
         # Set model to training mode
         self.student_model.train()
 
-        logger.info(f"🚀 Starting STSB training with {len(train_dataloader)} batches")
+        logger.info(f"[TRAINING] Starting STSB training with {len(train_dataloader)} batches")
 
         # Training loop with regression-specific metrics
         total_loss = 0.0
@@ -117,7 +117,7 @@ class STSBFederatedClient(BaseFederatedClient):
 
             # Log progress every few batches
             if num_batches % 5 == 0:
-                logger.info(f"📊 STSB - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
+                logger.info(f"[STATS] STSB - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
 
         # Update learning rate scheduler
         self.scheduler.step()
@@ -147,18 +147,15 @@ class STSBFederatedClient(BaseFederatedClient):
             # Use correlation as primary accuracy metric for regression
             regression_accuracy = max(0, correlation)  # Clamp negative correlations to 0
 
-            logger.info(f"📈 STSB Regression Metrics - MAE: {mae:.4f}, MSE: {mse:.4f}, Correlation: {correlation:.4f}")
-        else:
-            mae = mse = correlation = 0.0
-            regression_accuracy = 0.0
-
-        logger.info(f"✅ STSB training completed - Loss: {avg_loss:.4f}, Accuracy: {regression_accuracy:.4f}")
+            logger.info(f"[STATS] STSB - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
+            logger.info(f"[REGRESSION] STSB Regression Metrics - MAE: {mae:.4f}, MSE: {mse:.4f}, Correlation: {correlation:.4f}")
+        logger.info(f"[SUCCESS] STSB training completed - Loss: {avg_loss:.4f}, Accuracy: {regression_accuracy:.4f}")
+        logger.info(f"[SUCCESS] STSB Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
 
         # Add validation metrics if validation data is available
         metrics = {
             'loss': avg_loss,
             'accuracy': float(regression_accuracy),
-            'samples_processed': total_samples,
             'correct_predictions': tolerance_correct,
             'mae': float(mae),
             'mse': float(mse),
@@ -174,7 +171,7 @@ class STSBFederatedClient(BaseFederatedClient):
                 'val_mae': val_metrics.get('mae', 0.0),
                 'val_correlation': val_metrics.get('correlation', 0.0)
             })
-            logger.info(f"✅ STSB Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
+            logger.info(f"[SUCCESS] STSB Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
 
         return metrics
 
