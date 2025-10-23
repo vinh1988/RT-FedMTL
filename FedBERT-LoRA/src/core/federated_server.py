@@ -389,7 +389,7 @@ class FederatedServer:
 
             # Wait for ALL connected clients to respond
             if updates_received >= expected_clients:
-                logger.info(f"✅ All client updates received ({updates_received}/{expected_clients})")
+                logger.info(f"All client updates received ({updates_received}/{expected_clients})")
                 return True
 
             # Check if any clients disconnected during waiting
@@ -404,11 +404,11 @@ class FederatedServer:
             # Show progress every 30 seconds
             elapsed = time.time() - start_time
             if int(elapsed) % 30 == 0 and int(elapsed) > 0:
-                logger.info(f"⏳ Still waiting... {elapsed:.0f}s elapsed, {updates_received}/{expected_clients} updates received")
+                logger.info(f"Still waiting... {elapsed:.0f}s elapsed, {updates_received}/{expected_clients} updates received")
 
             await asyncio.sleep(2)
 
-        logger.warning(f"⏰ Timeout collecting updates. Got {updates_received}/{expected_clients}")
+        logger.warning(f"Timeout collecting updates. Got {updates_received}/{expected_clients}")
         if updates_received > 0:
             logger.warning(f"Proceeding with {updates_received} out of {expected_clients} clients")
             return True
