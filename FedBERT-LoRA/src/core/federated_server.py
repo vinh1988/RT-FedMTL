@@ -355,13 +355,16 @@ class FederatedServer:
         logger.warning(f"Timeout waiting for sync acknowledgments. Got {len(acks_received)}/{len(self.connected_clients)}")
         return False
 
-    async def collect_client_updates(self, round_num: int, timeout: int = 600):
+    async def collect_client_updates(self, round_num: int, timeout: int = None):
         """Collect client updates for a round - wait for ALL connected clients"""
+        if timeout is None:
+            # Use config round_timeout, default to 1800 seconds (30 minutes) if not set
+            timeout = getattr(self.config.communication, 'round_timeout', 1800)
+        
         start_time = time.time()
         updates_received = 0
         
         # Use the expected clients from config, not current connected count
-        # This ensures we wait for all clients that were connected at round start
         expected_clients = getattr(self.config, 'expected_clients', len(self.connected_clients))
         
         if expected_clients == 0:
@@ -370,6 +373,7 @@ class FederatedServer:
 
         logger.info(f"Waiting for client updates... (expecting ALL {expected_clients} clients)")
         logger.info(f"Currently connected clients: {list(self.connected_clients.keys())}")
+        logger.info(f"Timeout set to {timeout} seconds")
 
         while time.time() - start_time < timeout:
             if round_num in self.client_updates:
