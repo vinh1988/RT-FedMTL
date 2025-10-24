@@ -17,7 +17,7 @@ class CommunicationConfig:
     timeout: int = 60
     websocket_timeout: int = 30
     retry_attempts: int = 3
-    round_timeout: int = 1800  # Default timeout for collecting client updates
+    round_timeout: int = 3000  # Default timeout for collecting client updates
 
 @dataclass
 class FederatedConfig:
@@ -80,7 +80,7 @@ class FederatedConfig:
             timeout=self.timeout,
             websocket_timeout=self.websocket_timeout,
             retry_attempts=self.retry_attempts,
-            round_timeout=1800  # Default round timeout
+            round_timeout=3000  # Default round timeout
         )
 
     # Output settings

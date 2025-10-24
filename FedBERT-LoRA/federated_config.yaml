@@ -53,7 +53,7 @@ communication:
   timeout: 60                    # Client timeout (seconds)
   websocket_timeout: 30          # WebSocket timeout (seconds)
   retry_attempts: 3              # Retry attempts
-  round_timeout: 2500            # NEW: Timeout for collecting client updates per round (30 minutes)
+  round_timeout: 3000            # NEW: Timeout for collecting client updates per round (30 minutes)
 
 output:
   results_dir: "federated_results"  # Results directory
