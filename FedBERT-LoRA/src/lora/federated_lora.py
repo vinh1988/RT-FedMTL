@@ -275,9 +275,22 @@ class LoRAFederatedModel(nn.Module):
                 
                 # Ensure all tensors have the same batch size
                 min_length = min(len(input_ids), len(attention_mask), len(labels))
+                if min_length < batch_size:
+                    logger.warning(f"Dataset size {min_length} is smaller than batch_size {batch_size}. Adjusting batch_size to {min_length}")
+                    batch_size = max(1, min_length)
                 input_ids = input_ids[:min_length]
                 attention_mask = attention_mask[:min_length]
                 labels = labels[:min_length]
+                
+                # Ensure we have at least one sample
+                if min_length == 0:
+                    logger.error(f"No data available for task {task}. Cannot create dataloader.")
+                    # Fallback to dummy data
+                    input_ids = torch.randint(0, 1000, (1, 128), dtype=torch.long)
+                    attention_mask = torch.ones(1, 128, dtype=torch.long)
+                    labels = torch.tensor([0.0], dtype=torch.float32) if task == 'stsb' else torch.tensor([0], dtype=torch.long)
+                    min_length = 1
+                    batch_size = 1
         else:
             # Create dummy data for demonstration (fallback)
             input_ids = torch.randint(0, 1000, (10, 128), dtype=torch.long)
