@@ -268,6 +268,9 @@ class FederatedClient:
 
     async def train_task_with_kd(self, task: str, task_data: Dict) -> Dict[str, float]:
         """Train on a specific task with KD"""
+        logger = logging.getLogger(__name__)  # Ensure logger is defined
+        
+        # Split data into training and validation
         # Split data into training and validation
         # Dataset handler returns: texts/labels (train) and val_texts/val_labels (validation)
         train_data = {
@@ -288,12 +291,20 @@ class FederatedClient:
             val_dataloader = self.student_model.get_task_dataloader(
                 task, self.config.batch_size, dataset_data=val_data
             )
+            logger.info(f"Validation dataloader created for task {task} with batch_size {self.config.batch_size}")
+            logger.info(f"[VALIDATION] Validation dataloader created for task {task} with batch_size {self.config.batch_size}")
+
+        logger.info(f"Training dataloader created for task {task} with batch_size {self.config.batch_size}")
+        logger.info(f"[TRAINING] Training dataloader created for task {task} with batch_size {self.config.batch_size}")
 
         # Set model to training mode
         self.student_model.train()
         
         logger.info(f"Starting training for task {task} with {len(train_dataloader)} batches")
         logger.info(f"[TRAINING] Starting training for task {task} with {len(train_dataloader)} batches")
+        if val_dataloader:
+            logger.info(f"Starting validation for task {task} with {len(val_dataloader)} batches")
+            logger.info(f"[VALIDATION] Starting validation for task {task} with {len(val_dataloader)} batches")
 
         # Training loop with proper metrics calculation
         total_loss = 0.0
@@ -483,6 +494,7 @@ class FederatedClient:
 
     def evaluate_on_validation(self, task: str, val_dataloader) -> Dict[str, float]:
         """Evaluate model on validation data"""
+        logger = logging.getLogger(__name__)  # Ensure logger is defined
         import numpy as np
         
         # Set model to evaluation mode
