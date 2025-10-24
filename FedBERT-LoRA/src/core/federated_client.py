@@ -268,7 +268,6 @@ class FederatedClient:
 
     async def train_task_with_kd(self, task: str, task_data: Dict) -> Dict[str, float]:
         """Train on a specific task with KD"""
-        logger = logging.getLogger(__name__)  # Ensure logger is defined
         
         # Split data into training and validation
         # Split data into training and validation
@@ -494,7 +493,6 @@ class FederatedClient:
 
     def evaluate_on_validation(self, task: str, val_dataloader) -> Dict[str, float]:
         """Evaluate model on validation data"""
-        logger = logging.getLogger(__name__)  # Ensure logger is defined
         import numpy as np
         
         # Set model to evaluation mode
