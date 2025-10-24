@@ -8,8 +8,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+import logging
 from typing import Dict, List, Optional, Union
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+logger = logging.getLogger(__name__)
 
 class LoRALayer(nn.Module):
     """LoRA layer implementation for parameter-efficient adaptation"""
