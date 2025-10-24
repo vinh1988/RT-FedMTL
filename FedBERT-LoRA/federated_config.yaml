@@ -6,7 +6,7 @@ model:
   client_model: "prajjwal1/bert-tiny"  # Student model (Tiny-BERT)
 
 lora:
-  rank: 32                          # IMPROVED: Increased from 8 to 32 for better learning capacity
+  rank: 16                          # IMPROVED: Increased from 8 to 32 for better learning capacity
   alpha: 64.0                       # IMPROVED: Scaled proportionally (4x increase)
   dropout: 0.1                      # LoRA dropout rate
   unfreeze_layers: 2                # PHASE 2: Unfreeze top 2 BERT layers (CRITICAL for accuracy!)

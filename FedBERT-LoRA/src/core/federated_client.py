@@ -233,6 +233,7 @@ class FederatedClient:
             )
 
             # Use retry logic for sending updates
+            logger.info(f"Attempting to send update to server for round {round_num}")
             success = await self.websocket_client.send(update_message, max_retries=5)
             if success:
                 logger.info(f"Training completed and update sent for round {round_num}")
@@ -241,6 +242,8 @@ class FederatedClient:
                 logger.info(f"[METRICS] Client {self.client_id} metrics: {local_metrics}")
             else:
                 logger.error(f"Failed to send update for round {round_num} after retries")
+                logger.error(f"WebSocket connection status: {self.websocket_client.is_connected}")
+                logger.error(f"Update message size: {len(str(update_message))} characters")
 
         except Exception as e:
             logger.error(f"Error in local training for round {round_num}: {e}")

@@ -159,15 +159,28 @@ class WebSocketClient:
                 # Serialize tensors before sending
                 serialized_message = MessageProtocol.serialize_tensors(message)
                 message_str = json.dumps(serialized_message)
-                await self.websocket.send(message_str)
+                logger.info(f"Client {self.client_id} sending message of size {len(message_str)} characters")
+                
+                # Send with timeout to prevent hanging
+                send_timeout = 300  # 5 minutes timeout for send
+                await asyncio.wait_for(self.websocket.send(message_str), timeout=send_timeout)
                 logger.info(f"Message sent successfully from client {self.client_id}")
                 return True
-            except websockets.exceptions.ConnectionClosed:
-                logger.warning(f"Connection closed during send, attempting reconnection (attempt {attempt + 1}/{max_retries})")
+            except asyncio.TimeoutError:
+                logger.error(f"Send timeout for client {self.client_id} (message size: {len(message_str)} chars)")
                 self.is_connected = False
                 if attempt < max_retries - 1:
                     await asyncio.sleep(2 ** attempt)  # Exponential backoff
                     continue
+            except websockets.exceptions.ConnectionClosed:
+                logger.warning(f"Connection closed during send for client {self.client_id}, attempting reconnection (attempt {attempt + 1}/{max_retries})")
+                self.is_connected = False
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                    continue
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON serialization error for client {self.client_id}: {e}")
+                return False
             except Exception as e:
                 logger.error(f"Error sending message from client {self.client_id}: {e}")
                 self.is_connected = False
