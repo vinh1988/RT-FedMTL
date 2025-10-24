@@ -309,8 +309,14 @@ class FederatedClient:
             attention_mask = attention_mask.to(self.device)
             labels = labels.to(self.device)
 
-            if len(input_ids) == 0:
+            # Add check for empty or scalar batches
+            if len(input_ids) == 0 or input_ids.dim() == 0:
+                logger.warning(f"Skipping empty or scalar batch for task {task}")
                 continue
+
+            # Ensure labels are not scalars
+            if labels.dim() == 0:
+                labels = labels.unsqueeze(0)
 
             # Zero gradients
             self.optimizer.zero_grad()
@@ -358,18 +364,31 @@ class FederatedClient:
                     else:
                         labels_reshaped = labels
                     
+                    # Ensure predictions are not scalars
+                    if predictions.dim() == 0:
+                        predictions = predictions.unsqueeze(0)
+                    
                     # Calculate tolerance-based accuracy for regression
-                    # Use a stricter tolerance for normalized 0-1 data
                     tolerance = 0.05  # Within 0.05 of true value (5% tolerance)
-                    pred_reshaped = predictions.unsqueeze(0) if predictions.dim() == 0 else predictions
-                    correct_predictions += (torch.abs(pred_reshaped - labels_reshaped) <= tolerance).sum().item()
+                    correct_predictions += (torch.abs(predictions - labels_reshaped) <= tolerance).sum().item()
                 else:  # Classification tasks
                     predictions = torch.argmax(logits, dim=1)
                     correct_predictions += (predictions == labels).sum().item()
                 
                 total_samples += labels.size(0)
-                all_predictions.extend(predictions.cpu().numpy())
-                all_labels.extend(labels.cpu().numpy())
+                
+                # Only extend lists if predictions and labels are arrays, not scalars
+                pred_cpu = predictions.cpu()
+                if pred_cpu.numel() > 1:  # More than one element
+                    all_predictions.extend(pred_cpu.numpy().flatten())
+                else:
+                    all_predictions.append(pred_cpu.item())
+                
+                label_cpu = labels.cpu()
+                if label_cpu.numel() > 1:
+                    all_labels.extend(label_cpu.numpy().flatten())
+                else:
+                    all_labels.append(label_cpu.item())
 
         # Update learning rate scheduler
         self.scheduler.step()
@@ -395,6 +414,18 @@ class FederatedClient:
             pred_array = np.array(all_predictions)
             label_array = np.array(all_labels)
             
+            # Ensure arrays are not empty and have proper shape
+            if pred_array.size == 0 or label_array.size == 0:
+                logger.warning(f"Empty prediction or label arrays for task {task}")
+                pred_array = np.array([0.0])  # Fallback
+                label_array = np.array([0.0])
+            
+            # Handle scalar arrays
+            if pred_array.ndim == 0:
+                pred_array = np.array([pred_array])
+            if label_array.ndim == 0:
+                label_array = np.array([label_array])
+            
             # Mean Absolute Error
             mae = np.mean(np.abs(pred_array - label_array))
             # Mean Squared Error
@@ -404,28 +435,28 @@ class FederatedClient:
             
             # Correlation coefficient (handle edge cases)
             if len(pred_array) > 1 and np.std(pred_array) > 0 and np.std(label_array) > 0:
-                correlation = np.corrcoef(pred_array, label_array)[0, 1]
-                if np.isnan(correlation):
+                try:
+                    correlation = np.corrcoef(pred_array, label_array)[0, 1]
+                    if np.isnan(correlation) or np.isinf(correlation):
+                        correlation = 0.0
+                except (ValueError, IndexError):
                     correlation = 0.0
             else:
                 correlation = 0.0
             
             # For regression, use correlation as the primary accuracy metric
-            # Convert correlation to 0-1 scale (correlation ranges from -1 to 1)
             regression_accuracy = max(0, correlation)  # Clamp negative correlations to 0
             
-            # For regression, correct_predictions doesn't make sense in the traditional way
-            # We'll use a tolerance-based count for correct_predictions but keep correlation for accuracy
-            # This provides both meaningful accuracy (correlation) and a count metric
-            tolerance = 0.1  # 10% tolerance for "correct" predictions
+            # Tolerance-based correct count
+            tolerance = 0.1  # 10% tolerance
             tolerance_correct = np.sum(np.abs(pred_array - label_array) <= tolerance)
             
             logger.info(f"STSB Regression Metrics - MAE: {mae:.4f}, MSE: {mse:.4f}, Correlation: {correlation:.4f}")
             logger.info(f"[REGRESSION] STSB Regression Metrics - MAE: {mae:.4f}, MSE: {mse:.4f}, Correlation: {correlation:.4f}")
             
             metrics.update({
-                'accuracy': float(regression_accuracy),  # Correlation-based accuracy
-                'correct_predictions': int(tolerance_correct),  # Tolerance-based correct count
+                'accuracy': float(regression_accuracy),
+                'correct_predictions': int(tolerance_correct),
                 'mae': float(mae),
                 'mse': float(mse),
                 'rmse': float(rmse),
@@ -470,8 +501,14 @@ class FederatedClient:
                 attention_mask = attention_mask.to(self.device)
                 labels = labels.to(self.device)
                 
-                if len(input_ids) == 0:
+                # Add check for empty or scalar batches
+                if len(input_ids) == 0 or input_ids.dim() == 0:
+                    logger.warning(f"Skipping empty or scalar validation batch for task {task}")
                     continue
+
+                # Ensure labels are not scalars
+                if labels.dim() == 0:
+                    labels = labels.unsqueeze(0)
                 
                 # Forward pass
                 logits = self.student_model(input_ids, attention_mask, task)
@@ -515,13 +552,28 @@ class FederatedClient:
             pred_array = np.array(all_predictions)
             label_array = np.array(all_labels)
             
+            # Ensure arrays are not empty and have proper shape
+            if pred_array.size == 0 or label_array.size == 0:
+                logger.warning(f"Empty prediction or label arrays for validation task {task}")
+                pred_array = np.array([0.0])  # Fallback
+                label_array = np.array([0.0])
+            
+            # Handle scalar arrays
+            if pred_array.ndim == 0:
+                pred_array = np.array([pred_array])
+            if label_array.ndim == 0:
+                label_array = np.array([label_array])
+            
             mae = np.mean(np.abs(pred_array - label_array))
             mse = np.mean((pred_array - label_array) ** 2)
             
             # Correlation coefficient
             if len(pred_array) > 1 and np.std(pred_array) > 0 and np.std(label_array) > 0:
-                correlation = np.corrcoef(pred_array, label_array)[0, 1]
-                if np.isnan(correlation):
+                try:
+                    correlation = np.corrcoef(pred_array, label_array)[0, 1]
+                    if np.isnan(correlation) or np.isinf(correlation):
+                        correlation = 0.0
+                except (ValueError, IndexError):
                     correlation = 0.0
             else:
                 correlation = 0.0
