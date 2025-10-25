@@ -18,6 +18,7 @@ class CommunicationConfig:
     websocket_timeout: int = 30
     retry_attempts: int = 3
     round_timeout: int = 3000  # Default timeout for collecting client updates
+    send_timeout: int = 3600  # Timeout for sending large updates (1 hour)
 
 @dataclass
 class FederatedConfig:
@@ -70,6 +71,8 @@ class FederatedConfig:
     timeout: int = 60
     websocket_timeout: int = 30
     retry_attempts: int = 3
+    round_timeout: int = 3000  # Timeout for collecting client updates per round
+    send_timeout: int = 3600  # Timeout for sending large updates (1 hour)
 
     # Communication settings as nested object (for backward compatibility)
     @property
@@ -80,7 +83,8 @@ class FederatedConfig:
             timeout=self.timeout,
             websocket_timeout=self.websocket_timeout,
             retry_attempts=self.retry_attempts,
-            round_timeout=3000  # Default round timeout
+            round_timeout=getattr(self, 'round_timeout', 3000),  # Use config value or default
+            send_timeout=getattr(self, 'send_timeout', 3600)  # Use config value or default
         )
 
     # Output settings
@@ -181,6 +185,8 @@ class FederatedConfig:
             ('communication', 'timeout'): 'timeout',
             ('communication', 'websocket_timeout'): 'websocket_timeout',
             ('communication', 'retry_attempts'): 'retry_attempts',
+            ('communication', 'round_timeout'): 'round_timeout',
+            ('communication', 'send_timeout'): 'send_timeout',
 
             # Output settings
             ('output', 'results_dir'): 'results_dir',
@@ -260,6 +266,8 @@ class FederatedConfig:
                 'timeout': self.timeout,
                 'websocket_timeout': self.websocket_timeout,
                 'retry_attempts': self.retry_attempts,
+                'round_timeout': self.round_timeout,
+                'send_timeout': self.send_timeout,
             },
             'output': {
                 'results_dir': self.results_dir,

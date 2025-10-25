@@ -98,12 +98,13 @@ class WebSocketServer:
 class WebSocketClient:
     """WebSocket client for federated learning"""
 
-    def __init__(self, server_url: str, client_id: str):
+    def __init__(self, server_url: str, client_id: str, send_timeout: int = 3600):
         self.server_url = server_url
         self.client_id = client_id
         self.websocket = None
         self.message_handlers: Dict[str, Callable] = {}
         self.is_connected = False
+        self.send_timeout = send_timeout  # Configurable send timeout
 
     def register_message_handler(self, message_type: str, handler: Callable):
         """Register handler for specific message types"""
@@ -160,14 +161,14 @@ class WebSocketClient:
                 serialized_message = MessageProtocol.serialize_tensors(message)
                 message_str = json.dumps(serialized_message)
                 logger.info(f"Client {self.client_id} sending message of size {len(message_str)} characters")
+                logger.info(f"Client {self.client_id} using send timeout of {self.send_timeout} seconds")
                 
-                # Send with timeout to prevent hanging
-                send_timeout = 300  # 5 minutes timeout for send
-                await asyncio.wait_for(self.websocket.send(message_str), timeout=send_timeout)
+                # Send with timeout to prevent hanging (use configurable timeout)
+                await asyncio.wait_for(self.websocket.send(message_str), timeout=self.send_timeout)
                 logger.info(f"Message sent successfully from client {self.client_id}")
                 return True
             except asyncio.TimeoutError:
-                logger.error(f"Send timeout for client {self.client_id} (message size: {len(message_str)} chars)")
+                logger.error(f"Send timeout for client {self.client_id} after {self.send_timeout}s (message size: {len(message_str)} chars)")
                 self.is_connected = False
                 if attempt < max_retries - 1:
                     await asyncio.sleep(2 ** attempt)  # Exponential backoff
