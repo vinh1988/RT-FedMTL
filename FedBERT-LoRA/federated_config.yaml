@@ -29,7 +29,7 @@ training:
   max_clients: 3                  # Maximum clients supported
   expected_clients: 3             # Expected clients to wait for (SST2, QQP, STSB)
   local_epochs: 1                 # Local epochs per round
-  batch_size: 8                   # Batch size for training
+  batch_size: 8                  # Batch size for training (INCREASED for faster training)
   learning_rate: 0.0002          # Learning rate
 
 task_configs:
@@ -39,8 +39,8 @@ task_configs:
     random_seed: 42              # Reproducibility
 
   qqp:                           # QQP question pairs
-    train_samples: 323415           # IMPROVED: Increased 6x from 500 to 3000
-    val_samples: 40431              # IMPROVED: Increased 6x from 100 to 600
+    train_samples: 32000            # Reduced for faster testing (use 323415 for full training)
+    val_samples: 4000               # Reduced for faster testing (use 40431 for full training)
     random_seed: 42              # Reproducibility
 
   stsb:                          # STSB semantic similarity
@@ -53,7 +53,7 @@ communication:
   timeout: 60                    # Client timeout (seconds)
   websocket_timeout: 30          # WebSocket timeout (seconds)
   retry_attempts: 3              # Retry attempts
-  round_timeout: 3000            # Timeout for collecting client updates per round (50 minutes)
+  round_timeout: 3200            # Timeout for collecting client updates per round (53 minutes)
   send_timeout: 3600             # Timeout for sending large updates (60 minutes - for full dataset training)
 
 output:
