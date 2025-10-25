@@ -17,7 +17,7 @@ class CommunicationConfig:
     timeout: int = 60
     websocket_timeout: int = 30
     retry_attempts: int = 3
-    round_timeout: int = 3200  # Default timeout for collecting client updates (53 minutes)
+    round_timeout: int = 3400  # Default timeout for collecting client updates (56.7 minutes)
     send_timeout: int = 3600  # Timeout for sending large updates (1 hour)
 
 @dataclass
@@ -71,7 +71,7 @@ class FederatedConfig:
     timeout: int = 60
     websocket_timeout: int = 30
     retry_attempts: int = 3
-    round_timeout: int = 3200  # Timeout for collecting client updates per round (53 minutes)
+    round_timeout: int = 3400  # Timeout for collecting client updates per round (56.7 minutes)
     send_timeout: int = 3600  # Timeout for sending large updates (1 hour)
 
     # Communication settings as nested object (for backward compatibility)
@@ -83,7 +83,7 @@ class FederatedConfig:
             timeout=self.timeout,
             websocket_timeout=self.websocket_timeout,
             retry_attempts=self.retry_attempts,
-            round_timeout=getattr(self, 'round_timeout', 3200),  # Use config value or default (53 minutes)
+            round_timeout=getattr(self, 'round_timeout', 3400),  # Use config value or default (56.7 minutes)
             send_timeout=getattr(self, 'send_timeout', 3600)  # Use config value or default
         )
 

@@ -358,8 +358,8 @@ class FederatedServer:
     async def collect_client_updates(self, round_num: int, timeout: int = None):
         """Collect client updates for a round - wait for ALL connected clients"""
         if timeout is None:
-            # Use config round_timeout, default to 3200 seconds (53 minutes) if not set
-            timeout = getattr(self.config.communication, 'round_timeout', 3200)
+            # Use config round_timeout, default to 3400 seconds (56.7 minutes) if not set
+            timeout = getattr(self.config.communication, 'round_timeout', 3400)
         
         start_time = time.time()
         updates_received = 0
