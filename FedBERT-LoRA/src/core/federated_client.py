@@ -657,6 +657,17 @@ class FederatedClient:
                         padding=True,
                         truncation=True,
                         max_length=128,
+                        return_tensors='pt'
+                    )
+                    task_data[task] = tokenized
+        
+        return task_data
+
+    def _estimate_tensor_memory_usage(self, nested_list) -> int:
+        """Estimate memory usage for a nested list structure (for tensor conversion)"""
+        total_elements = 0
+        
+        def count_elements(obj):
             nonlocal total_elements
             if isinstance(obj, list):
                 for item in obj:
