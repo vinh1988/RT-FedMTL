@@ -39,8 +39,8 @@ task_configs:
     random_seed: 42              # Reproducibility
 
   qqp:                           # QQP question pairs
-    train_samples: 32000            # Reduced for faster testing (use 323415 for full training)
-    val_samples: 4000               # Reduced for faster testing (use 40431 for full training)
+    train_samples: 323415            # Reduced for faster testing (use 323415 for full training)
+    val_samples: 40431               # Reduced for faster testing (use 40431 for full training)
     random_seed: 42              # Reproducibility
 
   stsb:                          # STSB semantic similarity
