@@ -162,8 +162,12 @@ class LocalKDEngine:
         return kd_manager.teacher_to_student_kd_loss(student_logits, teacher_logits, labels, task_type)
 
     def prepare_student_knowledge_for_teacher(self, task_data: Dict) -> Dict[str, torch.Tensor]:
-        """Prepare student knowledge to send back to teacher"""
+        """Prepare student knowledge to send back to teacher (with memory-efficient batching)"""
         student_knowledge = {}
+        
+        # Limit samples for knowledge distillation to prevent memory issues
+        max_samples_for_kd = 100  # Only use 100 samples for student knowledge
+        batch_size = 8  # Process in small batches
 
         for task_name in self.tasks:
             if task_name in task_data:
@@ -180,19 +184,51 @@ class LocalKDEngine:
                     # but we'll handle it gracefully
                     continue
                 
+                # Limit to max_samples_for_kd to prevent memory issues
+                if input_ids.size(0) > max_samples_for_kd:
+                    logger.info(f"Limiting student knowledge samples for {task_name} from {input_ids.size(0)} to {max_samples_for_kd}")
+                    input_ids = input_ids[:max_samples_for_kd]
+                    attention_mask = attention_mask[:max_samples_for_kd]
+                
                 # Ensure tensors are on the correct device
                 device = next(self.student_model.parameters()).device
-                input_ids = input_ids.to(device)
-                attention_mask = attention_mask.to(device)
                 
-                # Generate student predictions for this task
+                # Process in batches to avoid memory issues
+                all_logits = []
+                num_samples = input_ids.size(0)
+                
                 with torch.no_grad():
-                    student_logits = self.student_model(
-                        input_ids,
-                        attention_mask,
-                        task_name
-                    )
-                    student_knowledge[task_name] = student_logits
+                    for i in range(0, num_samples, batch_size):
+                        # Get batch
+                        batch_input_ids = input_ids[i:i+batch_size].to(device)
+                        batch_attention_mask = attention_mask[i:i+batch_size].to(device)
+                        
+                        # Generate student predictions for this batch
+                        batch_logits = self.student_model(
+                            batch_input_ids,
+                            batch_attention_mask,
+                            task_name
+                        )
+                        
+                        # Move to CPU to save GPU memory
+                        all_logits.append(batch_logits.cpu())
+                        
+                        # Clean up batch tensors
+                        del batch_input_ids, batch_attention_mask, batch_logits
+                        
+                        # Clear GPU cache periodically
+                        if torch.cuda.is_available() and i % (batch_size * 5) == 0:
+                            torch.cuda.empty_cache()
+                    
+                    # Concatenate all batches and keep on CPU initially
+                    student_knowledge[task_name] = torch.cat(all_logits, dim=0)
+                    
+                    # Clean up
+                    del all_logits
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                    
+                    logger.info(f"Prepared student knowledge for {task_name}: {student_knowledge[task_name].shape}")
 
         return student_knowledge
 

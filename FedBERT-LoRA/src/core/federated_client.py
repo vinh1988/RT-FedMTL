@@ -269,13 +269,37 @@ class FederatedClient:
         try:
             local_metrics = await self.perform_local_training()
 
+            # Clear GPU cache after training to free memory for knowledge preparation
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                logger.info("[GPU-CLEANUP] Cleared GPU cache after training, before preparing student knowledge")
+
             # Extract LoRA updates
             lora_updates = self.student_model.get_all_lora_params()
 
-            # Prepare student knowledge for reverse KD
-            student_knowledge = self.kd_engine.prepare_student_knowledge_for_teacher(
-                self.get_task_data_for_kd()
-            )
+            # Prepare student knowledge for reverse KD with error handling
+            student_knowledge = {}
+            try:
+                logger.info("Preparing student knowledge for teacher (reverse KD)...")
+                student_knowledge = self.kd_engine.prepare_student_knowledge_for_teacher(
+                    self.get_task_data_for_kd()
+                )
+                logger.info(f"Successfully prepared student knowledge for {len(student_knowledge)} tasks")
+            except RuntimeError as e:
+                if "CUDA" in str(e) or "out of memory" in str(e):
+                    logger.error(f"GPU memory error while preparing student knowledge: {e}")
+                    logger.warning("Skipping student knowledge preparation due to memory constraints")
+                    logger.warning("Training will continue but reverse KD will be disabled for this round")
+                    # Clear cache and continue without student knowledge
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                    student_knowledge = {}
+                else:
+                    raise
+            except Exception as e:
+                logger.error(f"Error preparing student knowledge: {e}")
+                logger.warning("Continuing without student knowledge for this round")
+                student_knowledge = {}
 
             # Send update to server
             update_message = MessageProtocol.create_client_update_message(
