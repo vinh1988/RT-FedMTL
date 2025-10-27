@@ -56,10 +56,12 @@ class FederatedClient:
         # Initialize KD engine
         self.kd_engine = LocalKDEngine(self.student_model, tasks, config)
 
-        # Initialize synchronization
+        # Initialize synchronization with configurable send timeout
+        send_timeout = getattr(config, 'send_timeout', 3600)
         self.websocket_client = WebSocketClient(
             f"ws://localhost:{config.port}",
-            client_id
+            client_id,
+            send_timeout=send_timeout
         )
         self.model_synchronizer = ClientModelSynchronizer(
             self.student_model, self.websocket_client
@@ -100,6 +102,19 @@ class FederatedClient:
                 logging.StreamHandler()
             ]
         )
+        
+        # Log device information
+        logger.info("="*60)
+        logger.info(f"CLIENT: {self.client_id}")
+        logger.info(f"Using device: {self.device}")
+        if torch.cuda.is_available():
+            logger.info(f"✓ CUDA is available")
+            logger.info(f"  GPU: {torch.cuda.get_device_name(0)}")
+            logger.info(f"  Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+        else:
+            logger.warning(f"✗ CUDA not available - using CPU only")
+            logger.warning(f"  Training will be much slower!")
+        logger.info("="*60)
 
     def initialize_dataset_handlers(self) -> Dict[str, Any]:
         """Initialize dataset handlers for available tasks"""
@@ -208,16 +223,44 @@ class FederatedClient:
         logger.info(f"Received training request for round {round_num}")
         logger.info(f"Starting training for client {self.client_id} with tasks: {self.tasks}")
 
-        # Update teacher knowledge for KD
+        # Update teacher knowledge for KD with safety checks for memory issues (ROUND 2 BUG FIX)
         if teacher_knowledge:
-            # Convert lists back to tensors for teacher knowledge
+            # Convert lists back to tensors for teacher knowledge with size validation
             tensor_teacher_knowledge = {}
             for task, logits_list in teacher_knowledge.items():
-                if isinstance(logits_list, list):
-                    tensor_teacher_knowledge[task] = torch.tensor(logits_list, device=self.device)
-                else:
-                    tensor_teacher_knowledge[task] = logits_list
-            self.kd_engine.update_teacher_knowledge(tensor_teacher_knowledge)
+                try:
+                    if isinstance(logits_list, list):
+                        # CRITICAL FIX: Add size validation to prevent memory allocation errors
+                        # Estimate memory usage: each float32 is 4 bytes
+                        estimated_size_bytes = self._estimate_tensor_memory_usage(logits_list)
+                        max_reasonable_size = 100 * 1024 * 1024  # 100MB limit
+
+                        if estimated_size_bytes > max_reasonable_size:
+                            logger.error(f"Teacher knowledge for {task} is too large ({estimated_size_bytes / 1024 / 1024:.1f}MB). "
+                                       f"This may cause memory allocation errors. Skipping this task.")
+                            continue
+
+                        # Additional safety: check for extremely deep nesting
+                        max_depth = self._get_nested_list_depth(logits_list)
+                        if max_depth > 5:
+                            logger.error(f"Teacher knowledge for {task} has excessive nesting (depth {max_depth}). "
+                                       f"This may indicate corrupted data. Skipping this task.")
+                            continue
+
+                        logger.info(f"Converting teacher knowledge for {task} (estimated size: {estimated_size_bytes / 1024 / 1024:.1f}MB)")
+                        tensor_teacher_knowledge[task] = torch.tensor(logits_list, device=self.device)
+                    else:
+                        tensor_teacher_knowledge[task] = logits_list
+                except Exception as e:
+                    logger.error(f"Error converting teacher knowledge for task {task}: {e}. Skipping this task.")
+                    continue
+
+            # Only update if we have valid teacher knowledge
+            if tensor_teacher_knowledge:
+                self.kd_engine.update_teacher_knowledge(tensor_teacher_knowledge)
+                logger.info(f"Successfully updated teacher knowledge for {len(tensor_teacher_knowledge)} tasks")
+            else:
+                logger.warning("No valid teacher knowledge received, proceeding without KD for this round")
 
         # Perform local training
         self.is_training = True
@@ -373,9 +416,10 @@ class FederatedClient:
         correct_predictions = 0
         total_samples = 0
 
-        for batch in train_dataloader:
-            # Unpack batch tuple (input_ids, attention_mask, labels)
-            input_ids, attention_mask, labels = batch
+        for batch_idx, batch in enumerate(train_dataloader):
+            try:
+                # Unpack batch tuple (input_ids, attention_mask, labels)
+                input_ids, attention_mask, labels = batch
 
             # Move tensors to the correct device
             input_ids = input_ids.to(self.device)
@@ -386,41 +430,54 @@ class FederatedClient:
             if num_batches == 0:
                 logger.info(f"[DEVICE] Batch tensors moved to {self.device} (input_ids device: {input_ids.device})")
 
-            # Add check for empty or scalar batches
-            if len(input_ids) == 0 or input_ids.dim() == 0:
-                logger.warning(f"Skipping empty or scalar batch for task {task}")
-                continue
+                # Add check for empty or scalar batches
+                if len(input_ids) == 0 or input_ids.dim() == 0:
+                    logger.warning(f"Skipping empty or scalar batch for task {task}")
+                    continue
+                
+                # Validate batch dimensions
+                if input_ids.dim() != 2:
+                    logger.error(f"Invalid input_ids dimensions: {input_ids.shape}, expected 2D tensor")
+                    continue
+                if input_ids.size(0) == 0:
+                    logger.error(f"Batch size is 0, skipping")
+                    continue
 
-            # Ensure labels are not scalars
-            if labels.dim() == 0:
-                labels = labels.unsqueeze(0)
+                # Move tensors to the correct device
+                input_ids = input_ids.to(self.device)
+                attention_mask = attention_mask.to(self.device)
+                labels = labels.to(self.device)
 
-            # Zero gradients
-            self.optimizer.zero_grad()
+                # Ensure labels are not scalars
+                if labels.dim() == 0:
+                    labels = labels.unsqueeze(0)
 
-            # Forward pass
-            logits = self.student_model(
-                input_ids,
-                attention_mask,
-                task
-            )
+                # Zero gradients
+                self.optimizer.zero_grad()
 
-            # Calculate KD loss (IMPROVED: pass current_round for progressive KD)
-            kd_loss = self.kd_engine.calculate_kd_loss(
-                logits, task, labels, current_round=self.current_round
-            )
+                # Forward pass
+                logits = self.student_model(
+                    input_ids,
+                    attention_mask,
+                    task
+                )
 
-            # Backward pass
-            kd_loss.backward()
-            
-            # PHASE 2: Add gradient clipping for stability
-            torch.nn.utils.clip_grad_norm_(
-                self.student_model.parameters(),
-                max_norm=1.0
-            )
-            
-            # Update parameters
-            self.optimizer.step()
+                # Calculate KD loss (IMPROVED: pass current_round for progressive KD)
+                kd_loss = self.kd_engine.calculate_kd_loss(
+                    logits, task, labels, current_round=self.current_round
+                )
+
+                # Backward pass
+                kd_loss.backward()
+                
+                # PHASE 2: Add gradient clipping for stability
+                torch.nn.utils.clip_grad_norm_(
+                    self.student_model.parameters(),
+                    max_norm=1.0
+                )
+                
+                # Update parameters
+                self.optimizer.step()
 
             # Store loss value before deleting tensor
             batch_loss = kd_loss.item()
@@ -473,28 +530,7 @@ class FederatedClient:
                     all_labels.extend(label_cpu.numpy().flatten())
                 else:
                     all_labels.append(label_cpu.item())
-            
-            # Explicitly delete tensors to free memory after accuracy calculation
-            del input_ids, attention_mask, labels, logits, kd_loss
 
-        # Clear GPU cache after training task and log memory status
-        if torch.cuda.is_available():
-            # Get memory stats before clearing
-            allocated_before = torch.cuda.memory_allocated() / 1e9
-            reserved_before = torch.cuda.memory_reserved() / 1e9
-            
-            torch.cuda.empty_cache()
-            
-            # Get memory stats after clearing
-            allocated_after = torch.cuda.memory_allocated() / 1e9
-            reserved_after = torch.cuda.memory_reserved() / 1e9
-            freed = reserved_before - reserved_after
-            
-            logger.info(f"[GPU-CLEANUP] Cleared GPU cache after task {task}")
-            logger.info(f"[GPU-CLEANUP] Memory freed: {freed:.2f} GB")
-            logger.info(f"[GPU-CLEANUP] Current allocated: {allocated_after:.2f} GB")
-            logger.info(f"[GPU-CLEANUP] Current reserved: {reserved_after:.2f} GB")
-        
         # Update learning rate scheduler
         self.scheduler.step()
 
@@ -732,32 +768,43 @@ class FederatedClient:
                         padding=True,
                         truncation=True,
                         max_length=128,
-                        return_tensors="pt"
+                        return_tensors='pt'
                     )
-                    
-                    # Add tokenized data to the task data
-                    data['input_ids'] = tokenized['input_ids']
-                    data['attention_mask'] = tokenized['attention_mask']
-                
-                task_data[task] = data
-
+                    task_data[task] = tokenized
+        
         return task_data
 
-    def extract_lora_updates(self) -> Dict[str, Dict]:
-        """Extract LoRA parameters for federated aggregation"""
-        return self.student_model.get_all_lora_params()
+    def _estimate_tensor_memory_usage(self, nested_list) -> int:
+        """Estimate memory usage for a nested list structure (for tensor conversion)"""
+        total_elements = 0
+        
+        def count_elements(obj):
+            nonlocal total_elements
+            if isinstance(obj, list):
+                for item in obj:
+                    count_elements(item)
+            else:
+                # Assume each element will be a float32 (4 bytes)
+                total_elements += 1
 
-    def get_client_status(self) -> Dict:
-        """Get current client status"""
-        return {
-            "client_id": self.client_id,
-            "tasks": self.tasks,
-            "is_connected": self.websocket_client.is_connected,
-            "is_training": self.is_training,
-            "current_round": self.current_round,
-            "model_synchronized": self.model_synchronizer.is_synchronized,
-            "available_tasks": list(self.dataset_handlers.keys())
-        }
+        count_elements(nested_list)
+        return total_elements * 4  # 4 bytes per float32
+
+    def _get_nested_list_depth(self, nested_list, current_depth=0) -> int:
+        """Get the maximum depth of nested lists"""
+        if not isinstance(nested_list, list):
+            return current_depth
+
+        if not nested_list:  # Empty list
+            return current_depth + 1
+
+        max_depth = current_depth + 1
+        for item in nested_list:
+            if isinstance(item, list):
+                item_depth = self._get_nested_list_depth(item, current_depth + 1)
+                max_depth = max(max_depth, item_depth)
+
+        return max_depth
 
 def run_client(client_id: str, tasks: List[str], config: FederatedConfig):
     """Run a federated learning client"""
