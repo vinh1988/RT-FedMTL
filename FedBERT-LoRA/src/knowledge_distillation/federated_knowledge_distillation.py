@@ -9,6 +9,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict, List, Tuple, Optional
 import math
+import logging
+
+logger = logging.getLogger(__name__)
 
 class BidirectionalKDManager:
     """Manages bidirectional knowledge distillation"""
