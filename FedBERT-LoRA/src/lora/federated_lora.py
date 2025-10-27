@@ -301,7 +301,22 @@ class LoRAFederatedModel(nn.Module):
             labels = torch.randint(0, 2, (10,), dtype=torch.long)
 
         dataset = TensorDataset(input_ids, attention_mask, labels)
-        return DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        
+        # CUDA-friendly DataLoader configuration
+        # drop_last=True to avoid incomplete batches that can cause CUDA errors
+        # num_workers=0 to avoid multiprocessing issues with CUDA
+        dataloader = DataLoader(
+            dataset, 
+            batch_size=batch_size, 
+            shuffle=True,
+            num_workers=0,  # Critical for CUDA stability
+            pin_memory=False,  # Set to False to avoid CUDA memory issues
+            drop_last=(len(dataset) > batch_size)  # Drop last incomplete batch only if we have enough data
+        )
+        
+        logger.info(f"Created DataLoader: dataset_size={len(dataset)}, batch_size={batch_size}, num_batches={len(dataloader)}")
+        
+        return dataloader
 
 class LoRAAggregator:
     """Aggregates LoRA parameters from multiple clients"""

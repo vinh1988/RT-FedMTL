@@ -91,6 +91,19 @@ class FederatedClient:
                 logging.StreamHandler()
             ]
         )
+        
+        # Log device information
+        logger.info("="*60)
+        logger.info(f"CLIENT: {self.client_id}")
+        logger.info(f"Using device: {self.device}")
+        if torch.cuda.is_available():
+            logger.info(f"✓ CUDA is available")
+            logger.info(f"  GPU: {torch.cuda.get_device_name(0)}")
+            logger.info(f"  Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+        else:
+            logger.warning(f"✗ CUDA not available - using CPU only")
+            logger.warning(f"  Training will be much slower!")
+        logger.info("="*60)
 
     def initialize_dataset_handlers(self) -> Dict[str, Any]:
         """Initialize dataset handlers for available tasks"""
@@ -343,95 +356,123 @@ class FederatedClient:
         correct_predictions = 0
         total_samples = 0
 
-        for batch in train_dataloader:
-            # Unpack batch tuple (input_ids, attention_mask, labels)
-            input_ids, attention_mask, labels = batch
+        for batch_idx, batch in enumerate(train_dataloader):
+            try:
+                # Unpack batch tuple (input_ids, attention_mask, labels)
+                input_ids, attention_mask, labels = batch
 
-            # Move tensors to the correct device
-            input_ids = input_ids.to(self.device)
-            attention_mask = attention_mask.to(self.device)
-            labels = labels.to(self.device)
+                # Log batch info for first batch
+                if batch_idx == 0:
+                    logger.info(f"First batch shapes - input_ids: {input_ids.shape}, attention_mask: {attention_mask.shape}, labels: {labels.shape}")
 
-            # Add check for empty or scalar batches
-            if len(input_ids) == 0 or input_ids.dim() == 0:
-                logger.warning(f"Skipping empty or scalar batch for task {task}")
-                continue
+                # Add check for empty or scalar batches
+                if len(input_ids) == 0 or input_ids.dim() == 0:
+                    logger.warning(f"Skipping empty or scalar batch for task {task}")
+                    continue
+                
+                # Validate batch dimensions
+                if input_ids.dim() != 2:
+                    logger.error(f"Invalid input_ids dimensions: {input_ids.shape}, expected 2D tensor")
+                    continue
+                if input_ids.size(0) == 0:
+                    logger.error(f"Batch size is 0, skipping")
+                    continue
 
-            # Ensure labels are not scalars
-            if labels.dim() == 0:
-                labels = labels.unsqueeze(0)
+                # Move tensors to the correct device
+                input_ids = input_ids.to(self.device)
+                attention_mask = attention_mask.to(self.device)
+                labels = labels.to(self.device)
 
-            # Zero gradients
-            self.optimizer.zero_grad()
+                # Ensure labels are not scalars
+                if labels.dim() == 0:
+                    labels = labels.unsqueeze(0)
 
-            # Forward pass
-            logits = self.student_model(
-                input_ids,
-                attention_mask,
-                task
-            )
+                # Zero gradients
+                self.optimizer.zero_grad()
 
-            # Calculate KD loss (IMPROVED: pass current_round for progressive KD)
-            kd_loss = self.kd_engine.calculate_kd_loss(
-                logits, task, labels, current_round=self.current_round
-            )
+                # Forward pass
+                logits = self.student_model(
+                    input_ids,
+                    attention_mask,
+                    task
+                )
 
-            # Backward pass
-            kd_loss.backward()
-            
-            # PHASE 2: Add gradient clipping for stability
-            torch.nn.utils.clip_grad_norm_(
-                self.student_model.parameters(),
-                max_norm=1.0
-            )
-            
-            # Update parameters
-            self.optimizer.step()
+                # Calculate KD loss (IMPROVED: pass current_round for progressive KD)
+                kd_loss = self.kd_engine.calculate_kd_loss(
+                    logits, task, labels, current_round=self.current_round
+                )
 
-            total_loss += kd_loss.item()
-            num_batches += 1
+                # Backward pass
+                kd_loss.backward()
+                
+                # PHASE 2: Add gradient clipping for stability
+                torch.nn.utils.clip_grad_norm_(
+                    self.student_model.parameters(),
+                    max_norm=1.0
+                )
+                
+                # Update parameters
+                self.optimizer.step()
 
-            # Log progress every few batches
-            if num_batches % 5 == 0:
-                logger.info(f"Task {task} - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
-                logger.info(f"[STATS] Task {task} - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
+                total_loss += kd_loss.item()
+                num_batches += 1
 
-            # Calculate predictions and accuracy
-            with torch.no_grad():
-                if task == 'stsb':  # Regression task
-                    predictions = logits.squeeze()
-                    # For regression, use a tolerance-based accuracy
-                    # Consider predictions "correct" if they're within 0.1 of the true label
-                    if labels.dim() == 0:
-                        labels_reshaped = labels.unsqueeze(0)
+                # Log progress every few batches
+                if num_batches % 5 == 0:
+                    logger.info(f"Task {task} - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
+                    logger.info(f"[STATS] Task {task} - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
+
+                # Calculate predictions and accuracy
+                with torch.no_grad():
+                    if task == 'stsb':  # Regression task
+                        predictions = logits.squeeze()
+                        # For regression, use a tolerance-based accuracy
+                        # Consider predictions "correct" if they're within 0.1 of the true label
+                        if labels.dim() == 0:
+                            labels_reshaped = labels.unsqueeze(0)
+                        else:
+                            labels_reshaped = labels
+                        
+                        # Ensure predictions are not scalars
+                        if predictions.dim() == 0:
+                            predictions = predictions.unsqueeze(0)
+                        
+                        # Calculate tolerance-based accuracy for regression
+                        tolerance = 0.05  # Within 0.05 of true value (5% tolerance)
+                        correct_predictions += (torch.abs(predictions - labels_reshaped) <= tolerance).sum().item()
+                    else:  # Classification tasks
+                        predictions = torch.argmax(logits, dim=1)
+                        correct_predictions += (predictions == labels).sum().item()
+                    
+                    total_samples += labels.size(0)
+                    
+                    # Store predictions and labels for later analysis
+                    # Only extend lists if predictions and labels are arrays, not scalars
+                    pred_cpu = predictions.cpu()
+                    if pred_cpu.numel() > 1:  # More than one element
+                        all_predictions.extend(pred_cpu.numpy().flatten())
                     else:
-                        labels_reshaped = labels
+                        all_predictions.append(pred_cpu.item())
                     
-                    # Ensure predictions are not scalars
-                    if predictions.dim() == 0:
-                        predictions = predictions.unsqueeze(0)
+                    label_cpu = labels.cpu()
+                    if label_cpu.numel() > 1:
+                        all_labels.extend(label_cpu.numpy().flatten())
+                    else:
+                        all_labels.append(label_cpu.item())
                     
-                    # Calculate tolerance-based accuracy for regression
-                    tolerance = 0.05  # Within 0.05 of true value (5% tolerance)
-                    correct_predictions += (torch.abs(predictions - labels_reshaped) <= tolerance).sum().item()
-                else:  # Classification tasks
-                    predictions = torch.argmax(logits, dim=1)
-                    correct_predictions += (predictions == labels).sum().item()
-                
-                total_samples += labels.size(0)
-                
-                # Only extend lists if predictions and labels are arrays, not scalars
-                pred_cpu = predictions.cpu()
-                if pred_cpu.numel() > 1:  # More than one element
-                    all_predictions.extend(pred_cpu.numpy().flatten())
+            except RuntimeError as e:
+                if "CUDA" in str(e):
+                    logger.error(f"CUDA error in batch {batch_idx}:")
+                    logger.error(f"  Batch shapes: input_ids={input_ids.shape if 'input_ids' in locals() else 'N/A'}, "
+                               f"attention_mask={attention_mask.shape if 'attention_mask' in locals() else 'N/A'}, "
+                               f"labels={labels.shape if 'labels' in locals() else 'N/A'}")
+                    logger.error(f"  Device: {self.device}")
+                    logger.error(f"  Error: {str(e)}")
+                    # Clear CUDA cache and continue
+                    torch.cuda.empty_cache()
+                    continue
                 else:
-                    all_predictions.append(pred_cpu.item())
-                
-                label_cpu = labels.cpu()
-                if label_cpu.numel() > 1:
-                    all_labels.extend(label_cpu.numpy().flatten())
-                else:
-                    all_labels.append(label_cpu.item())
+                    raise
 
         # Update learning rate scheduler
         self.scheduler.step()
