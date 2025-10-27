@@ -169,7 +169,7 @@ class LocalKDEngine:
         student_knowledge = {}
         
         # Limit samples for knowledge distillation to prevent memory issues
-        max_samples_for_kd = 100  # Only use 100 samples for student knowledge
+        max_samples_for_kd = 1000  # Increased from 100 to 1000 for better reverse KD
         batch_size = 8  # Process in small batches
 
         for task_name in self.tasks:

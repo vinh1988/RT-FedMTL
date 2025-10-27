@@ -83,6 +83,14 @@ class FederatedClient:
         self.device_usage_records = []
         self.csv_output_dir = config.results_dir
         os.makedirs(self.csv_output_dir, exist_ok=True)
+        
+        # Create a single CSV file for this client session
+        session_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.csv_filename = os.path.join(
+            self.csv_output_dir,
+            f"device_usage_{self.client_id}_{session_timestamp}.csv"
+        )
+        self.csv_initialized = False
 
     def get_device(self):
         """Get available device (GPU/CPU)"""
@@ -239,7 +247,7 @@ class FederatedClient:
             tensor_teacher_knowledge = {}
             for task, logits_list in teacher_knowledge.items():
                 try:
-                    if isinstance(logits_list, list):
+                if isinstance(logits_list, list):
                         # CRITICAL FIX: Add size validation to prevent memory allocation errors
                         # Estimate memory usage: each float32 is 4 bytes
                         estimated_size_bytes = self._estimate_tensor_memory_usage(logits_list)
@@ -258,16 +266,16 @@ class FederatedClient:
                             continue
 
                         logger.info(f"Converting teacher knowledge for {task} (estimated size: {estimated_size_bytes / 1024 / 1024:.1f}MB)")
-                        tensor_teacher_knowledge[task] = torch.tensor(logits_list, device=self.device)
-                    else:
-                        tensor_teacher_knowledge[task] = logits_list
+                    tensor_teacher_knowledge[task] = torch.tensor(logits_list, device=self.device)
+                else:
+                    tensor_teacher_knowledge[task] = logits_list
                 except Exception as e:
                     logger.error(f"Error converting teacher knowledge for task {task}: {e}. Skipping this task.")
                     continue
 
             # Only update if we have valid teacher knowledge
             if tensor_teacher_knowledge:
-                self.kd_engine.update_teacher_knowledge(tensor_teacher_knowledge)
+            self.kd_engine.update_teacher_knowledge(tensor_teacher_knowledge)
                 logger.info(f"Successfully updated teacher knowledge for {len(tensor_teacher_knowledge)} tasks")
             else:
                 logger.warning("No valid teacher knowledge received, proceeding without KD for this round")
@@ -291,9 +299,9 @@ class FederatedClient:
             student_knowledge = {}
             try:
                 logger.info("Preparing student knowledge for teacher (reverse KD)...")
-                student_knowledge = self.kd_engine.prepare_student_knowledge_for_teacher(
-                    self.get_task_data_for_kd()
-                )
+            student_knowledge = self.kd_engine.prepare_student_knowledge_for_teacher(
+                self.get_task_data_for_kd()
+            )
                 logger.info(f"Successfully prepared student knowledge for {len(student_knowledge)} tasks")
             except RuntimeError as e:
                 if "CUDA" in str(e) or "out of memory" in str(e):
@@ -459,22 +467,22 @@ class FederatedClient:
 
         for batch_idx, batch in enumerate(train_dataloader):
             try:
-                # Unpack batch tuple (input_ids, attention_mask, labels)
-                input_ids, attention_mask, labels = batch
+            # Unpack batch tuple (input_ids, attention_mask, labels)
+            input_ids, attention_mask, labels = batch
 
-                # Move tensors to the correct device
-                input_ids = input_ids.to(self.device)
-                attention_mask = attention_mask.to(self.device)
-                labels = labels.to(self.device)
+            # Move tensors to the correct device
+            input_ids = input_ids.to(self.device)
+            attention_mask = attention_mask.to(self.device)
+            labels = labels.to(self.device)
                 
                 # Log device confirmation for first batch
                 if num_batches == 0:
                     logger.info(f"[DEVICE] Batch tensors moved to {self.device} (input_ids device: {input_ids.device})")
 
-                # Add check for empty or scalar batches
-                if len(input_ids) == 0 or input_ids.dim() == 0:
-                    logger.warning(f"Skipping empty or scalar batch for task {task}")
-                    continue
+            # Add check for empty or scalar batches
+            if len(input_ids) == 0 or input_ids.dim() == 0:
+                logger.warning(f"Skipping empty or scalar batch for task {task}")
+                continue
                 
                 # Validate batch dimensions
                 if input_ids.dim() != 2:
@@ -484,44 +492,44 @@ class FederatedClient:
                     logger.error(f"Batch size is 0, skipping")
                     continue
 
-                # Ensure labels are not scalars
-                if labels.dim() == 0:
-                    labels = labels.unsqueeze(0)
+            # Ensure labels are not scalars
+            if labels.dim() == 0:
+                labels = labels.unsqueeze(0)
 
-                # Zero gradients
-                self.optimizer.zero_grad()
+            # Zero gradients
+            self.optimizer.zero_grad()
 
-                # Forward pass
-                logits = self.student_model(
-                    input_ids,
-                    attention_mask,
-                    task
-                )
+            # Forward pass
+            logits = self.student_model(
+                input_ids,
+                attention_mask,
+                task
+            )
 
-                # Calculate KD loss (IMPROVED: pass current_round for progressive KD)
-                kd_loss = self.kd_engine.calculate_kd_loss(
-                    logits, task, labels, current_round=self.current_round
-                )
+            # Calculate KD loss (IMPROVED: pass current_round for progressive KD)
+            kd_loss = self.kd_engine.calculate_kd_loss(
+                logits, task, labels, current_round=self.current_round
+            )
 
-                # Backward pass
-                kd_loss.backward()
-                
-                # PHASE 2: Add gradient clipping for stability
-                torch.nn.utils.clip_grad_norm_(
-                    self.student_model.parameters(),
-                    max_norm=1.0
-                )
-                
-                # Update parameters
-                self.optimizer.step()
+            # Backward pass
+            kd_loss.backward()
+            
+            # PHASE 2: Add gradient clipping for stability
+            torch.nn.utils.clip_grad_norm_(
+                self.student_model.parameters(),
+                max_norm=1.0
+            )
+            
+            # Update parameters
+            self.optimizer.step()
 
                 # Store loss value before deleting tensor
                 batch_loss = kd_loss.item()
                 total_loss += batch_loss
-                num_batches += 1
-                
-                # Log progress every few batches
-                if num_batches % 5 == 0:
+            num_batches += 1
+
+            # Log progress every few batches
+            if num_batches % 5 == 0:
                     logger.info(f"Task {task} - Batch {num_batches}, Loss: {batch_loss:.4f}")
                     logger.info(f"[STATS] Task {task} - Batch {num_batches}, Loss: {batch_loss:.4f}")
                 
@@ -530,42 +538,42 @@ class FederatedClient:
                     torch.cuda.empty_cache()
                     logger.debug(f"Periodic GPU cache clear at batch {num_batches}")
 
-                # Calculate predictions and accuracy
-                with torch.no_grad():
-                    if task == 'stsb':  # Regression task
-                        predictions = logits.squeeze()
-                        # For regression, use a tolerance-based accuracy
-                        # Consider predictions "correct" if they're within 0.1 of the true label
-                        if labels.dim() == 0:
-                            labels_reshaped = labels.unsqueeze(0)
-                        else:
-                            labels_reshaped = labels
-                        
-                        # Ensure predictions are not scalars
-                        if predictions.dim() == 0:
-                            predictions = predictions.unsqueeze(0)
-                        
-                        # Calculate tolerance-based accuracy for regression
-                        tolerance = 0.05  # Within 0.05 of true value (5% tolerance)
-                        correct_predictions += (torch.abs(predictions - labels_reshaped) <= tolerance).sum().item()
-                    else:  # Classification tasks
-                        predictions = torch.argmax(logits, dim=1)
-                        correct_predictions += (predictions == labels).sum().item()
-                    
-                    total_samples += labels.size(0)
-                    
-                    # Only extend lists if predictions and labels are arrays, not scalars
-                    pred_cpu = predictions.cpu()
-                    if pred_cpu.numel() > 1:  # More than one element
-                        all_predictions.extend(pred_cpu.numpy().flatten())
+            # Calculate predictions and accuracy
+            with torch.no_grad():
+                if task == 'stsb':  # Regression task
+                    predictions = logits.squeeze()
+                    # For regression, use a tolerance-based accuracy
+                    # Consider predictions "correct" if they're within 0.1 of the true label
+                    if labels.dim() == 0:
+                        labels_reshaped = labels.unsqueeze(0)
                     else:
-                        all_predictions.append(pred_cpu.item())
+                        labels_reshaped = labels
                     
-                    label_cpu = labels.cpu()
-                    if label_cpu.numel() > 1:
-                        all_labels.extend(label_cpu.numpy().flatten())
-                    else:
-                        all_labels.append(label_cpu.item())
+                    # Ensure predictions are not scalars
+                    if predictions.dim() == 0:
+                        predictions = predictions.unsqueeze(0)
+                    
+                    # Calculate tolerance-based accuracy for regression
+                    tolerance = 0.05  # Within 0.05 of true value (5% tolerance)
+                    correct_predictions += (torch.abs(predictions - labels_reshaped) <= tolerance).sum().item()
+                else:  # Classification tasks
+                    predictions = torch.argmax(logits, dim=1)
+                    correct_predictions += (predictions == labels).sum().item()
+                
+                total_samples += labels.size(0)
+                
+                # Only extend lists if predictions and labels are arrays, not scalars
+                pred_cpu = predictions.cpu()
+                if pred_cpu.numel() > 1:  # More than one element
+                    all_predictions.extend(pred_cpu.numpy().flatten())
+                else:
+                    all_predictions.append(pred_cpu.item())
+                
+                label_cpu = labels.cpu()
+                if label_cpu.numel() > 1:
+                    all_labels.extend(label_cpu.numpy().flatten())
+                else:
+                    all_labels.append(label_cpu.item())
                 
                 # Explicitly delete tensors to free memory
                 del input_ids, attention_mask, labels, logits, kd_loss
@@ -820,7 +828,7 @@ class FederatedClient:
                         return_tensors='pt'
                     )
                     task_data[task] = tokenized
-        
+
         return task_data
 
     def _estimate_tensor_memory_usage(self, nested_list) -> int:
@@ -915,34 +923,43 @@ class FederatedClient:
             logger.info(f"[DEVICE-METRICS] Round {round_num} | Task {task} | Phase {phase} | Device: CPU")
 
     def save_device_usage_to_csv(self):
-        """Save device usage records to CSV file"""
+        """Append device usage records to CSV file (single file per client session)"""
         if not self.device_usage_records:
-            logger.warning("No device usage records to save")
+            logger.debug("No new device usage records to save")
             return
         
-        csv_filename = os.path.join(
-            self.csv_output_dir,
-            f"device_usage_{self.client_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        )
-        
         try:
-            # Get all unique keys from all records
+            # Get all unique keys from current records
             all_keys = set()
             for record in self.device_usage_records:
                 all_keys.update(record.keys())
             
             fieldnames = sorted(list(all_keys))
             
-            with open(csv_filename, 'w', newline='') as csvfile:
+            # Check if we need to write header (first time or file doesn't exist)
+            write_header = not self.csv_initialized or not os.path.exists(self.csv_filename)
+            
+            # Append to the same CSV file
+            mode = 'w' if write_header else 'a'
+            with open(self.csv_filename, mode, newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writeheader()
+                
+                if write_header:
+                    writer.writeheader()
+                    logger.info(f"[CSV-EXPORT] Created new device usage file: {self.csv_filename}")
+                    self.csv_initialized = True
+                
                 writer.writerows(self.device_usage_records)
             
-            logger.info(f"[CSV-EXPORT] Device usage saved to: {csv_filename}")
-            logger.info(f"[CSV-EXPORT] Total records: {len(self.device_usage_records)}")
+            logger.info(f"[CSV-EXPORT] Appended {len(self.device_usage_records)} records to: {self.csv_filename}")
+            
+            # Clear records after saving to avoid duplication
+            self.device_usage_records.clear()
             
         except Exception as e:
             logger.error(f"Error saving device usage to CSV: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
 
 def run_client(client_id: str, tasks: List[str], config: FederatedConfig):
     """Run a federated learning client"""
