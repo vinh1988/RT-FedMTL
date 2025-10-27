@@ -9,6 +9,8 @@ import json
 import logging
 import time
 import torch
+import csv
+import os
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 
@@ -76,6 +78,11 @@ class FederatedClient:
         # Training state
         self.is_training = False
         self.current_round = 0
+        
+        # Device usage tracking
+        self.device_usage_records = []
+        self.csv_output_dir = config.results_dir
+        os.makedirs(self.csv_output_dir, exist_ok=True)
 
     def get_device(self):
         """Get available device (GPU/CPU)"""
@@ -169,6 +176,9 @@ class FederatedClient:
         except Exception as e:
             logger.error(f"Client error: {e}")
         finally:
+            # Save final device usage metrics before disconnecting
+            logger.info("Saving final device usage metrics...")
+            self.save_device_usage_to_csv()
             await self.websocket_client.disconnect()
 
     def setup_message_handlers(self):
@@ -353,9 +363,16 @@ class FederatedClient:
                 logger.info(f"=" * 60)
             else:
                 logger.info(f"[COMPLETE] Round {round_num} completed on CPU")
+            
+            # Record device usage at round end and save to CSV
+            self.record_device_usage(round_num, 'all_tasks', 'round_complete')
+            self.save_device_usage_to_csv()
 
     async def perform_local_training(self) -> Dict[str, float]:
         """Perform local training with KD"""
+        # Record device usage at training start
+        self.record_device_usage(self.current_round, 'all_tasks', 'training_start')
+        
         # Log device information at the start of training
         logger.info(f"=" * 60)
         logger.info(f"Starting local training on device: {self.device}")
@@ -646,6 +663,9 @@ class FederatedClient:
             logger.info(f"Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
             logger.info(f"[VALIDATION] Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
 
+        # Record device usage after task completion
+        self.record_device_usage(self.current_round, task, 'task_complete', metrics)
+
         return metrics
 
     def evaluate_on_validation(self, task: str, val_dataloader) -> Dict[str, float]:
@@ -834,6 +854,95 @@ class FederatedClient:
                 max_depth = max(max_depth, item_depth)
 
         return max_depth
+
+    def collect_device_metrics(self, round_num: int, task: str, phase: str, metrics: Optional[Dict] = None) -> Dict:
+        """Collect current device usage metrics"""
+        device_metrics = {
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'client_id': self.client_id,
+            'round': round_num,
+            'task': task,
+            'phase': phase,  # 'start', 'end', 'training', 'validation'
+            'device_type': self.device.type,
+        }
+        
+        # Add CUDA metrics if available
+        if torch.cuda.is_available() and self.device.type == 'cuda':
+            device_metrics.update({
+                'gpu_name': torch.cuda.get_device_name(0),
+                'gpu_memory_allocated_gb': torch.cuda.memory_allocated() / 1e9,
+                'gpu_memory_reserved_gb': torch.cuda.memory_reserved() / 1e9,
+                'gpu_memory_total_gb': torch.cuda.get_device_properties(0).total_memory / 1e9,
+                'gpu_memory_utilization_pct': (torch.cuda.memory_allocated() / torch.cuda.get_device_properties(0).total_memory) * 100,
+            })
+        else:
+            device_metrics.update({
+                'gpu_name': 'N/A',
+                'gpu_memory_allocated_gb': 0.0,
+                'gpu_memory_reserved_gb': 0.0,
+                'gpu_memory_total_gb': 0.0,
+                'gpu_memory_utilization_pct': 0.0,
+            })
+        
+        # Add training metrics if provided
+        if metrics:
+            device_metrics.update({
+                'loss': metrics.get('loss', 0.0),
+                'accuracy': metrics.get('accuracy', 0.0),
+                'samples_processed': metrics.get('samples_processed', 0),
+            })
+        else:
+            device_metrics.update({
+                'loss': 0.0,
+                'accuracy': 0.0,
+                'samples_processed': 0,
+            })
+        
+        return device_metrics
+
+    def record_device_usage(self, round_num: int, task: str, phase: str, metrics: Optional[Dict] = None):
+        """Record device usage at a specific point"""
+        device_metrics = self.collect_device_metrics(round_num, task, phase, metrics)
+        self.device_usage_records.append(device_metrics)
+        
+        # Log the metrics
+        if self.device.type == 'cuda':
+            logger.info(f"[DEVICE-METRICS] Round {round_num} | Task {task} | Phase {phase} | "
+                       f"GPU Memory: {device_metrics['gpu_memory_allocated_gb']:.2f}GB / "
+                       f"{device_metrics['gpu_memory_total_gb']:.2f}GB "
+                       f"({device_metrics['gpu_memory_utilization_pct']:.1f}%)")
+        else:
+            logger.info(f"[DEVICE-METRICS] Round {round_num} | Task {task} | Phase {phase} | Device: CPU")
+
+    def save_device_usage_to_csv(self):
+        """Save device usage records to CSV file"""
+        if not self.device_usage_records:
+            logger.warning("No device usage records to save")
+            return
+        
+        csv_filename = os.path.join(
+            self.csv_output_dir,
+            f"device_usage_{self.client_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        )
+        
+        try:
+            # Get all unique keys from all records
+            all_keys = set()
+            for record in self.device_usage_records:
+                all_keys.update(record.keys())
+            
+            fieldnames = sorted(list(all_keys))
+            
+            with open(csv_filename, 'w', newline='') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(self.device_usage_records)
+            
+            logger.info(f"[CSV-EXPORT] Device usage saved to: {csv_filename}")
+            logger.info(f"[CSV-EXPORT] Total records: {len(self.device_usage_records)}")
+            
+        except Exception as e:
+            logger.error(f"Error saving device usage to CSV: {e}")
 
 def run_client(client_id: str, tasks: List[str], config: FederatedConfig):
     """Run a federated learning client"""
