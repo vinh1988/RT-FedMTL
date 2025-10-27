@@ -299,9 +299,9 @@ class FederatedClient:
             student_knowledge = {}
             try:
                 logger.info("Preparing student knowledge for teacher (reverse KD)...")
-            student_knowledge = self.kd_engine.prepare_student_knowledge_for_teacher(
-                self.get_task_data_for_kd()
-            )
+                student_knowledge = self.kd_engine.prepare_student_knowledge_for_teacher(
+                    self.get_task_data_for_kd()
+                )
                 logger.info(f"Successfully prepared student knowledge for {len(student_knowledge)} tasks")
             except RuntimeError as e:
                 if "CUDA" in str(e) or "out of memory" in str(e):
