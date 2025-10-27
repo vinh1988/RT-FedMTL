@@ -77,7 +77,18 @@ class FederatedClient:
 
     def get_device(self):
         """Get available device (GPU/CPU)"""
-        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Log device information
+        if device.type == "cuda":
+            logger.info(f"[GPU] Using CUDA (GPU) for training")
+            logger.info(f"[GPU] GPU Device: {torch.cuda.get_device_name(0)}")
+            logger.info(f"[GPU] Total GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+        else:
+            logger.warning(f"[WARNING] Using CPU for training (CUDA not available)")
+            logger.warning(f"[WARNING] Training will be significantly slower on CPU")
+        
+        return device
 
     def setup_logging(self):
         """Setup logging configuration"""
@@ -247,11 +258,59 @@ class FederatedClient:
 
         except Exception as e:
             logger.error(f"Error in local training for round {round_num}: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
         finally:
             self.is_training = False
+            # Clear GPU cache to prevent memory accumulation
+            if torch.cuda.is_available():
+                # Get memory before clearing
+                allocated_before = torch.cuda.memory_allocated() / 1e9
+                reserved_before = torch.cuda.memory_reserved() / 1e9
+                
+                torch.cuda.empty_cache()
+                
+                # Get memory after clearing
+                allocated_after = torch.cuda.memory_allocated() / 1e9
+                reserved_after = torch.cuda.memory_reserved() / 1e9
+                total = torch.cuda.get_device_properties(0).total_memory / 1e9
+                freed = reserved_before - reserved_after
+                
+                logger.info(f"=" * 60)
+                logger.info(f"[COMPLETE] Round {round_num} completed on {self.device}")
+                logger.info(f"[GPU-MEMORY] Final GPU Memory Status:")
+                logger.info(f"[GPU-MEMORY] Memory freed in cleanup: {freed:.2f} GB")
+                logger.info(f"[GPU-MEMORY] Allocated: {allocated_after:.2f} GB / {total:.2f} GB ({allocated_after/total*100:.1f}%)")
+                logger.info(f"[GPU-MEMORY] Reserved:  {reserved_after:.2f} GB / {total:.2f} GB ({reserved_after/total*100:.1f}%)")
+                logger.info(f"[GPU-MEMORY] Free:      {total - reserved_after:.2f} GB ({(total - reserved_after)/total*100:.1f}%)")
+                logger.info(f"=" * 60)
+            else:
+                logger.info(f"[COMPLETE] Round {round_num} completed on CPU")
 
     async def perform_local_training(self) -> Dict[str, float]:
         """Perform local training with KD"""
+        # Log device information at the start of training
+        logger.info(f"=" * 60)
+        logger.info(f"Starting local training on device: {self.device}")
+        
+        if torch.cuda.is_available():
+            # Clear GPU cache before training to ensure clean start
+            torch.cuda.empty_cache()
+            
+            # Log GPU memory status
+            allocated = torch.cuda.memory_allocated() / 1e9
+            reserved = torch.cuda.memory_reserved() / 1e9
+            total = torch.cuda.get_device_properties(0).total_memory / 1e9
+            
+            logger.info(f"[GPU-MEMORY] GPU Memory Status:")
+            logger.info(f"[GPU-MEMORY] Allocated: {allocated:.2f} GB / {total:.2f} GB ({allocated/total*100:.1f}%)")
+            logger.info(f"[GPU-MEMORY] Reserved:  {reserved:.2f} GB / {total:.2f} GB ({reserved/total*100:.1f}%)")
+            logger.info(f"[GPU-MEMORY] Free:      {total - reserved:.2f} GB")
+        else:
+            logger.info(f"[CPU] Training on CPU (CUDA not available)")
+        
+        logger.info(f"=" * 60)
+        
         local_metrics = {}
 
         for task in self.tasks:
@@ -301,9 +360,10 @@ class FederatedClient:
         
         logger.info(f"Starting training for task {task} with {len(train_dataloader)} batches")
         logger.info(f"[TRAINING] Starting training for task {task} with {len(train_dataloader)} batches")
+        logger.info(f"[DEVICE] Training tensors will be moved to: {self.device}")
         if val_dataloader:
             logger.info(f"Starting validation for task {task} with {len(val_dataloader)} batches")
-            logger.info(f"[VALIDATION] Starting validation for task {task} with {len(val_dataloader)} batches")
+            logger.info(f"[VALIDATION] Validation dataloader created for task {task} with {len(val_dataloader)} batches")
 
         # Training loop with proper metrics calculation
         total_loss = 0.0
@@ -321,6 +381,10 @@ class FederatedClient:
             input_ids = input_ids.to(self.device)
             attention_mask = attention_mask.to(self.device)
             labels = labels.to(self.device)
+            
+            # Log device confirmation for first batch
+            if num_batches == 0:
+                logger.info(f"[DEVICE] Batch tensors moved to {self.device} (input_ids device: {input_ids.device})")
 
             # Add check for empty or scalar batches
             if len(input_ids) == 0 or input_ids.dim() == 0:
@@ -358,13 +422,20 @@ class FederatedClient:
             # Update parameters
             self.optimizer.step()
 
-            total_loss += kd_loss.item()
+            # Store loss value before deleting tensor
+            batch_loss = kd_loss.item()
+            total_loss += batch_loss
             num_batches += 1
-
+            
             # Log progress every few batches
             if num_batches % 5 == 0:
-                logger.info(f"Task {task} - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
-                logger.info(f"[STATS] Task {task} - Batch {num_batches}, Loss: {kd_loss.item():.4f}")
+                logger.info(f"Task {task} - Batch {num_batches}, Loss: {batch_loss:.4f}")
+                logger.info(f"[STATS] Task {task} - Batch {num_batches}, Loss: {batch_loss:.4f}")
+            
+            # Periodic GPU cache clearing during long training
+            if torch.cuda.is_available() and num_batches % 100 == 0:
+                torch.cuda.empty_cache()
+                logger.debug(f"Periodic GPU cache clear at batch {num_batches}")
 
             # Calculate predictions and accuracy
             with torch.no_grad():
@@ -402,7 +473,28 @@ class FederatedClient:
                     all_labels.extend(label_cpu.numpy().flatten())
                 else:
                     all_labels.append(label_cpu.item())
+            
+            # Explicitly delete tensors to free memory after accuracy calculation
+            del input_ids, attention_mask, labels, logits, kd_loss
 
+        # Clear GPU cache after training task and log memory status
+        if torch.cuda.is_available():
+            # Get memory stats before clearing
+            allocated_before = torch.cuda.memory_allocated() / 1e9
+            reserved_before = torch.cuda.memory_reserved() / 1e9
+            
+            torch.cuda.empty_cache()
+            
+            # Get memory stats after clearing
+            allocated_after = torch.cuda.memory_allocated() / 1e9
+            reserved_after = torch.cuda.memory_reserved() / 1e9
+            freed = reserved_before - reserved_after
+            
+            logger.info(f"[GPU-CLEANUP] Cleared GPU cache after task {task}")
+            logger.info(f"[GPU-CLEANUP] Memory freed: {freed:.2f} GB")
+            logger.info(f"[GPU-CLEANUP] Current allocated: {allocated_after:.2f} GB")
+            logger.info(f"[GPU-CLEANUP] Current reserved: {reserved_after:.2f} GB")
+        
         # Update learning rate scheduler
         self.scheduler.step()
 
@@ -495,6 +587,11 @@ class FederatedClient:
         """Evaluate model on validation data"""
         import numpy as np
         
+        # Clear GPU cache before validation
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            logger.debug(f"Cleared GPU cache before validation for task {task}")
+        
         # Set model to evaluation mode
         self.student_model.eval()
         
@@ -548,6 +645,14 @@ class FederatedClient:
                 total_samples += labels.size(0)
                 all_predictions.extend(predictions.cpu().numpy())
                 all_labels.extend(labels.cpu().numpy())
+                
+                # Clean up tensors after each validation batch
+                del input_ids, attention_mask, labels, logits, loss, predictions
+        
+        # Clear GPU cache after validation
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            logger.debug(f"Cleared GPU cache after validation for task {task}")
         
         # Calculate metrics
         avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
