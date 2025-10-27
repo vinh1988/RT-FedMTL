@@ -108,12 +108,12 @@ class FederatedClient:
         logger.info(f"CLIENT: {self.client_id}")
         logger.info(f"Using device: {self.device}")
         if torch.cuda.is_available():
-            logger.info(f"✓ CUDA is available")
-            logger.info(f"  GPU: {torch.cuda.get_device_name(0)}")
-            logger.info(f"  Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+            logger.info(f"[GPU] CUDA is available")
+            logger.info(f"[GPU] GPU: {torch.cuda.get_device_name(0)}")
+            logger.info(f"[GPU] Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
         else:
-            logger.warning(f"✗ CUDA not available - using CPU only")
-            logger.warning(f"  Training will be much slower!")
+            logger.warning(f"[WARNING] CUDA not available - using CPU only")
+            logger.warning(f"[WARNING] Training will be much slower!")
         logger.info("="*60)
 
     def initialize_dataset_handlers(self) -> Dict[str, Any]:
@@ -421,14 +421,14 @@ class FederatedClient:
                 # Unpack batch tuple (input_ids, attention_mask, labels)
                 input_ids, attention_mask, labels = batch
 
-            # Move tensors to the correct device
-            input_ids = input_ids.to(self.device)
-            attention_mask = attention_mask.to(self.device)
-            labels = labels.to(self.device)
-            
-            # Log device confirmation for first batch
-            if num_batches == 0:
-                logger.info(f"[DEVICE] Batch tensors moved to {self.device} (input_ids device: {input_ids.device})")
+                # Move tensors to the correct device
+                input_ids = input_ids.to(self.device)
+                attention_mask = attention_mask.to(self.device)
+                labels = labels.to(self.device)
+                
+                # Log device confirmation for first batch
+                if num_batches == 0:
+                    logger.info(f"[DEVICE] Batch tensors moved to {self.device} (input_ids device: {input_ids.device})")
 
                 # Add check for empty or scalar batches
                 if len(input_ids) == 0 or input_ids.dim() == 0:
@@ -442,11 +442,6 @@ class FederatedClient:
                 if input_ids.size(0) == 0:
                     logger.error(f"Batch size is 0, skipping")
                     continue
-
-                # Move tensors to the correct device
-                input_ids = input_ids.to(self.device)
-                attention_mask = attention_mask.to(self.device)
-                labels = labels.to(self.device)
 
                 # Ensure labels are not scalars
                 if labels.dim() == 0:
@@ -479,57 +474,67 @@ class FederatedClient:
                 # Update parameters
                 self.optimizer.step()
 
-            # Store loss value before deleting tensor
-            batch_loss = kd_loss.item()
-            total_loss += batch_loss
-            num_batches += 1
-            
-            # Log progress every few batches
-            if num_batches % 5 == 0:
-                logger.info(f"Task {task} - Batch {num_batches}, Loss: {batch_loss:.4f}")
-                logger.info(f"[STATS] Task {task} - Batch {num_batches}, Loss: {batch_loss:.4f}")
-            
-            # Periodic GPU cache clearing during long training
-            if torch.cuda.is_available() and num_batches % 100 == 0:
-                torch.cuda.empty_cache()
-                logger.debug(f"Periodic GPU cache clear at batch {num_batches}")
+                # Store loss value before deleting tensor
+                batch_loss = kd_loss.item()
+                total_loss += batch_loss
+                num_batches += 1
+                
+                # Log progress every few batches
+                if num_batches % 5 == 0:
+                    logger.info(f"Task {task} - Batch {num_batches}, Loss: {batch_loss:.4f}")
+                    logger.info(f"[STATS] Task {task} - Batch {num_batches}, Loss: {batch_loss:.4f}")
+                
+                # Periodic GPU cache clearing during long training
+                if torch.cuda.is_available() and num_batches % 100 == 0:
+                    torch.cuda.empty_cache()
+                    logger.debug(f"Periodic GPU cache clear at batch {num_batches}")
 
-            # Calculate predictions and accuracy
-            with torch.no_grad():
-                if task == 'stsb':  # Regression task
-                    predictions = logits.squeeze()
-                    # For regression, use a tolerance-based accuracy
-                    # Consider predictions "correct" if they're within 0.1 of the true label
-                    if labels.dim() == 0:
-                        labels_reshaped = labels.unsqueeze(0)
+                # Calculate predictions and accuracy
+                with torch.no_grad():
+                    if task == 'stsb':  # Regression task
+                        predictions = logits.squeeze()
+                        # For regression, use a tolerance-based accuracy
+                        # Consider predictions "correct" if they're within 0.1 of the true label
+                        if labels.dim() == 0:
+                            labels_reshaped = labels.unsqueeze(0)
+                        else:
+                            labels_reshaped = labels
+                        
+                        # Ensure predictions are not scalars
+                        if predictions.dim() == 0:
+                            predictions = predictions.unsqueeze(0)
+                        
+                        # Calculate tolerance-based accuracy for regression
+                        tolerance = 0.05  # Within 0.05 of true value (5% tolerance)
+                        correct_predictions += (torch.abs(predictions - labels_reshaped) <= tolerance).sum().item()
+                    else:  # Classification tasks
+                        predictions = torch.argmax(logits, dim=1)
+                        correct_predictions += (predictions == labels).sum().item()
+                    
+                    total_samples += labels.size(0)
+                    
+                    # Only extend lists if predictions and labels are arrays, not scalars
+                    pred_cpu = predictions.cpu()
+                    if pred_cpu.numel() > 1:  # More than one element
+                        all_predictions.extend(pred_cpu.numpy().flatten())
                     else:
-                        labels_reshaped = labels
+                        all_predictions.append(pred_cpu.item())
                     
-                    # Ensure predictions are not scalars
-                    if predictions.dim() == 0:
-                        predictions = predictions.unsqueeze(0)
-                    
-                    # Calculate tolerance-based accuracy for regression
-                    tolerance = 0.05  # Within 0.05 of true value (5% tolerance)
-                    correct_predictions += (torch.abs(predictions - labels_reshaped) <= tolerance).sum().item()
-                else:  # Classification tasks
-                    predictions = torch.argmax(logits, dim=1)
-                    correct_predictions += (predictions == labels).sum().item()
+                    label_cpu = labels.cpu()
+                    if label_cpu.numel() > 1:
+                        all_labels.extend(label_cpu.numpy().flatten())
+                    else:
+                        all_labels.append(label_cpu.item())
                 
-                total_samples += labels.size(0)
+                # Explicitly delete tensors to free memory
+                del input_ids, attention_mask, labels, logits, kd_loss
                 
-                # Only extend lists if predictions and labels are arrays, not scalars
-                pred_cpu = predictions.cpu()
-                if pred_cpu.numel() > 1:  # More than one element
-                    all_predictions.extend(pred_cpu.numpy().flatten())
-                else:
-                    all_predictions.append(pred_cpu.item())
-                
-                label_cpu = labels.cpu()
-                if label_cpu.numel() > 1:
-                    all_labels.extend(label_cpu.numpy().flatten())
-                else:
-                    all_labels.append(label_cpu.item())
+            except Exception as e:
+                logger.error(f"Error processing batch {batch_idx} for task {task}: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
+                # Continue to next batch instead of crashing
+                continue
 
         # Update learning rate scheduler
         self.scheduler.step()
