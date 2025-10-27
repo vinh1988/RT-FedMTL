@@ -247,7 +247,7 @@ class FederatedClient:
             tensor_teacher_knowledge = {}
             for task, logits_list in teacher_knowledge.items():
                 try:
-                if isinstance(logits_list, list):
+                    if isinstance(logits_list, list):
                         # CRITICAL FIX: Add size validation to prevent memory allocation errors
                         # Estimate memory usage: each float32 is 4 bytes
                         estimated_size_bytes = self._estimate_tensor_memory_usage(logits_list)
@@ -266,16 +266,16 @@ class FederatedClient:
                             continue
 
                         logger.info(f"Converting teacher knowledge for {task} (estimated size: {estimated_size_bytes / 1024 / 1024:.1f}MB)")
-                    tensor_teacher_knowledge[task] = torch.tensor(logits_list, device=self.device)
-                else:
-                    tensor_teacher_knowledge[task] = logits_list
+                        tensor_teacher_knowledge[task] = torch.tensor(logits_list, device=self.device)
+                    else:
+                        tensor_teacher_knowledge[task] = logits_list
                 except Exception as e:
                     logger.error(f"Error converting teacher knowledge for task {task}: {e}. Skipping this task.")
                     continue
 
             # Only update if we have valid teacher knowledge
             if tensor_teacher_knowledge:
-            self.kd_engine.update_teacher_knowledge(tensor_teacher_knowledge)
+                self.kd_engine.update_teacher_knowledge(tensor_teacher_knowledge)
                 logger.info(f"Successfully updated teacher knowledge for {len(tensor_teacher_knowledge)} tasks")
             else:
                 logger.warning("No valid teacher knowledge received, proceeding without KD for this round")
