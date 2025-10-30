@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import numpy as np
 from typing import Dict, List, Tuple, Any, Optional
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support, mean_squared_error, mean_absolute_error
+from scipy.stats import spearmanr
 from datetime import datetime
 import json
 import os
@@ -86,14 +87,25 @@ class ModelEvaluator:
         # Pearson correlation coefficient
         if len(labels) > 1:
             pearson_corr = np.corrcoef(labels, predictions)[0, 1]
+            if np.isnan(pearson_corr):
+                pearson_corr = 0.0
         else:
             pearson_corr = 0.0
+
+        # Spearman correlation coefficient
+        if len(labels) > 1:
+            spearman_corr, _ = spearmanr(labels, predictions)
+            if np.isnan(spearman_corr):
+                spearman_corr = 0.0
+        else:
+            spearman_corr = 0.0
 
         return {
             'mse': float(mse),
             'rmse': float(rmse),
             'mae': float(mae),
             'pearson_correlation': float(pearson_corr),
+            'spearman_correlation': float(spearman_corr),
             'validation_loss': float(avg_loss)
         }
 
@@ -160,13 +172,23 @@ class GlobalModelEvaluator:
                 mse = mean_squared_error(task_data['labels'], task_data['predictions'])
                 rmse = np.sqrt(mse)
                 mae = mean_absolute_error(task_data['labels'], task_data['predictions'])
+                
+                # Pearson correlation
                 pearson_corr = np.corrcoef(task_data['labels'], task_data['predictions'])[0, 1]
+                if np.isnan(pearson_corr):
+                    pearson_corr = 0.0
+                
+                # Spearman correlation
+                spearman_corr, _ = spearmanr(task_data['labels'], task_data['predictions'])
+                if np.isnan(spearman_corr):
+                    spearman_corr = 0.0
 
                 global_metrics[task_name] = {
                     'mse': float(mse),
                     'rmse': float(rmse),
                     'mae': float(mae),
                     'pearson_correlation': float(pearson_corr),
+                    'spearman_correlation': float(spearman_corr),
                     'num_clients': len(task_data['client_contributions']),
                     'total_samples': len(task_data['labels'])
                 }
@@ -305,6 +327,7 @@ class EvaluationReporter:
                 summary.append(f"    - RMSE: {metrics['rmse']:.4f}")
                 summary.append(f"    - MAE: {metrics['mae']:.4f}")
                 summary.append(f"    - Pearson Correlation: {metrics['pearson_correlation']:.4f}")
+                summary.append(f"    - Spearman Correlation: {metrics['spearman_correlation']:.4f}")
             summary.append(f"    - Clients: {metrics['num_clients']}")
             summary.append(f"    - Samples: {metrics['total_samples']}")
             summary.append("")

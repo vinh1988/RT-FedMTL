@@ -89,8 +89,11 @@ class FederatedServer:
         # Write CSV headers for client results
         client_headers = [
             "round", "client_id", "task", "accuracy", "loss", "samples_processed",
-            "correct_predictions", "val_accuracy", "val_loss", "val_samples", 
-            "val_correct_predictions", "timestamp"
+            "correct_predictions", "f1_score", "pearson_correlation", "spearman_correlation",
+            "mae", "mse", "rmse",
+            "val_accuracy", "val_loss", "val_samples", "val_correct_predictions",
+            "val_f1_score", "val_pearson_correlation", "val_spearman_correlation", "val_mae",
+            "timestamp"
         ]
         self.client_csv_writer.writerow(client_headers)
         self.client_csv_file.flush()
@@ -114,10 +117,23 @@ class FederatedServer:
                     task_metrics.get('loss', 0.0),
                     task_metrics.get('samples_processed', 0),
                     task_metrics.get('correct_predictions', 0),
+                    # Classification metrics (F1)
+                    task_metrics.get('f1_score', ''),
+                    # Regression metrics (Pearson, Spearman, MAE, MSE, RMSE)
+                    task_metrics.get('pearson_correlation', ''),
+                    task_metrics.get('spearman_correlation', ''),
+                    task_metrics.get('mae', ''),
+                    task_metrics.get('mse', ''),
+                    task_metrics.get('rmse', ''),
+                    # Validation metrics
                     task_metrics.get('val_accuracy', 0.0),
                     task_metrics.get('val_loss', 0.0),
                     task_metrics.get('val_samples', 0),
                     task_metrics.get('val_correct_predictions', 0),
+                    task_metrics.get('val_f1_score', ''),
+                    task_metrics.get('val_pearson_correlation', ''),
+                    task_metrics.get('val_spearman_correlation', ''),
+                    task_metrics.get('val_mae', ''),
                     timestamp
                 ]
                 self.client_csv_writer.writerow(row)

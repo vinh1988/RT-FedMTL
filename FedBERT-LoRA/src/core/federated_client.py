@@ -11,8 +11,11 @@ import time
 import torch
 import csv
 import os
+import numpy as np
 from typing import Dict, List, Any, Optional
 from datetime import datetime
+from scipy.stats import spearmanr
+from sklearn.metrics import f1_score
 
 from federated_config import FederatedConfig
 from src.lora.federated_lora import LoRAFederatedModel
@@ -595,7 +598,7 @@ class FederatedClient:
         logger.info(f"Task {task} training completed - Loss: {avg_loss:.4f}, Accuracy: {accuracy:.4f}")
         logger.info(f"[SUCCESS] Task {task} training completed - Loss: {avg_loss:.4f}, Accuracy: {accuracy:.4f}")
 
-        # Add regression-specific metrics for STSB
+        # Initialize metrics dictionary
         metrics = {
             'loss': avg_loss,
             'accuracy': accuracy,
@@ -603,6 +606,7 @@ class FederatedClient:
             'correct_predictions': correct_predictions
         }
         
+        # Add task-specific metrics
         if task == 'stsb' and len(all_predictions) > 0 and len(all_labels) > 0:
             # Calculate additional regression metrics
             import numpy as np
@@ -628,26 +632,37 @@ class FederatedClient:
             # Root Mean Squared Error
             rmse = np.sqrt(mse)
             
-            # Correlation coefficient (handle edge cases)
+            # Pearson correlation coefficient (handle edge cases)
             if len(pred_array) > 1 and np.std(pred_array) > 0 and np.std(label_array) > 0:
                 try:
-                    correlation = np.corrcoef(pred_array, label_array)[0, 1]
-                    if np.isnan(correlation) or np.isinf(correlation):
-                        correlation = 0.0
+                    pearson_corr = np.corrcoef(pred_array, label_array)[0, 1]
+                    if np.isnan(pearson_corr) or np.isinf(pearson_corr):
+                        pearson_corr = 0.0
                 except (ValueError, IndexError):
-                    correlation = 0.0
+                    pearson_corr = 0.0
             else:
-                correlation = 0.0
+                pearson_corr = 0.0
             
-            # For regression, use correlation as the primary accuracy metric
-            regression_accuracy = max(0, correlation)  # Clamp negative correlations to 0
+            # Spearman correlation coefficient
+            if len(pred_array) > 1 and np.std(pred_array) > 0 and np.std(label_array) > 0:
+                try:
+                    spearman_corr, _ = spearmanr(pred_array, label_array)
+                    if np.isnan(spearman_corr) or np.isinf(spearman_corr):
+                        spearman_corr = 0.0
+                except (ValueError, IndexError):
+                    spearman_corr = 0.0
+            else:
+                spearman_corr = 0.0
+            
+            # For regression, use Pearson correlation as the primary accuracy metric
+            regression_accuracy = max(0, pearson_corr)  # Clamp negative correlations to 0
             
             # Tolerance-based correct count
             tolerance = 0.1  # 10% tolerance
             tolerance_correct = np.sum(np.abs(pred_array - label_array) <= tolerance)
             
-            logger.info(f"STSB Regression Metrics - MAE: {mae:.4f}, MSE: {mse:.4f}, Correlation: {correlation:.4f}")
-            logger.info(f"[REGRESSION] STSB Regression Metrics - MAE: {mae:.4f}, MSE: {mse:.4f}, Correlation: {correlation:.4f}")
+            logger.info(f"STSB Regression Metrics - MAE: {mae:.4f}, MSE: {mse:.4f}, Pearson: {pearson_corr:.4f}, Spearman: {spearman_corr:.4f}")
+            logger.info(f"[REGRESSION] STSB Regression Metrics - MAE: {mae:.4f}, MSE: {mse:.4f}, Pearson: {pearson_corr:.4f}, Spearman: {spearman_corr:.4f}")
             
             metrics.update({
                 'accuracy': float(regression_accuracy),
@@ -655,7 +670,22 @@ class FederatedClient:
                 'mae': float(mae),
                 'mse': float(mse),
                 'rmse': float(rmse),
-                'correlation': float(correlation)
+                'pearson_correlation': float(pearson_corr),
+                'spearman_correlation': float(spearman_corr)
+            })
+        elif task in ['sst2', 'qqp'] and len(all_predictions) > 0 and len(all_labels) > 0:
+            # Calculate F1 score for classification tasks
+            pred_array = np.array(all_predictions)
+            label_array = np.array(all_labels)
+            
+            # Calculate F1 score (weighted average for multi-class)
+            f1 = f1_score(label_array, pred_array, average='weighted', zero_division=0)
+            
+            logger.info(f"{task.upper()} Classification Metrics - Accuracy: {accuracy:.4f}, F1: {f1:.4f}")
+            logger.info(f"[CLASSIFICATION] {task.upper()} Classification Metrics - Accuracy: {accuracy:.4f}, F1: {f1:.4f}")
+            
+            metrics.update({
+                'f1_score': float(f1)
             })
 
         # Add validation metrics if validation data is available
@@ -665,11 +695,21 @@ class FederatedClient:
             metrics['val_loss'] = val_metrics['loss']
             metrics['val_samples'] = val_metrics['samples_processed']
             metrics['val_correct_predictions'] = val_metrics['correct_predictions']
-            if 'correlation' in val_metrics:
-                metrics['val_correlation'] = val_metrics['correlation']
+            
+            # Add task-specific validation metrics
+            if 'pearson_correlation' in val_metrics:
+                metrics['val_pearson_correlation'] = val_metrics['pearson_correlation']
+                metrics['val_spearman_correlation'] = val_metrics['spearman_correlation']
                 metrics['val_mae'] = val_metrics['mae']
-            logger.info(f"Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
-            logger.info(f"[VALIDATION] Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
+                logger.info(f"Validation - Loss: {val_metrics['loss']:.4f}, Pearson: {val_metrics['pearson_correlation']:.4f}, Spearman: {val_metrics['spearman_correlation']:.4f}")
+                logger.info(f"[VALIDATION] Validation - Loss: {val_metrics['loss']:.4f}, Pearson: {val_metrics['pearson_correlation']:.4f}, Spearman: {val_metrics['spearman_correlation']:.4f}")
+            elif 'f1_score' in val_metrics:
+                metrics['val_f1_score'] = val_metrics['f1_score']
+                logger.info(f"Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}, F1: {val_metrics['f1_score']:.4f}")
+                logger.info(f"[VALIDATION] Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}, F1: {val_metrics['f1_score']:.4f}")
+            else:
+                logger.info(f"Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
+                logger.info(f"[VALIDATION] Validation - Loss: {val_metrics['loss']:.4f}, Accuracy: {val_metrics['accuracy']:.4f}")
 
         # Record device usage after task completion
         self.record_device_usage(self.current_round, task, 'task_complete', metrics)
@@ -678,8 +718,6 @@ class FederatedClient:
 
     def evaluate_on_validation(self, task: str, val_dataloader) -> Dict[str, float]:
         """Evaluate model on validation data"""
-        import numpy as np
-        
         # Clear GPU cache before validation
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -758,7 +796,7 @@ class FederatedClient:
             'correct_predictions': correct_predictions
         }
         
-        # Add regression-specific metrics for STSB
+        # Add task-specific metrics
         if task == 'stsb' and len(all_predictions) > 0 and len(all_labels) > 0:
             pred_array = np.array(all_predictions)
             label_array = np.array(all_labels)
@@ -778,18 +816,29 @@ class FederatedClient:
             mae = np.mean(np.abs(pred_array - label_array))
             mse = np.mean((pred_array - label_array) ** 2)
             
-            # Correlation coefficient
+            # Pearson correlation coefficient
             if len(pred_array) > 1 and np.std(pred_array) > 0 and np.std(label_array) > 0:
                 try:
-                    correlation = np.corrcoef(pred_array, label_array)[0, 1]
-                    if np.isnan(correlation) or np.isinf(correlation):
-                        correlation = 0.0
+                    pearson_corr = np.corrcoef(pred_array, label_array)[0, 1]
+                    if np.isnan(pearson_corr) or np.isinf(pearson_corr):
+                        pearson_corr = 0.0
                 except (ValueError, IndexError):
-                    correlation = 0.0
+                    pearson_corr = 0.0
             else:
-                correlation = 0.0
+                pearson_corr = 0.0
             
-            regression_accuracy = max(0, correlation)
+            # Spearman correlation coefficient
+            if len(pred_array) > 1 and np.std(pred_array) > 0 and np.std(label_array) > 0:
+                try:
+                    spearman_corr, _ = spearmanr(pred_array, label_array)
+                    if np.isnan(spearman_corr) or np.isinf(spearman_corr):
+                        spearman_corr = 0.0
+                except (ValueError, IndexError):
+                    spearman_corr = 0.0
+            else:
+                spearman_corr = 0.0
+            
+            regression_accuracy = max(0, pearson_corr)
             tolerance_correct = np.sum(np.abs(pred_array - label_array) <= 0.1)
             
             metrics.update({
@@ -797,7 +846,19 @@ class FederatedClient:
                 'correct_predictions': int(tolerance_correct),
                 'mae': float(mae),
                 'mse': float(mse),
-                'correlation': float(correlation)
+                'pearson_correlation': float(pearson_corr),
+                'spearman_correlation': float(spearman_corr)
+            })
+        elif task in ['sst2', 'qqp'] and len(all_predictions) > 0 and len(all_labels) > 0:
+            # Calculate F1 score for classification tasks
+            pred_array = np.array(all_predictions)
+            label_array = np.array(all_labels)
+            
+            # Calculate F1 score (weighted average for multi-class)
+            f1 = f1_score(label_array, pred_array, average='weighted', zero_division=0)
+            
+            metrics.update({
+                'f1_score': float(f1)
             })
         
         # Set model back to training mode
