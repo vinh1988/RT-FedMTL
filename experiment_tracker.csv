@@ -20,6 +20,6 @@ Centralized,STL,SLMs,prajjwal1/bert-tiny,—,STS-B,"Pearson, Spearman",1,,
 Federated Learning,MTL,LLMs,BERT-base-uncased,BERT-base-uncased,"SST-2, QQP, STS-B","SST-2: Accuracy, F1; QQP: Accuracy, F1; STS-B: Pearson, Spearman",1,,
 Federated Learning,MTL,SLMs,prajjwal1/bert-tiny,prajjwal1/bert-tiny,"SST-2, QQP, STS-B","SST-2: Accuracy, F1; QQP: Accuracy, F1; STS-B: Pearson, Spearman",1,,
 Federated Learning,MTL,L-SLMs (Our method),BERT-base-uncased,prajjwal1/bert-tiny,"SST-2, QQP, STS-B","SST-2: Accuracy, F1; QQP: Accuracy, F1; STS-B: Pearson, Spearman",1,,
-Federated Learning,MTL,L-SLMs (Our method),BERT-base-uncased,"prajjwal1/bert-tiny + LoRA","SST-2, QQP, STS-B","SST-2: Accuracy, F1; QQP: Accuracy, F1; STS-B: Pearson, Spearman",1,,
+Federated Learning,MTL,L-SLMs (Our method),BERT-base-uncased,"prajjwal1/bert-tiny + LoRA","SST-2, QQP, STS-B","SST-2: Accuracy, F1; QQP: Accuracy, F1; STS-B: Pearson, Spearman",1,,experiment/mtl/fl-lslm-bertbase-berttiny-lora-sts-qqp-sst2
 Centralized,MTL,LLMs,BERT-base-uncased,—,"SST-2, QQP, STS-B","SST-2: Accuracy, F1; QQP: Accuracy, F1; STS-B: Pearson, Spearman",1,,
 Centralized,MTL,SLMs,prajjwal1/bert-tiny,—,"SST-2, QQP, STS-B","SST-2: Accuracy, F1; QQP: Accuracy, F1; STS-B: Pearson, Spearman",1,,
