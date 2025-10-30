@@ -1,0 +1,13 @@
+Framework,Model Type,Global Model,Client Model,Datasets,Validation Metrics,Total Experiments,Done,Git Branch
+Federated Learning,LLMs,BERT-base-uncased,BERT-base-uncased,"SST-2, QQP, STS-B","Accuracy, Pearson",3,,
+Federated Learning,SLMs,prajjwal1/bert-tiny,prajjwal1/bert-tiny,"SST-2, QQP, STS-B","Accuracy, Pearson",3,,
+Federated Learning,L-SLMs (Our method),BERT-base-uncased,prajjwal1/bert-tiny,"SST-2, QQP, STS-B","Accuracy, Pearson",3,,
+Federated Learning,L-SLMs (Our method),BERT-base-uncased,"prajjwal1/bert-tiny + LoRA","SST-2, QQP, STS-B","Accuracy, Pearson",3,,
+Centralized,LLMs,BERT-base-uncased,—,"SST-2, QQP, STS-B","Accuracy, Pearson",3,,
+Centralized,SLMs,prajjwal1/bert-tiny,—,"SST-2, QQP, STS-B","Accuracy, Pearson",3,,
+Federated Learning,LLMs,BERT-base-uncased,BERT-base-uncased,"SST-2, QQP, STS-B","Accuracy, Pearson",1,,
+Federated Learning,SLMs,prajjwal1/bert-tiny,prajjwal1/bert-tiny,"SST-2, QQP, STS-B","Accuracy, Pearson",1,,
+Federated Learning,L-SLMs (Our method),BERT-base-uncased,prajjwal1/bert-tiny,"SST-2, QQP, STS-B","Accuracy, Pearson",1,,
+Federated Learning,L-SLMs (Our method),BERT-base-uncased,"prajjwal1/bert-tiny + LoRA","SST-2, QQP, STS-B","Accuracy, Pearson",1,,
+Centralized,LLMs,BERT-base-uncased,—,"SST-2, QQP, STS-B","Accuracy, Pearson",1,,
+Centralized,SLMs,prajjwal1/bert-tiny,—,"SST-2, QQP, STS-B","Accuracy, Pearson",1,,
