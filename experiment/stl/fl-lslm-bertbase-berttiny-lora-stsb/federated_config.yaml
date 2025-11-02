@@ -1,0 +1,67 @@
+# Federated Learning Configuration for STL (STS-B)
+# Using BERT-base as teacher and BERT-tiny + LoRA as student
+
+model:
+  server_model: "bert-base-uncased"  # Teacher model (BERT-base)
+  client_model: "prajjwal1/bert-tiny"  # Student model (Tiny-BERT)
+  freeze_client_model: true  # Freeze the base client model
+  apply_lora_to_teacher: true  # Apply LoRA to teacher model
+  apply_lora_to_student: true  # Apply LoRA to student model
+
+lora:
+  rank: 16
+  alpha: 64.0
+  dropout: 0.1
+  unfreeze_layers: 2  # Number of layers to unfreeze at the top (if not frozen)
+  target_modules: ["query", "value"]  # Modules to apply LoRA to
+
+knowledge_distillation:
+  use_kd: true
+  kd_start_round: 1
+  temperature: 3.0
+  alpha: 0.5  # Weight for KD loss (1.0 means full KD, 0.0 means no KD)
+  beta: 0.5   # Weight for reverse KD (teacher learning from student)
+  bidirectional: true
+  use_attention_transfer: true  # Enable attention transfer
+  use_hidden_states: true       # Use hidden states for KD
+  use_logits: true              # Use logits for KD
+
+synchronization:
+  enabled: true
+  frequency: "per_round"
+  global_model_sharing: true
+
+training:
+  num_rounds: 1
+  min_clients: 1
+  max_clients: 1
+  expected_clients: 1
+  local_epochs: 1
+  batch_size: 8
+  learning_rate: 0.0002
+
+task_configs:
+  stsb:  # STS-B semantic similarity
+    train_samples: 5749
+    val_samples: 1500
+    test_samples: 1379
+    random_seed: 42
+    metric: ["pearson", "spearman"]
+    metric_for_best_model: "pearson"
+    greater_is_better: true
+
+# Logging configuration
+logging:
+  level: "INFO"
+  file: "federated_stsb_client.log"
+  server_log: "federated_server.log"
+
+# Output directory for saving models and results
+results_dir: "./results"
+
+# Early stopping configuration
+early_stopping:
+  patience: 5
+  min_delta: 0.001
+  metric: "pearson"
+  mode: "max"
