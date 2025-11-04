@@ -143,15 +143,35 @@ class LocalKDEngine:
         if not use_kd or current_round < kd_start_round or task_name not in self.teacher_knowledge_cache:
             # IMPROVED: Use only hard loss for better initial learning
             if labels is not None:
+                # Handle dictionary output from model
+                if isinstance(student_logits, dict):
+                    if 'logits' in student_logits:
+                        logits = student_logits['logits']
+                    else:
+                        raise ValueError("Model output is a dictionary but does not contain 'logits' key")
+                else:
+                    logits = student_logits
+                    
                 # Use appropriate loss function based on task type
                 if task_name == 'stsb':  # Regression task
-                    return F.mse_loss(student_logits.squeeze(), labels.float().squeeze())
+                    return F.mse_loss(logits.squeeze(), labels.float().squeeze())
                 else:  # Classification tasks
-                    return F.cross_entropy(student_logits, labels)
-            return torch.tensor(0.0, device=student_logits.device)
+                    return F.cross_entropy(logits, labels)
+            return torch.tensor(0.0, device=student_logits.device if not isinstance(student_logits, dict) else next(iter(student_logits.values())).device)
 
         # Use KD only after baseline learning is established
         teacher_logits = self.teacher_knowledge_cache[task_name]
+        
+        # Extract logits from teacher_knowledge_cache if it's a dictionary
+        if isinstance(teacher_logits, dict) and 'logits' in teacher_logits:
+            teacher_logits = teacher_logits['logits']
+        
+        # Extract logits if student output is a dictionary
+        if isinstance(student_logits, dict):
+            if 'logits' in student_logits:
+                student_logits = student_logits['logits']
+            else:
+                raise ValueError("Model output is a dictionary but does not contain 'logits' key")
 
         # Create KD manager for this calculation
         kd_manager = BidirectionalKDManager(
@@ -159,10 +179,16 @@ class LocalKDEngine:
             temperature=self.config.kd_temperature,
             alpha=self.config.kd_alpha
         )
+        
+        # Calculate KD loss
+        kd_loss = kd_manager.bidirectional_kd_loss(
+            student_logits=student_logits,
+            teacher_logits=teacher_logits,
+            labels=labels,
+            task_type="regression" if task_name == 'stsb' else "classification"
+        )
 
-        # Determine task type
-        task_type = "regression" if task_name == "stsb" else "classification"
-        return kd_manager.teacher_to_student_kd_loss(student_logits, teacher_logits, labels, task_type)
+        return kd_loss
 
     def prepare_student_knowledge_for_teacher(self, task_data: Dict) -> Dict[str, torch.Tensor]:
         """Prepare student knowledge to send back to teacher (with memory-efficient batching)"""
@@ -207,14 +233,29 @@ class LocalKDEngine:
                         batch_attention_mask = attention_mask[i:i+batch_size].to(device)
                         
                         # Generate student predictions for this batch
-                        batch_logits = self.student_model(
-                            batch_input_ids,
-                            batch_attention_mask,
-                            task_name
-                        )
-                        
-                        # Move to CPU to save GPU memory
-                        all_logits.append(batch_logits.cpu())
+                        with torch.no_grad():
+                            model_output = self.student_model(
+                                batch_input_ids,
+                                batch_attention_mask,
+                                task_name
+                            )
+                            
+                            # Extract logits from model output (handling both dict and tensor outputs)
+                            if isinstance(model_output, dict):
+                                if 'logits' in model_output:
+                                    batch_logits = model_output['logits']
+                                else:
+                                    # If no 'logits' key, try to use the first tensor value
+                                    batch_logits = next((v for v in model_output.values() if torch.is_tensor(v)), None)
+                                    if batch_logits is None:
+                                        raise ValueError("Could not extract logits from model output")
+                            elif torch.is_tensor(model_output):
+                                batch_logits = model_output
+                            else:
+                                raise ValueError(f"Unexpected model output type: {type(model_output)}")
+                            
+                            # Move to CPU to save GPU memory
+                            all_logits.append(batch_logits.detach().cpu())
                         
                         # Clean up batch tensors
                         del batch_input_ids, batch_attention_mask, batch_logits

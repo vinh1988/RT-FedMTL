@@ -16,6 +16,7 @@ import torch
 
 from federated_config import FederatedConfig
 from src.lora.federated_lora import LoRAAggregator
+from src.peft.federated_peft_lora import PEFTAggregator
 from src.knowledge_distillation.federated_knowledge_distillation import GlobalKDManager
 from src.communication.federated_websockets import WebSocketServer, MessageProtocol
 from src.synchronization.federated_synchronization import SynchronizationManager
@@ -33,7 +34,8 @@ class FederatedServer:
         self.global_teacher_logits: Dict[str, torch.Tensor] = {}
 
         # Initialize components
-        self.lora_aggregator = LoRAAggregator()
+        # Use PEFTAggregator for PEFT LoRA
+        self.lora_aggregator = PEFTAggregator()
         self.kd_manager = GlobalKDManager(None, config)  # Teacher model will be set later
         self.websocket_server = WebSocketServer(config.port)
         self.synchronization_manager = SynchronizationManager(self)

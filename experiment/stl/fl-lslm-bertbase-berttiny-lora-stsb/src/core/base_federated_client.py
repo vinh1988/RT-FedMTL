@@ -14,7 +14,7 @@ from datetime import datetime
 from abc import ABC, abstractmethod
 
 from federated_config import FederatedConfig
-from src.lora.federated_lora import LoRAFederatedModel
+from src.peft.federated_peft_lora import PEFTLoRAModel, PEFTAggregator
 from src.knowledge_distillation.federated_knowledge_distillation import LocalKDEngine
 from src.communication.federated_websockets import WebSocketClient, MessageProtocol
 from src.synchronization.federated_synchronization import ClientModelSynchronizer
@@ -32,20 +32,64 @@ class BaseFederatedClient(ABC):
         self.config = config
         self.device = self.get_device()
 
-        # Initialize models (PHASE 2: Now unfreezes top layers!)
-        self.student_model = LoRAFederatedModel(
-            base_model_name=config.client_model,
+        # Log model initialization parameters
+        self.logger.debug("="*80)
+        self.logger.debug("DEBUGGING MODEL INITIALIZATION")
+        self.logger.debug(f"Initializing student model with config: {config.peft_lora}")
+        self.logger.debug(f"Unfreezing {config.peft_lora.get('unfreeze_layers', 2)} layers")
+        
+        # Initialize student model with PEFT LoRA
+        self.student_model = PEFTLoRAModel(
+            model_name=config.client_model,
             tasks=self.tasks,
-            lora_rank=config.lora_rank,
-            lora_alpha=config.lora_alpha,
-            unfreeze_layers=getattr(config, 'unfreeze_layers', 2)  # Unfreeze top 2 layers by default
+            peft_config={
+                'r': config.peft_lora.get('r', 16),
+                'lora_alpha': config.peft_lora.get('lora_alpha', 64.0),
+                'lora_dropout': config.peft_lora.get('lora_dropout', 0.1),
+                'bias': config.peft_lora.get('bias', 'none'),
+                'target_modules': config.peft_lora.get('target_modules', ['query', 'value']),
+                'num_layers': config.peft_lora.get('num_layers', 12),
+                'unfreeze_layers': config.peft_lora.get('unfreeze_layers', 2),
+            },
+            task_configs=config.task_configs,
+            device=self.device,
+            cache_dir=config.cache_dir
         )
+        
+        # Log model architecture and parameter status
+        self.logger.debug("\nModel architecture and parameters:")
+        total_params = 0
+        trainable_params = 0
+        
+        self.logger.debug("\nAll parameters and their requires_grad status:")
+        for name, param in self.student_model.model.named_parameters():
+            total_params += param.numel()
+            if param.requires_grad:
+                trainable_params += param.numel()
+            self.logger.debug(f"{name}: requires_grad={param.requires_grad}")
+            
+        self.logger.debug(f"\nTotal parameters: {total_params:,}")
+        self.logger.debug(f"Trainable parameters: {trainable_params:,}")
+        self.logger.debug(f"Trainable %: {100 * trainable_params / total_params:.2f}%")
+        
+        # Check for pooler parameters and their status
+        pooler_params = [(n, p) for n, p in self.student_model.model.named_parameters() if 'pooler' in n.lower()]
+        if pooler_params:
+            self.logger.debug("\nPooler parameters found:")
+            for name, param in pooler_params:
+                self.logger.debug(f"  - {name}: requires_grad={param.requires_grad}")
+        else:
+            self.logger.warning("No pooler parameters found in the model!")
+            
+        self.logger.debug("="*80)
+        self.logger.debug("Model initialization complete")
+        
         # Move model to device
         self.student_model = self.student_model.to(self.device)
 
-        # Initialize optimizer for training
+        # Initialize optimizer for training (only trainable parameters)
         self.optimizer = torch.optim.AdamW(
-            self.student_model.parameters(),
+            filter(lambda p: p.requires_grad, self.student_model.parameters()),
             lr=config.learning_rate,
             weight_decay=0.01
         )

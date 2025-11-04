@@ -28,18 +28,30 @@ class FederatedConfig:
     server_model: str = "bert-base-uncased"
     client_model: str = "prajjwal1/bert-tiny"
 
-    # LoRA settings
-    lora_rank: int = 32  # IMPROVED: Increased from 8 to 32 for better capacity
-    lora_alpha: float = 64.0  # IMPROVED: Scaled proportionally
-    lora_dropout: float = 0.1
-    unfreeze_layers: int = 3  # PHASE 2: Unfreeze top 2 BERT layers for better learning
+    # PEFT LoRA settings
+    peft_lora: Dict[str, Any] = field(default_factory=lambda: {
+        'r': 16,  # LoRA rank
+        'lora_alpha': 64.0,  # Alpha parameter for LoRA scaling
+        'lora_dropout': 0.1,
+        'bias': 'none',  # Can be 'none', 'all', or 'lora_only'
+        'task_type': 'SEQ_CLS',
+        'target_modules': ['query', 'value'],  # Modules to apply LoRA to
+        'modules_to_save': ['classifier'],  # Unfreeze classifier by default
+        'unfreeze_layers': 2  # Number of layers to unfreeze at the top
+    })
 
     # Knowledge Distillation settings
-    use_knowledge_distillation: bool = False  # NEW: Start with simple loss
-    kd_start_round: int = 5  # NEW: Enable KD after 5 rounds
-    kd_temperature: float = 3.0
-    kd_alpha: float = 0.5
-    bidirectional_kd: bool = True
+    knowledge_distillation: Dict[str, Any] = field(default_factory=lambda: {
+        'use_kd': False,  # Start with simple loss
+        'kd_start_round': 5,  # Enable KD after 5 rounds
+        'temperature': 3.0,
+        'alpha': 0.5,  # Weight for KD loss
+        'beta': 0.5,  # Weight for reverse KD
+        'bidirectional': True,
+        'use_attention_transfer': True,
+        'use_hidden_states': True,
+        'use_logits': True
+    })
 
     # Synchronization settings
     enable_synchronization: bool = True
@@ -153,10 +165,8 @@ class FederatedConfig:
             ('lora', 'alpha'): 'lora_alpha',
             ('lora', 'dropout'): 'lora_dropout',
 
-            # Knowledge Distillation settings
-            ('knowledge_distillation', 'temperature'): 'kd_temperature',
-            ('knowledge_distillation', 'alpha'): 'kd_alpha',
-            ('knowledge_distillation', 'bidirectional'): 'bidirectional_kd',
+            # Knowledge Distillation settings (keep as nested dictionary)
+            ('knowledge_distillation',): 'knowledge_distillation',
 
             # Synchronization settings
             ('synchronization', 'enabled'): 'enable_synchronization',
@@ -207,10 +217,10 @@ class FederatedConfig:
             for key, value in d.items():
                 current_key = prefix + (key,)
 
-                # Special handling for task_configs - keep it as a nested dict
-                if current_key == ('task_configs',):
-                    flattened['task_configs'] = value
-                elif isinstance(value, dict) and current_key not in [('task_configs',)]:
+                # Special handling for dictionaries that should stay nested
+                if current_key in [('task_configs',), ('knowledge_distillation',)]:
+                    flattened[current_key[0]] = value
+                elif isinstance(value, dict) and current_key not in [('task_configs',), ('knowledge_distillation',)]:
                     flatten_dict(value, current_key)
                 elif current_key in key_mapping:
                     flattened[key_mapping[current_key]] = value
@@ -230,16 +240,8 @@ class FederatedConfig:
                 'server_model': self.server_model,
                 'client_model': self.client_model,
             },
-            'lora': {
-                'rank': self.lora_rank,
-                'alpha': self.lora_alpha,
-                'dropout': self.lora_dropout,
-            },
-            'knowledge_distillation': {
-                'temperature': self.kd_temperature,
-                'alpha': self.kd_alpha,
-                'bidirectional': self.bidirectional_kd,
-            },
+            'peft_lora': self.peft_lora,
+            'knowledge_distillation': self.knowledge_distillation,
             'synchronization': {
                 'enabled': self.enable_synchronization,
                 'frequency': self.sync_frequency,
@@ -360,13 +362,16 @@ def create_argument_parser() -> argparse.ArgumentParser:
                        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                        help="Logging level")
 
-    # LoRA arguments
-    parser.add_argument("--lora_rank", type=int, default=8, help="LoRA rank")
-    parser.add_argument("--lora_alpha", type=float, default=16.0, help="LoRA alpha")
-
-    # KD arguments
-    parser.add_argument("--kd_temperature", type=float, default=3.0, help="KD temperature")
-    parser.add_argument("--kd_alpha", type=float, default=0.5, help="KD alpha")
+    # PEFT LoRA arguments
+    parser.add_argument("--lora_rank", type=int, default=16, help="LoRA rank (r)")
+    parser.add_argument("--lora_alpha", type=float, default=64.0, help="LoRA alpha")
+    parser.add_argument("--lora_dropout", type=float, default=0.1, help="LoRA dropout rate")
+    parser.add_argument("--target_modules", nargs='+', default=["query", "value"],
+                      help="Target modules for LoRA")
+    parser.add_argument("--modules_to_save", nargs='+', default=["classifier"],
+                      help="Modules to save (unfreeze) during training")
+    parser.add_argument("--unfreeze_layers", type=int, default=2,
+                      help="Number of top layers to unfreeze")
 
     return parser
 

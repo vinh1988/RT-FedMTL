@@ -140,15 +140,44 @@ class LoRAFederatedModel(nn.Module):
         
         logger.info(f"Froze {frozen_count} parameters in the base model")
         
-        # Log trainable parameters after freezing
-        trainable_after = sum(p.numel() for p in self.base_model.parameters() if p.requires_grad)
+        # Log trainable parameters after freezing with detailed information
+        trainable_params = [(n, p.numel()) for n, p in self.base_model.named_parameters() if p.requires_grad]
+        trainable_after = sum(p[1] for p in trainable_params)
         total_params = sum(p.numel() for p in self.base_model.parameters())
-        logger.info(f"Trainable parameters after freezing: {trainable_after:,} of {total_params:,} total parameters")
         
-        if trainable_after > 0:
-            logger.warning(f"WARNING: Found {trainable_after:,} trainable parameters after freezing! This suggests LoRA might not be properly applied.")
-            # Log the first few trainable parameter names
-            trainable_params = [name for name, p in self.base_model.named_parameters() if p.requires_grad]
+        logger.info("\n" + "="*60)
+        logger.info("PARAMETER STATUS AFTER FREEZING")
+        logger.info(f"Total parameters: {total_params:,}")
+        logger.info(f"Trainable parameters: {trainable_after:,} ({100 * trainable_after/total_params:.2f}%)")
+        
+        # Log details about trainable parameters
+        if trainable_params:
+            logger.warning(f"WARNING: Found {len(trainable_params)} trainable parameter groups after freezing!")
+            logger.info("\nTRAINABLE PARAMETER GROUPS:")
+            for name, num_params in trainable_params[:10]:  # Show first 10 for brevity
+                logger.info(f"  - {name}: {num_params:,} parameters")
+            if len(trainable_params) > 10:
+                logger.info(f"  ... and {len(trainable_params) - 10} more parameter groups")
+        else:
+            logger.info("All parameters are frozen as expected.")
+            
+        # Log LoRA parameter counts
+        lora_params = [(n, p.numel()) for n, p in self.base_model.named_parameters() if 'lora_' in n]
+        if lora_params:
+            total_lora = sum(p[1] for p in lora_params)
+            logger.info(f"\nLoRA PARAMETERS: {total_lora:,}")
+            for name, num_params in lora_params[:5]:
+                logger.info(f"  - {name}: {num_params:,} parameters")
+            if len(lora_params) > 5:
+                logger.info(f"  ... and {len(lora_params) - 5} more LoRA parameter groups")
+        else:
+            logger.warning("WARNING: No LoRA parameters found! This suggests LoRA is not properly applied.")
+            
+        logger.info("="*60 + "\n")
+        
+        # Log trainable parameter names
+        trainable_params = [name for name, p in self.base_model.named_parameters() if p.requires_grad]
+        if trainable_params:
             logger.warning(f"Trainable parameters: {trainable_params[:5]}{'...' if len(trainable_params) > 5 else ''}")
         
         # Log model parameter structure

@@ -4,10 +4,17 @@ Federated Learning Main Entry Point
 Orchestrates server and client modes with modular architecture
 """
 
+import os
+import sys
 import asyncio
 import argparse
-import sys
+from pathlib import Path
 from typing import List
+
+# Add project root to Python path
+project_root = str(Path(__file__).parent.absolute())
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 # Import from the modular structure
 from federated_config import FederatedConfig, load_config
@@ -43,12 +50,15 @@ def create_argument_parser() -> argparse.ArgumentParser:
                        help="Logging level")
 
     # LoRA arguments
-    parser.add_argument("--lora_rank", type=int, default=8, help="LoRA rank")
-    parser.add_argument("--lora_alpha", type=float, default=16.0, help="LoRA alpha")
-
-    # KD arguments
-    parser.add_argument("--kd_temperature", type=float, default=3.0, help="KD temperature")
-    parser.add_argument("--kd_alpha", type=float, default=0.5, help="KD alpha")
+    parser.add_argument("--lora_rank", type=int, default=16, help="LoRA rank (r)")
+    parser.add_argument("--lora_alpha", type=float, default=64.0, help="LoRA alpha")
+    parser.add_argument("--lora_dropout", type=float, default=0.1, help="LoRA dropout rate")
+    parser.add_argument("--target_modules", nargs='+', default=["query", "value"], 
+                       help="Target modules for LoRA")
+    parser.add_argument("--modules_to_save", nargs='+', default=["classifier"],
+                       help="Modules to save (unfreeze) during training")
+    parser.add_argument("--unfreeze_layers", type=int, default=2,
+                       help="Number of top layers to unfreeze")
 
     return parser
 
@@ -74,16 +84,18 @@ def main():
             config.lora_rank = args.lora_rank
         if args.lora_alpha != 16.0:
             config.lora_alpha = args.lora_alpha
-        if args.kd_temperature != 3.0:
-            config.kd_temperature = args.kd_temperature
-        if args.kd_alpha != 0.5:
-            config.kd_alpha = args.kd_alpha
+        # Update knowledge distillation settings if provided
+        if hasattr(args, 'kd_temperature') and args.kd_temperature != 3.0:
+            config.knowledge_distillation['temperature'] = args.kd_temperature
+        if hasattr(args, 'kd_alpha') and args.kd_alpha != 0.5:
+            config.knowledge_distillation['alpha'] = args.kd_alpha
 
         print("[CONFIG] Federated Learning Configuration (Enhanced)")
         print("=" * 60)
         print(f"[MODEL] Model: {config.server_model} (server), {config.client_model} (client)")
         print(f"[LORA] LoRA: Rank={config.lora_rank}, Alpha={config.lora_alpha}")
-        print(f"[KD] KD: T={config.kd_temperature}, α={config.kd_alpha}, Bidirectional={config.bidirectional_kd}")
+        print(f"[KD] KD: T={config.knowledge_distillation['temperature']}, α={config.knowledge_distillation['alpha']}, "
+              f"Bidirectional={config.knowledge_distillation['bidirectional']}")
         print(f"[SYNC] Sync: {'Enabled' if config.enable_synchronization else 'Disabled'} ({config.sync_frequency})")
         print(f"[TRAINING] Training: {config.num_rounds} rounds, {config.local_epochs} epochs, batch_size={config.batch_size}")
         print(f"[DATA] Data: {config.samples_per_client} samples/client, distribution={config.data_distribution}")

@@ -18,7 +18,7 @@ from scipy.stats import spearmanr
 from sklearn.metrics import f1_score
 
 from federated_config import FederatedConfig
-from src.lora.federated_lora import LoRAFederatedModel
+from src.peft.federated_peft_lora import PEFTLoRAModel
 from src.knowledge_distillation.federated_knowledge_distillation import LocalKDEngine
 from src.communication.federated_websockets import WebSocketClient, MessageProtocol
 from src.synchronization.federated_synchronization import ClientModelSynchronizer
@@ -35,11 +35,21 @@ class FederatedClient:
         self.config = config
         self.device = self.get_device()
 
-        # Initialize models
-        self.student_model = LoRAFederatedModel(
-            base_model_name=config.client_model,
+        # Initialize models with PEFT LoRA
+        peft_config = {
+            'r': config.lora_rank,
+            'lora_alpha': getattr(config, 'lora_alpha', 16.0),
+            'lora_dropout': getattr(config, 'lora_dropout', 0.1),
+            'bias': getattr(config, 'lora_bias', 'none'),
+            'target_modules': getattr(config, 'lora_target_modules', ['query', 'value']),
+            'modules_to_save': getattr(config, 'lora_modules_to_save', ['classifier'])
+        }
+        
+        self.student_model = PEFTLoRAModel(
+            model_name=config.client_model,
             tasks=tasks,
-            lora_rank=config.lora_rank
+            peft_config=peft_config,
+            unfreeze_layers=getattr(config, 'unfreeze_layers', 0)
         )
         # Move model to device
         self.student_model = self.student_model.to(self.device)
@@ -317,8 +327,8 @@ class FederatedClient:
                 torch.cuda.empty_cache()
                 logger.info("[GPU-CLEANUP] Cleared GPU cache after training, before preparing student knowledge")
 
-            # Extract LoRA updates
-            lora_updates = self.student_model.get_all_lora_params()
+            # Extract trainable parameters (including LoRA updates)
+            lora_updates = self.student_model.get_trainable_params()
 
             # Prepare student knowledge for reverse KD with error handling
             student_knowledge = {}
@@ -492,13 +502,46 @@ class FederatedClient:
 
         for batch_idx, batch in enumerate(train_dataloader):
             try:
-                # Unpack batch tuple (input_ids, attention_mask, labels)
-                input_ids, attention_mask, labels = batch
-
-                # Move tensors to the correct device
-                input_ids = input_ids.to(self.device)
-                attention_mask = attention_mask.to(self.device)
-                labels = labels.to(self.device)
+                # Debug: Log batch structure
+                logger.debug(f"Batch {batch_idx} type: {type(batch)}")
+                if hasattr(batch, 'keys'):
+                    logger.debug(f"Batch keys: {list(batch.keys())}")
+                else:
+                    logger.debug(f"Batch length: {len(batch) if hasattr(batch, '__len__') else 'N/A'}")
+                    for i, item in enumerate(batch):
+                        logger.debug(f"  Batch item {i} type: {type(item)}")
+                
+                # Handle both dictionary and tuple batch formats
+                if hasattr(batch, 'keys') and 'input_ids' in batch and 'attention_mask' in batch and 'labels' in batch:
+                    # Dictionary format from TextLabelDataset
+                    logger.debug("Processing batch as dictionary")
+                    input_ids = batch['input_ids']
+                    attention_mask = batch['attention_mask']
+                    labels = batch['labels']
+                    
+                    # Debug: Log types before conversion
+                    logger.debug(f"Input IDs type: {type(input_ids)}")
+                    logger.debug(f"Attention mask type: {type(attention_mask)}")
+                    logger.debug(f"Labels type: {type(labels)}")
+                    
+                    # Convert to tensors if needed
+                    if not torch.is_tensor(input_ids):
+                        input_ids = torch.tensor(input_ids, device=self.device)
+                    if not torch.is_tensor(attention_mask):
+                        attention_mask = torch.tensor(attention_mask, device=self.device)
+                    if not torch.is_tensor(labels):
+                        labels = torch.tensor(labels, device=self.device, dtype=torch.long)
+                        
+                    # Move to device
+                    input_ids = input_ids.to(self.device)
+                    attention_mask = attention_mask.to(self.device)
+                    labels = labels.to(self.device)
+                else:
+                    # Tuple format (input_ids, attention_mask, labels)
+                    input_ids, attention_mask, labels = batch
+                    input_ids = input_ids.to(self.device)
+                    attention_mask = attention_mask.to(self.device)
+                    labels = labels.to(self.device)
                 
                 # Log device confirmation for first batch
                 if num_batches == 0:
@@ -538,11 +581,20 @@ class FederatedClient:
                 self.optimizer.zero_grad()
 
                 # Forward pass
-                logits = self.student_model(
+                outputs = self.student_model(
                     input_ids,
                     attention_mask,
                     task
                 )
+                
+                # Handle dictionary output from model
+                if isinstance(outputs, dict):
+                    if 'logits' in outputs:
+                        logits = outputs['logits']
+                    else:
+                        raise ValueError("Model output is a dictionary but does not contain 'logits' key")
+                else:
+                    logits = outputs
 
                 # Calculate KD loss (IMPROVED: pass current_round for progressive KD)
                 kd_loss = self.kd_engine.calculate_kd_loss(
@@ -598,6 +650,13 @@ class FederatedClient:
 
                 # Calculate predictions and accuracy
                 with torch.no_grad():
+                    # Handle dictionary output from model
+                    if isinstance(logits, dict):
+                        if 'logits' in logits:
+                            logits = logits['logits']
+                        else:
+                            raise ValueError("Model output is a dictionary but does not contain 'logits' key")
+                    
                     if task == 'stsb':  # Regression task
                         predictions = logits.squeeze()
                         # For regression, use a tolerance-based accuracy
@@ -788,13 +847,48 @@ class FederatedClient:
         total_samples = 0
         
         with torch.no_grad():
-            for batch in val_dataloader:
-                input_ids, attention_mask, labels = batch
+            for batch_idx, batch in enumerate(val_dataloader):
+                # Debug: Log batch structure
+                logger.debug(f"[VAL] Batch {batch_idx} type: {type(batch)}")
+                if hasattr(batch, 'keys'):
+                    logger.debug(f"[VAL] Batch keys: {list(batch.keys())}")
+                else:
+                    logger.debug(f"[VAL] Batch length: {len(batch) if hasattr(batch, '__len__') else 'N/A'}")
+                    for i, item in enumerate(batch):
+                        logger.debug(f"  [VAL] Batch item {i} type: {type(item)}")
                 
-                # Move tensors to the correct device
-                input_ids = input_ids.to(self.device)
-                attention_mask = attention_mask.to(self.device)
-                labels = labels.to(self.device)
+                # Handle both dictionary and tuple batch formats
+                if hasattr(batch, 'keys') and 'input_ids' in batch and 'attention_mask' in batch and 'labels' in batch:
+                    # Dictionary format from TextLabelDataset
+                    logger.debug("[VAL] Processing batch as dictionary")
+                    input_ids = batch['input_ids']
+                    attention_mask = batch['attention_mask']
+                    labels = batch['labels']
+                    
+                    # Debug: Log types before conversion
+                    logger.debug(f"[VAL] Input IDs type: {type(input_ids)}")
+                    logger.debug(f"[VAL] Attention mask type: {type(attention_mask)}")
+                    logger.debug(f"[VAL] Labels type: {type(labels)}")
+                    
+                    # Convert to tensors if needed
+                    if not torch.is_tensor(input_ids):
+                        input_ids = torch.tensor(input_ids, device=self.device)
+                    if not torch.is_tensor(attention_mask):
+                        attention_mask = torch.tensor(attention_mask, device=self.device)
+                    if not torch.is_tensor(labels):
+                        labels = torch.tensor(labels, device=self.device, dtype=torch.long)
+                        
+                    # Move to device
+                    input_ids = input_ids.to(self.device)
+                    attention_mask = attention_mask.to(self.device)
+                    labels = labels.to(self.device)
+                else:
+                    # Tuple format (input_ids, attention_mask, labels)
+                    logger.debug("[VAL] Processing batch as tuple")
+                    input_ids, attention_mask, labels = batch
+                    input_ids = input_ids.to(self.device)
+                    attention_mask = attention_mask.to(self.device)
+                    labels = labels.to(self.device)
                 
                 # Add check for empty or scalar batches
                 if len(input_ids) == 0 or input_ids.dim() == 0:
@@ -806,12 +900,28 @@ class FederatedClient:
                     labels = labels.unsqueeze(0)
                 
                 # Forward pass
-                logits = self.student_model(input_ids, attention_mask, task)
+                outputs = self.student_model(input_ids, attention_mask, task)
+                
+                # Handle dictionary output from model
+                if isinstance(outputs, dict):
+                    if 'logits' in outputs:
+                        logits = outputs['logits']
+                    else:
+                        raise ValueError("Model output is a dictionary but does not contain 'logits' key")
+                else:
+                    logits = outputs
                 
                 # Calculate loss (IMPROVED: pass current_round)
                 loss = self.kd_engine.calculate_kd_loss(logits, task, labels, current_round=self.current_round)
                 total_loss += loss.item()
                 num_batches += 1
+                
+                # Handle dictionary output from model
+                if isinstance(logits, dict):
+                    if 'logits' in logits:
+                        logits = logits['logits']
+                    else:
+                        raise ValueError("Model output is a dictionary but does not contain 'logits' key")
                 
                 # Calculate predictions
                 if task == 'stsb':  # Regression task
