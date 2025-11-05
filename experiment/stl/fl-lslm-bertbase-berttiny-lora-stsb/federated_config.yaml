@@ -4,10 +4,16 @@
 # Model configuration
 model:
   server_model: "bert-base-uncased"  # Teacher model (BERT-base)
+  teacher_model_name: "bert-base-uncased"  # Explicit teacher model name
   client_model: "prajjwal1/bert-tiny"  # Student model (Tiny-BERT)
+  num_labels: 1  # For regression (STS-B is a regression task)
   freeze_client_model: true  # Freeze the base client model
+  freeze_teacher_model: false  # Make teacher model trainable
   apply_lora_to_teacher: true  # Apply LoRA to teacher model
   apply_lora_to_student: true  # Apply LoRA to student model
+  validate_teacher: true  # Enable teacher model validation
+  teacher_learning_rate: 2e-5  # Learning rate for teacher fine-tuning
+  teacher_checkpoint_dir: "./teacher_checkpoints"  # Directory to save teacher checkpoints
 
 # PEFT LoRA configuration
 peft_lora:
@@ -41,15 +47,18 @@ synchronization:
   enabled: true
   frequency: "per_round"
   global_model_sharing: true
+  validate_after_sync: true  # Validate after model synchronization
 
 training:
-  num_rounds: 10
+  num_rounds: 1
   min_clients: 1
   max_clients: 1
   expected_clients: 1
   local_epochs: 1
   batch_size: 8
   learning_rate: 0.0002
+  teacher_learning_rate: 2e-5  # Separate learning rate for teacher
+  teacher_validation_freq: 1   # Validate teacher every N rounds
 
 task_configs:
   stsb:  # STS-B semantic similarity

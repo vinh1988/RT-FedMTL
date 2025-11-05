@@ -50,7 +50,7 @@ python federated_main.py --mode server --config federated_config.yaml
 
 In a separate terminal window:
 ```bash
-python federated_main.py --mode client --config federated_config.yaml --client_id stsb_client
+python federated_main.py --mode client --config federated_config.yaml --client_id stsb_client --task stsb
 ```
 
 ## Output Directory Structure

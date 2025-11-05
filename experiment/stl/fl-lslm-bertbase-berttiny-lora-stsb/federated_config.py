@@ -27,6 +27,15 @@ class FederatedConfig:
     # Model settings
     server_model: str = "bert-base-uncased"
     client_model: str = "prajjwal1/bert-tiny"
+    output_dir: str = "results"  # Directory to save results and logs
+    
+    # Task and metrics configuration
+    tasks: List[str] = field(default_factory=lambda: ['stsb'])  # Supported tasks
+    metric_for_best_model: str = "val_pearson_correlation"  # Primary metric for model selection
+    metrics: List[str] = field(default_factory=lambda: [
+        'accuracy', 'loss', 'pearson_correlation', 'spearman_correlation', 'mae', 'mse', 'rmse',
+        'val_accuracy', 'val_loss', 'val_pearson_correlation', 'val_spearman_correlation', 'val_mae'
+    ])
 
     # PEFT LoRA settings
     peft_lora: Dict[str, Any] = field(default_factory=lambda: {

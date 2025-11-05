@@ -32,19 +32,42 @@ class FederatedServer:
         self.client_updates: Dict[int, List[Dict]] = {}
         self.global_lora_params: Dict[str, Dict] = {}
         self.global_teacher_logits: Dict[str, torch.Tensor] = {}
+        
+        # Data loaders for teacher fine-tuning (will be set when available)
+        self.teacher_train_loader = None
+        self.teacher_eval_loader = None
+        self.metric_fn = None  # Function to compute evaluation metric
 
         # Initialize components
-        # Use PEFTAggregator for PEFT LoRA
         self.lora_aggregator = PEFTAggregator()
-        self.kd_manager = GlobalKDManager(None, config)  # Teacher model will be set later
+        
+        # Initialize teacher model and KD manager
+        teacher_model = None
+        if hasattr(config, 'teacher_model_name'):
+            from transformers import AutoModelForSequenceClassification
+            try:
+                teacher_model = AutoModelForSequenceClassification.from_pretrained(
+                    config.teacher_model_name,
+                    num_labels=config.num_labels if hasattr(config, 'num_labels') else 2,
+                    output_attentions=False,
+                    output_hidden_states=False
+                )
+                logger.info(f"Initialized teacher model: {config.teacher_model_name}")
+            except Exception as e:
+                logger.error(f"Failed to initialize teacher model: {e}")
+        
+        # Initialize KD manager with teacher model
+        self.kd_manager = GlobalKDManager(teacher_model, config)
+        
+        # Setup WebSocket server and synchronization manager
         self.websocket_server = WebSocketServer(config.port)
         self.synchronization_manager = SynchronizationManager(self)
 
-        # Setup results management
+        # Setup results management and logging
         self.setup_results_management()
-
-        # Setup logging
         self.setup_logging()
+        
+        logger.info("Federated server initialized with TeacherTrainer integration")
 
     def setup_logging(self):
         """Setup logging configuration"""
@@ -58,47 +81,107 @@ class FederatedServer:
         )
 
     def setup_results_management(self):
-        """Setup CSV files for results"""
-        os.makedirs(self.config.results_dir, exist_ok=True)
-
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        """Setup CSV files for results and model checkpoints"""
+        # Create results directory if it doesn't exist
+        results_dir = os.path.join(self.config.output_dir, 'results')
+        os.makedirs(results_dir, exist_ok=True)
         
-        # Global results file
-        self.csv_filename = os.path.join(
-            self.config.results_dir,
-            f"federated_results_{timestamp}.csv"
-        )
-        self.csv_file = open(self.csv_filename, 'w', newline='')
+        # Create checkpoints directory for teacher model
+        self.teacher_checkpoint_dir = os.path.join(self.config.output_dir, 'teacher_checkpoints')
+        os.makedirs(self.teacher_checkpoint_dir, exist_ok=True)
+        
+        # Initialize client results CSV
+        self.client_results_file = os.path.join(results_dir, 'client_results.csv')
+        self._init_csv_file()
+        
+        # Initialize teacher metrics CSV
+        self.teacher_metrics_file = os.path.join(results_dir, 'teacher_metrics.csv')
+        self._init_teacher_metrics_file()
+        
+        # Initialize server metrics CSV
+        self.server_metrics_file = os.path.join(results_dir, 'server_metrics.csv')
+        self.csv_filename = self.server_metrics_file  # For backward compatibility
+        self._init_server_metrics_file()
+        
+        # Set client CSV filename for logging
+        self.client_csv_filename = self.client_results_file
+        
+        # Initialize CSV writer for server metrics
+        self.csv_file = open(self.server_metrics_file, 'a', newline='')
         self.csv_writer = csv.writer(self.csv_file)
-
-        # Client-specific results file
-        self.client_csv_filename = os.path.join(
-            self.config.results_dir,
-            f"client_results_{timestamp}.csv"
-        )
-        self.client_csv_file = open(self.client_csv_filename, 'w', newline='')
+        
+        # Initialize client CSV writer
+        self.client_csv_file = open(self.client_results_file, 'a', newline='')
         self.client_csv_writer = csv.writer(self.client_csv_file)
+        
+        # Write headers if files are empty
+        if os.path.getsize(self.server_metrics_file) == 0:
+            self.csv_writer.writerow(['round', 'num_clients', 'duration', 'model_version', 'timestamp'])
+            self.csv_file.flush()
+            
+        if os.path.getsize(self.client_results_file) == 0:
+            self.client_csv_writer.writerow([
+                'round', 'client_id', 'task', 'accuracy', 'loss', 'samples_processed', 
+                'correct_predictions', 'f1_score', 'pearson_correlation', 'spearman_correlation',
+                'mae', 'mse', 'rmse', 'val_accuracy', 'val_loss', 'val_samples',
+                'val_correct_predictions', 'val_f1_score', 'val_pearson_correlation',
+                'val_spearman_correlation', 'val_mae', 'timestamp'
+            ])
+            self.client_csv_file.flush()
+    
+    def _init_server_metrics_file(self):
+        """Initialize the server metrics CSV file with headers if it doesn't exist"""
+        if not os.path.exists(self.server_metrics_file) or os.path.getsize(self.server_metrics_file) == 0:
+            with open(self.server_metrics_file, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    'round', 'num_clients', 'duration', 'model_version',
+                    'avg_train_loss', 'avg_val_loss', 'avg_train_acc', 'avg_val_acc',
+                    'num_samples', 'timestamp'
+                ])
+            logger.info("Initialized server metrics file with headers")
+    
+    def __del__(self):
+        """Cleanup resources when the server is destroyed"""
+        # Close server metrics file
+        if hasattr(self, 'csv_file') and self.csv_file and not self.csv_file.closed:
+            try:
+                self.csv_file.flush()
+                self.csv_file.close()
+            except Exception as e:
+                logger.error(f"Error closing server metrics CSV file: {e}")
+                
+        # Close client results file
+        if hasattr(self, 'client_csv_file') and self.client_csv_file and not self.client_csv_file.closed:
+            try:
+                self.client_csv_file.flush()
+                self.client_csv_file.close()
+            except Exception as e:
+                logger.error(f"Error closing client results CSV file: {e}")
 
-        # Write CSV headers for global results
-        global_headers = [
-            "round", "responses_received", "avg_accuracy", "classification_accuracy",
-            "regression_accuracy", "total_clients", "active_clients", "training_time",
-            "synchronization_events", "global_model_version", "timestamp"
-        ]
-        self.csv_writer.writerow(global_headers)
-        self.csv_file.flush()
+    def _init_teacher_metrics_file(self):
+        """Initialize CSV file for teacher training metrics"""
+        if not os.path.exists(self.teacher_metrics_file):
+            with open(self.teacher_metrics_file, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    'round', 'epoch', 'train_loss', 'eval_loss', 'metric_value',
+                    'learning_rate', 'kd_alpha', 'temperature'
+                ])
 
-        # Write CSV headers for client results
-        client_headers = [
-            "round", "client_id", "task", "accuracy", "loss", "samples_processed",
-            "correct_predictions", "f1_score", "pearson_correlation", "spearman_correlation",
-            "mae", "mse", "rmse",
-            "val_accuracy", "val_loss", "val_samples", "val_correct_predictions",
-            "val_f1_score", "val_pearson_correlation", "val_spearman_correlation", "val_mae",
-            "timestamp"
-        ]
-        self.client_csv_writer.writerow(client_headers)
-        self.client_csv_file.flush()
+    def _init_csv_file(self):
+        """Initialize CSV file for client results"""
+        if not os.path.exists(self.client_results_file):
+            with open(self.client_results_file, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    "round", "client_id", "task", "accuracy", "loss", "samples_processed",
+                    "correct_predictions", "f1_score", "pearson_correlation", "spearman_correlation",
+                    "mae", "mse", "rmse",
+                    "val_accuracy", "val_loss", "val_samples", "val_correct_predictions",
+                    "val_f1_score", "val_pearson_correlation", "val_spearman_correlation", "val_mae",
+                    "timestamp"
+                ])
 
     def record_client_results(self, round_num: int, client_id: str, client_metrics: Dict):
         """Record individual client results"""
@@ -138,10 +221,10 @@ class FederatedServer:
                     task_metrics.get('val_mae', ''),
                     timestamp
                 ]
-                self.client_csv_writer.writerow(row)
+                with open(self.client_results_file, 'a', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(row)
         
-        self.client_csv_file.flush()
-
     async def client_handler(self, websocket):
         """Handle individual client connections"""
         client_id = None
@@ -340,7 +423,23 @@ class FederatedServer:
                         update.get('student_knowledge', {})
                         for update in self.client_updates[round_num]
                     ]
-                    self.kd_manager.update_teacher_from_students(student_knowledge)
+                    
+                    # Update teacher model with student knowledge
+                    update_result = self.kd_manager.update_teacher_from_students(
+                        student_knowledge_updates=student_knowledge,
+                        train_loader=self.teacher_train_loader,
+                        eval_loader=self.teacher_eval_loader,
+                        metric_fn=self.metric_fn,
+                        metric_name=self.config.metric_for_best_model
+                    )
+                    
+                    if update_result.get('updated', False):
+                        if update_result.get('fine_tuned', False):
+                            logger.info(f"Teacher model fine-tuned with student knowledge. Best metric: {update_result.get('best_metric', 'N/A')}")
+                        else:
+                            logger.info(f"Teacher model updated with student knowledge. Avg loss: {update_result.get('avg_reverse_loss', 'N/A')}")
+                    else:
+                        logger.warning(f"Teacher model update failed: {update_result.get('reason', 'Unknown error')}")
 
                 # Step 7: Record results for this round
                 self.record_round_results(round_num, round_start)
@@ -434,64 +533,241 @@ class FederatedServer:
             logger.error("No client updates received!")
             return False
 
-    def generate_sample_inputs_for_kd(self) -> Dict[str, Dict]:
-        """Generate sample inputs for teacher knowledge generation"""
-        # This would typically use a small validation set or synthetic data
-        # For demonstration, we'll create placeholder inputs
+    def generate_sample_inputs_for_kd(self):
+        """
+        Generate sample inputs for teacher knowledge generation.
+        
+        Returns:
+            Dictionary mapping task names to sample input batches
+        """
         sample_inputs = {}
-
-        for task in ['sst2', 'qqp', 'stsb']:
-            # Create dummy inputs for demonstration
-            if task in ['sst2', 'qqp']:
-                # Binary classification tasks
+        
+        try:
+            # Try to get sample inputs from the evaluation dataset if available
+            if hasattr(self, 'eval_dataset') and self.eval_dataset is not None:
+                # Get a sample batch from the evaluation dataset
+                sample = next(iter(self.teacher_eval_loader)) if self.teacher_eval_loader else None
+                if sample:
+                    for task in self.config.tasks:
+                        if task in sample:
+                            sample_inputs[task] = {
+                                'input_ids': sample[task]['input_ids'][:1],  # Just take one example
+                                'attention_mask': sample[task]['attention_mask'][:1],
+                                'labels': sample[task]['labels'][:1] if 'labels' in sample[task] else None
+                            }
+                    
+                    if sample_inputs:
+                        return sample_inputs
+            
+            # Fallback to dummy data if no evaluation dataset is available
+            logger.warning("No evaluation dataset available, using dummy data for KD")
+            for task in self.config.tasks:
+                # Create a dummy input with the expected format
+                max_length = getattr(self.config, 'max_seq_length', 128)
                 sample_inputs[task] = {
-                    'input_ids': torch.randint(0, 1000, (1, 128)),
-                    'attention_mask': torch.ones(1, 128)
+                    'input_ids': torch.randint(0, 1000, (1, max_length), dtype=torch.long),
+                    'attention_mask': torch.ones((1, max_length), dtype=torch.long),
+                    'labels': torch.zeros(1, dtype=torch.float32 if task == 'stsb' else torch.long)
                 }
-            else:
-                # Regression task
-                sample_inputs[task] = {
-                    'input_ids': torch.randint(0, 1000, (1, 128)),
-                    'attention_mask': torch.ones(1, 128)
+                
+        except Exception as e:
+            logger.error(f"Error generating sample inputs for KD: {e}")
+            # Return minimal dummy data if anything goes wrong
+            return {
+                'dummy': {
+                    'input_ids': torch.zeros((1, 32), dtype=torch.long),
+                    'attention_mask': torch.ones((1, 32), dtype=torch.long),
+                    'labels': torch.zeros(1, dtype=torch.float32)
                 }
-
+            }
+            
         return sample_inputs
 
     def record_round_results(self, round_num: int, round_start: float):
         """Record results for a training round"""
-        updates = self.client_updates.get(round_num, [])
-        responses = len(updates)
-
-        if responses > 0:
-            # Calculate aggregated metrics
-            metrics = self.calculate_aggregated_metrics(updates)
-
-            # Record to CSV
+        round_time = time.time() - round_start
+        logger.info(f"Round {round_num} completed in {round_time:.2f} seconds")
+        
+        metrics_dict = {
+            'round_time': round_time,
+            'num_clients': len(self.connected_clients)
+        }
+        
+        # Check and add teacher metrics if available
+        if hasattr(self, 'kd_manager') and self.kd_manager is not None:
+            if hasattr(self.kd_manager, 'teacher_trainer') and self.kd_manager.teacher_trainer is not None:
+                if hasattr(self.kd_manager.teacher_trainer, 'latest_metrics'):
+                    latest_metrics = self.kd_manager.teacher_trainer.latest_metrics
+                    if latest_metrics:  # Only add if metrics exist
+                        metrics_dict['teacher_metrics'] = latest_metrics
+                        logger.info(f"[DEBUG] Added teacher_metrics to metrics_dict: {latest_metrics}")
+                    else:
+                        logger.warning("[DEBUG] Teacher trainer's latest_metrics is empty")
+                else:
+                    logger.warning("[DEBUG] Teacher trainer has no latest_metrics attribute")
+            else:
+                logger.warning("[DEBUG] Teacher trainer is not available in kd_manager")
+        else:
+            logger.warning("[DEBUG] kd_manager is not available")
+        
+        # Always log round metrics, with or without teacher metrics
+        if hasattr(self, 'csv_writer') and self.csv_writer is not None:
+            self.log_round_metrics(
+                round_num=round_num,
+                num_clients=len(self.connected_clients),
+                duration=round_time,
+                model_version=self.synchronization_manager.global_model_version,
+                metrics=metrics_dict
+            )
+                    
+    def log_round_metrics(self, round_num: int, num_clients: int, duration: float, model_version: str, metrics: Dict = None):
+        """
+        Log metrics for the current round
+        
+        Args:
+            round_num: Current round number
+            num_clients: Number of clients in this round
+            duration: Duration of the round in seconds
+            model_version: Current model version
+            metrics: Dictionary containing additional metrics to log (optional)
+        """
+        if not hasattr(self, 'csv_writer') or not self.csv_writer:
+            logger.warning("CSV writer not initialized, skipping metrics logging")
+            return
+            
+        try:
+            # Default values
+            metrics = metrics or {}
+            
+            # Calculate average metrics from client updates if available
+            if round_num in self.client_updates:
+                updates = self.client_updates[round_num]
+                if updates:
+                    # Calculate average metrics
+                    avg_train_loss = sum(update.get('metrics', {}).get('loss', 0) for update in updates) / len(updates)
+                    avg_val_loss = sum(update.get('metrics', {}).get('val_loss', 0) for update in updates) / len(updates)
+                    avg_train_acc = sum(update.get('metrics', {}).get('accuracy', 0) for update in updates) / len(updates)
+                    avg_val_acc = sum(update.get('metrics', {}).get('val_accuracy', 0) for update in updates) / len(updates)
+                    total_samples = sum(update.get('metrics', {}).get('samples_processed', 0) for update in updates)
+                    
+                    # Update metrics with calculated values
+                    metrics.update({
+                        'avg_train_loss': avg_train_loss,
+                        'avg_val_loss': avg_val_loss,
+                        'avg_train_acc': avg_train_acc,
+                        'avg_val_acc': avg_val_acc,
+                        'num_samples': total_samples
+                    })
+            
+            # Prepare the row with metrics
             row = [
-                round_num,
-                responses,
-                f"{metrics['avg_accuracy']:.4f}",
-                f"{metrics['classification_accuracy']:.4f}",
-                f"{metrics['regression_accuracy']:.4f}",
-                len(self.connected_clients),
-                len(self.connected_clients),
-                f"{time.time() - round_start:.2f}",
-                self.synchronization_manager.global_model_version,
-                str(self.synchronization_manager.global_model_version),
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                round_num,  # Round number
+                num_clients,  # Number of clients
+                f"{duration:.2f}",  # Duration in seconds
+                model_version,  # Model version
+                metrics.get('avg_train_loss', 0.0),  # Average training loss
+                metrics.get('avg_val_loss', 0.0),  # Average validation loss
+                metrics.get('avg_train_acc', 0.0),  # Average training accuracy
+                metrics.get('avg_val_acc', 0.0),  # Average validation accuracy
+                metrics.get('num_samples', 0),  # Total number of samples
+                datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Timestamp
             ]
-
+            
+            # Write the row to the CSV file
             self.csv_writer.writerow(row)
             self.csv_file.flush()
-
-            # Print progress with detailed participation info
-            responses_received = len(self.client_updates[round_num]) if round_num in self.client_updates else 0
-            total_clients = len(self.connected_clients)
-            participating_clients = [update.get('client_id', 'unknown') for update in self.client_updates[round_num]] if round_num in self.client_updates else []
             
-            print(f"🏃 Round {round_num} completed: {metrics['avg_accuracy']:.4f} avg accuracy")
-            print(f"📊 Participation: {responses_received}/{total_clients} clients")
-            print(f"👥 Participating clients: {participating_clients}")
+            logger.info(f"Logged metrics for round {round_num} with {num_clients} clients")
+            
+            # Log teacher metrics if available
+            if 'teacher_metrics' in metrics:
+                self._log_teacher_metrics(round_num, metrics['teacher_metrics'])
+                
+        except Exception as e:
+            logger.error(f"Error logging round metrics: {e}")
+            
+    def _log_teacher_metrics(self, round_num, metrics):
+        """Log teacher model metrics with enhanced debugging"""
+        logger.info(f"[DEBUG] Starting _log_teacher_metrics for round {round_num}")
+        
+        # Ensure metrics is a dictionary
+        if not isinstance(metrics, dict):
+            logger.error(f"[ERROR] Expected metrics to be a dict, got {type(metrics)}: {metrics}")
+            return
+            
+        logger.info(f"[DEBUG] Metrics received: {metrics}")
+        
+        try:
+            # Initialize file and writer if they don't exist
+            if not hasattr(self, 'teacher_metrics_file') or not hasattr(self, 'teacher_metrics_writer'):
+                logger.info("[DEBUG] Initializing teacher_metrics_writer")
+                try:
+                    # Ensure directory exists
+                    os.makedirs(os.path.dirname(self.teacher_metrics_file), exist_ok=True)
+                    
+                    # Open file in append mode
+                    self.teacher_metrics_file = open(self.teacher_metrics_file, 'a', newline='')
+                    self.teacher_metrics_writer = csv.writer(self.teacher_metrics_file)
+                    logger.info(f"[DEBUG] Opened teacher_metrics_file at {self.teacher_metrics_file}")
+                    
+                    # Write header if file is empty
+                    file_size = os.path.getsize(self.teacher_metrics_file.name) if os.path.exists(self.teacher_metrics_file.name) else 0
+                    logger.info(f"[DEBUG] Teacher metrics file size: {file_size} bytes")
+                    
+                    if file_size == 0:
+                        headers = [
+                            'round', 'epoch', 'train_loss', 'eval_loss', 'metric_value',
+                            'learning_rate', 'kd_alpha', 'temperature', 'samples_used',
+                            'update_type', 'timestamp'
+                        ]
+                        self.teacher_metrics_writer.writerow(headers)
+                        self.teacher_metrics_file.flush()
+                        logger.info("[DEBUG] Wrote headers to teacher_metrics_file")
+                    else:
+                        logger.info("[DEBUG] Teacher metrics file already has content, skipping header")
+                        
+                except Exception as e:
+                    logger.error(f"[ERROR] Failed to initialize teacher metrics writer: {e}", exc_info=True)
+                    return
+            
+            # Prepare the metrics row with default values
+            row = [
+                round_num,
+                metrics.get('epoch', 0),
+                metrics.get('train_loss', 0.0),
+                metrics.get('eval_loss', 0.0),
+                metrics.get('metric_value', 0.0),
+                metrics.get('learning_rate', 0.0),
+                metrics.get('kd_alpha', getattr(self.config, 'kd_alpha', 0.5)),
+                metrics.get('temperature', getattr(self.config, 'temperature', 3.0)),
+                metrics.get('samples_used', 0),
+                metrics.get('update_type', 'none'),
+                datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            ]
+            
+            logger.info(f"[DEBUG] Prepared teacher metrics row: {row}")
+            
+            # Write the row
+            try:
+                self.teacher_metrics_writer.writerow(row)
+                self.teacher_metrics_file.flush()
+                logger.info(f"[SUCCESS] Logged teacher metrics for round {round_num}")
+                
+                # Verify file was written
+                if os.path.exists(self.teacher_metrics_file.name):
+                    with open(self.teacher_metrics_file.name, 'r') as f:
+                        lines = f.readlines()
+                        logger.info(f"[DEBUG] Teacher metrics file now has {len(lines)} lines")
+                        if len(lines) > 1:  # Header + at least one data row
+                            logger.info(f"[DEBUG] Last line written: {lines[-1].strip()}")
+                
+            except Exception as e:
+                logger.error(f"[ERROR] Failed to write teacher metrics: {e}", exc_info=True)
+            
+        except Exception as e:
+            logger.error(f"[ERROR] Unexpected error in _log_teacher_metrics: {e}", exc_info=True)
+            
+        logger.info(f"[DEBUG] Completed _log_teacher_metrics for round {round_num}")
 
     def calculate_aggregated_metrics(self, updates: List[Dict]) -> Dict:
         """Calculate aggregated metrics across all clients"""
@@ -542,27 +818,32 @@ class FederatedServer:
     def finalize_training(self):
         """Finalize training and create summary"""
         try:
-            self.csv_file.close()
-            self.client_csv_file.close()
-            logger.info(f"Global results saved to {self.csv_filename}")
-            logger.info(f"Client results saved to {self.client_csv_filename}")
+            # Close CSV files if they exist
+            if hasattr(self, 'csv_file') and not self.csv_file.closed:
+                self.csv_file.close()
+                logger.info(f"Global results saved to {self.csv_filename}")
+                
+            if hasattr(self, 'client_csv_file') and not self.client_csv_file.closed:
+                self.client_csv_file.close()
+                logger.info(f"Client results saved to {self.client_csv_filename}")
 
             # Create summary
-            summary_file = os.path.join(self.config.results_dir, "training_summary.txt")
+            summary_file = os.path.join(self.config.output_dir, "results", "training_summary.txt")
             with open(summary_file, 'w') as f:
-                f.write("Federated Learning Training Summary\n")
-                f.write("=" * 40 + "\n\n")
+                f.write("=== Federated Learning Training Summary ===\n")
                 f.write(f"Configuration: LoRA + KD + Synchronization\n")
                 f.write(f"Total Rounds: {self.config.num_rounds}\n")
                 f.write(f"Total Clients: {len(self.connected_clients)}\n")
                 f.write(f"Global Results File: {os.path.basename(self.csv_filename)}\n")
                 f.write(f"Client Results File: {os.path.basename(self.client_csv_filename)}\n")
+                f.write(f"Teacher Metrics File: {os.path.basename(self.teacher_metrics_file)}\n")
                 f.write(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
 
             logger.info(f"Summary saved to {summary_file}")
-
+            
         except Exception as e:
             logger.error(f"Error finalizing training: {e}")
+            raise
 
     async def start_server(self):
         """Start the federated server"""

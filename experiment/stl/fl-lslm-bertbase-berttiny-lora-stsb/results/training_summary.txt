@@ -1,9 +1,0 @@
-Federated Learning Training Summary
-========================================
-
-Configuration: LoRA + KD + Synchronization
-Total Rounds: 1
-Total Clients: 1
-Global Results File: federated_results_20251102_160733.csv
-Client Results File: client_results_20251102_160733.csv
-Timestamp: 2025-11-02 16:08:01
