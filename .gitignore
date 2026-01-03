@@ -1,6 +1,7 @@
 # Virtual Environment
 venv/
 ENV/
+fate-venv/
 
 # Python
 __pycache__/
