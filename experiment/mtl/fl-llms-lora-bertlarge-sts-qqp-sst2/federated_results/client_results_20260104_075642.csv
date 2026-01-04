@@ -1,0 +1,2 @@
+round,client_id,task,accuracy,loss,samples_processed,correct_predictions,f1_score,pearson_correlation,spearman_correlation,mae,mse,rmse,val_accuracy,val_loss,val_samples,val_correct_predictions,val_f1_score,val_pearson_correlation,val_spearman_correlation,val_mae,timestamp
+1,stsb_client,stsb,0.6367222225280844,0.051022013972939574,4248,1458,,0.6367222225280844,0.596144419840468,0.18055759370326996,0.051022015511989594,0.22588053345680237,0.7133627830214337,0.04801153151049493,1496,606,,0.7133627830214337,0.6925019777493284,0.16711100935935974,2026-01-04 07:59:58
