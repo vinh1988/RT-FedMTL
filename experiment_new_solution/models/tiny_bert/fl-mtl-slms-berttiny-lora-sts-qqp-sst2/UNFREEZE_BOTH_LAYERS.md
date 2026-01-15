@@ -1,6 +1,6 @@
 # Unfreezing BOTH Layers for bert-tiny
 
-## 📊 **Why 2 Layers are Necessary**
+## [DATA] **Why 2 Layers are Necessary**
 
 ### **Results with 1 Layer Unfrozen (Failed)**
 From `federated_results_20260112_222436.csv`:
@@ -23,7 +23,7 @@ bert-tiny has **ONLY 2 layers**:
 
 ---
 
-## ✅ **Solution: Unfreeze BOTH Layers**
+## [SUCCESS] **Solution: Unfreeze BOTH Layers**
 
 ### **Change Made**
 
@@ -40,16 +40,16 @@ layers_to_unfreeze = 2  # Unfreeze BOTH layers (ALL for bert-tiny)
 ### **What This Means**
 
 For **bert-tiny** (2 layers total):
-- ✓ Layer 0: **UNFROZEN** (with LoRA adapters)
-- ✓ Layer 1: **UNFROZEN** (with LoRA adapters)
-- ✓ Pooler: **UNFROZEN**
-- ✓ Task Heads: **UNFROZEN**
+- [SUCCESS] Layer 0: **UNFROZEN** (with LoRA adapters)
+- [SUCCESS] Layer 1: **UNFROZEN** (with LoRA adapters)
+- [SUCCESS] Pooler: **UNFROZEN**
+- [SUCCESS] Task Heads: **UNFROZEN**
 
 **ALL transformer layers are now trainable!**
 
 ---
 
-## 📊 **Parameter Comparison**
+## [DATA] **Parameter Comparison**
 
 | Configuration | Frozen | Trainable | Trainable % | Size/Update |
 |---------------|--------|-----------|-------------|-------------|
@@ -62,27 +62,27 @@ For **bert-tiny** (2 layers total):
 
 ---
 
-## 🎯 **Expected Improvements**
+## [TARGET] **Expected Improvements**
 
 ### **Before (1 layer)**:
 ```
-SST-2: 46.22% ❌ (worse than random!)
-QQP:   37.55% ❌ (terrible)
-STS-B: -0.215 ❌ (NEGATIVE correlation!)
+SST-2: 46.22% [FAIL] (worse than random!)
+QQP:   37.55% [FAIL] (terrible)
+STS-B: -0.215 [FAIL] (NEGATIVE correlation!)
 ```
 
 ### **After (2 layers) - Expected**:
 ```
-SST-2: 75-82% ✓ (matching local validation)
-QQP:   72-78% ✓ (matching local validation)
-STS-B: 0.60-0.75 ✓ (positive correlation!)
+SST-2: 75-82% [SUCCESS] (matching local validation)
+QQP:   72-78% [SUCCESS] (matching local validation)
+STS-B: 0.60-0.75 [SUCCESS] (positive correlation!)
 ```
 
 **Should match the local validation performance now!**
 
 ---
 
-## 🔍 **Verification**
+## [SEARCH] **Verification**
 
 When you run training, look for:
 
@@ -130,18 +130,18 @@ PEFT LoRA Model Parameters:
 
 ---
 
-## 📈 **Trade-offs**
+## [CHART] **Trade-offs**
 
 ### **Pros:**
-✓ Model can actually learn (most important!)
-✓ Matches local validation performance
-✓ Still 16× more efficient than full fine-tuning
-✓ LoRA + unfrozen layers = best of both worlds
+[SUCCESS] Model can actually learn (most important!)
+[SUCCESS] Matches local validation performance
+[SUCCESS] Still 16× more efficient than full fine-tuning
+[SUCCESS] LoRA + unfrozen layers = best of both worlds
 
 ### **Cons:**
-✗ 6.4× more parameters than pure LoRA
-✗ 2.8 MB per update instead of 440 KB
-✗ Slightly slower training
+[FAIL] 6.4× more parameters than pure LoRA
+[FAIL] 2.8 MB per update instead of 440 KB
+[FAIL] Slightly slower training
 
 ### **Verdict:**
 **Worth it!** A model that doesn't learn (1% trainable) is useless.
@@ -149,33 +149,33 @@ Better to train 6.3% that actually learns than 1% that doesn't.
 
 ---
 
-## 🔄 **Comparison: Three Approaches**
+## [SYNC] **Comparison: Three Approaches**
 
 | Approach | Trainable | Learning | Efficiency | Best For |
 |----------|-----------|----------|------------|----------|
-| **Pure LoRA (frozen)** | 1% | ❌ NO | ⭐⭐⭐⭐⭐ | Large models (BERT-base+) |
-| **LoRA + 1 layer** | 3.2% | ❌ NO | ⭐⭐⭐⭐ | Medium models (6+ layers) |
-| **LoRA + 2 layers** | 6.3% | ✓ YES | ⭐⭐⭐ | **Small models (2-4 layers)** |
-| **Full fine-tuning** | 100% | ✓ YES | ⭐ | Abundant resources |
+| **Pure LoRA (frozen)** | 1% | [FAIL] NO | [STAR][STAR][STAR][STAR][STAR] | Large models (BERT-base+) |
+| **LoRA + 1 layer** | 3.2% | [FAIL] NO | [STAR][STAR][STAR][STAR] | Medium models (6+ layers) |
+| **LoRA + 2 layers** | 6.3% | [SUCCESS] YES | [STAR][STAR][STAR] | **Small models (2-4 layers)** |
+| **Full fine-tuning** | 100% | [SUCCESS] YES | [STAR] | Abundant resources |
 
 **For bert-tiny, LoRA + 2 layers unfrozen is the optimal choice.**
 
 ---
 
-## 🚀 **Ready to Test!**
+## [START] **Ready to Test!**
 
 Run the training with the same commands. The model should now:
-1. ✓ Learn properly (metrics improve each round)
-2. ✓ Match local validation performance
-3. ✓ Show positive STS-B correlation
-4. ✓ Reach 75-82% SST-2 accuracy
-5. ✓ Reach 72-78% QQP accuracy
+1. [SUCCESS] Learn properly (metrics improve each round)
+2. [SUCCESS] Match local validation performance
+3. [SUCCESS] Show positive STS-B correlation
+4. [SUCCESS] Reach 75-82% SST-2 accuracy
+5. [SUCCESS] Reach 72-78% QQP accuracy
 
-**The difference should be dramatic! From 46% → 75%+ 🎉**
+**The difference should be dramatic! From 46% → 75%+ [CELEBRATE]**
 
 ---
 
-## 📝 **Summary**
+## [NOTE] **Summary**
 
 **Problem**: Model not learning with 1 layer unfrozen (46% SST-2, -0.215 STS-B)  
 **Root Cause**: bert-tiny has ONLY 2 layers, need both for sufficient capacity  
@@ -183,5 +183,5 @@ Run the training with the same commands. The model should now:
 **Expected**: 75-82% SST-2, 72-78% QQP, 0.60-0.75 STS-B correlation  
 **Trade-off**: 6.3% trainable (still 16× smaller than full model)  
 
-**🎉 bert-tiny will now learn properly with full transformer capacity!**
+**[CELEBRATE] bert-tiny will now learn properly with full transformer capacity!**
 

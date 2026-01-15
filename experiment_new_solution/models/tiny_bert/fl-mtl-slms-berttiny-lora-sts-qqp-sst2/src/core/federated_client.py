@@ -59,10 +59,10 @@ class FederatedClient:
             logger.info(f"CLIENT {client_id}: Initializing Standard BERT Model")
             logger.info("=" * 60)
             
-        self.model = StandardBERTModel(
-            base_model_name=config.client_model,
-            tasks=tasks
-        )
+            self.model = StandardBERTModel(
+                base_model_name=config.client_model,
+                tasks=tasks
+            )
         
         # Move model to device
         self.model = self.model.to(self.device)
@@ -265,15 +265,6 @@ class FederatedClient:
             global_state
         )
 
-        # Validate global model on client's local validation data
-        logger.info(f"Validating global model on local validation data...")
-        global_model_metrics = await self.validate_global_model()
-        
-        # Store global model metrics for later recording
-        self.last_global_model_metrics = global_model_metrics
-        
-        logger.info(f"Global model validation complete: {global_model_metrics}")
-
         # Send acknowledgment
         if self.use_peft_lora:
             # Simple ack for LoRA sync
@@ -328,19 +319,28 @@ class FederatedClient:
                 for task in self.tasks:
                     if task in local_metrics:
                         local_metrics[task].update(self.last_global_model_metrics)
-                        logger.info(f"✅ [MERGE] Successfully added global model metrics to task {task}")
+                        logger.info(f"[MERGE] Successfully added global model metrics to task {task}")
             else:
-                logger.warning(f"⚠️ [MERGE] Failed to merge global model metrics! last_global={bool(self.last_global_model_metrics)}, local_metrics={bool(local_metrics)}")
+                logger.warning(f"[MERGE] Failed to merge global model metrics! last_global={bool(self.last_global_model_metrics)}, local_metrics={bool(local_metrics)}")
 
             # Clear GPU cache after training
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
                 logger.info("[GPU-CLEANUP] Cleared GPU cache after training")
 
+            # Validate global model on client's local validation data (AFTER training)
+            logger.info(f"Validating global model on local validation data...")
+            global_model_metrics = await self.validate_global_model()
+            
+            # Store global model metrics for later recording
+            self.last_global_model_metrics = global_model_metrics
+            
+            logger.info(f"Global model validation complete: {global_model_metrics}")
+
             # Extract model parameters (LoRA adapters or full model)
             if self.use_peft_lora:
                 # Extract only LoRA adapter parameters (much more efficient)
-                model_updates = self.model.get_lora_parameters(task=self.tasks[0])
+                model_updates = self.model.get_lora_parameters()
                 logger.info(f"Extracted {len(model_updates)} LoRA parameters")
             else:
                 # Extract full model parameters
@@ -542,6 +542,10 @@ class FederatedClient:
                 precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) > 0 else 0.0
                 recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0.0
                 f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+                
+                # Debug logging for F1 calculation
+                logger.info(f"[DEBUG] Task {task} F1 calculation: TP={true_positives}, FP={false_positives}, FN={false_negatives}")
+                logger.info(f"[DEBUG] Task {task} F1 calculation: precision={precision:.4f}, recall={recall:.4f}, f1={f1:.4f}")
                 
                 metrics['global_model_val_accuracy'] = accuracy
                 metrics['global_model_val_f1'] = f1

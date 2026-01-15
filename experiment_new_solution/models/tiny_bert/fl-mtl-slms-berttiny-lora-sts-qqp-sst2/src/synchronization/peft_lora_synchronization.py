@@ -255,7 +255,7 @@ class ClientPEFTLoRASynchronizer:
                 "params_updated": len(tensor_params)
             })
 
-            logger.info(f"✓ Updated local LoRA adapters for task '{self.task}'")
+            logger.info(f"[SUCCESS] Updated local LoRA adapters for task '{self.task}'")
             logger.info(f"  Parameters updated: {len(tensor_params)}")
             logger.info(f"  Model version: {lora_state.get('model_version', 0)}")
         else:

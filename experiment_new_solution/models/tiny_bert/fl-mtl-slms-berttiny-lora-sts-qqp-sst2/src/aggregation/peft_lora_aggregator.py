@@ -92,7 +92,7 @@ class PEFTLoRAAggregator:
             # Merge into global aggregated parameters
             aggregated_params.update(task_aggregated)
             
-            logger.info(f"  ✓ Aggregated {len(task_aggregated)} parameters for task '{task}'")
+            logger.info(f"  [SUCCESS] Aggregated {len(task_aggregated)} parameters for task '{task}'")
         
         logger.info(f"Total aggregated parameters: {len(aggregated_params)}")
         logger.info(f"="*60)
@@ -194,7 +194,7 @@ class PEFTLoRAAggregator:
             task_aggregated = self._weighted_fedavg(task_params_list, normalized_task_weights)
             aggregated_params.update(task_aggregated)
             
-            logger.info(f"  ✓ Weighted aggregation for task '{task}': {len(task_aggregated)} parameters")
+            logger.info(f"  [SUCCESS] Weighted aggregation for task '{task}': {len(task_aggregated)} parameters")
         
         return aggregated_params
     

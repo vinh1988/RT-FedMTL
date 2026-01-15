@@ -333,7 +333,7 @@ class EvaluationReporter:
             summary.append("")
 
         # Client contributions
-        summary.append("👥 Client Contributions:")
+        summary.append("[CLIENTS] Client Contributions:")
         for task_name, task_data in results['task_aggregated_metrics'].items():
             summary.append(f"  • {task_name.upper()} Clients:")
             for contribution in task_data['client_contributions']:

@@ -108,7 +108,7 @@ class PEFTLoRAMTLModel(nn.Module):
             else:
                 self.task_heads[task] = nn.Linear(self.hidden_size, 2)  # Binary classification
         
-        logger.info(f"✓ PEFT LoRA MTL Model initialized successfully")
+        logger.info(f"[SUCCESS] PEFT LoRA MTL Model initialized successfully")
         self._print_trainable_parameters()
     
     def forward(self, input_ids, attention_mask, task_name: str):
@@ -292,7 +292,7 @@ class PEFTLoRAServerModel(nn.Module):
         self.tasks = tasks
         self.lora_rank = lora_rank
         
-        logger.info(f"✓ PEFT LoRA Server Model initialized with {len(tasks)} tasks")
+        logger.info(f"[SUCCESS] PEFT LoRA Server Model initialized with {len(tasks)} tasks")
     
     def forward(self, input_ids, attention_mask, task_name: str):
         """Forward pass through the MTL model"""

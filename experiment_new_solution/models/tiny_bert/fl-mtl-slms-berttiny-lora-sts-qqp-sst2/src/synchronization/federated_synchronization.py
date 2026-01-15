@@ -177,7 +177,7 @@ class ClientModelSynchronizer:
                     if hasattr(self.model, 'set_lora_parameters'):
                         self.model.set_lora_parameters(tensor_params, task=self.task)
                         params_updated = True
-                        logger.info(f"✓ Updated model with {len(tensor_params)} LoRA parameters for task '{self.task}'")
+                        logger.info(f"[SUCCESS] Updated model with {len(tensor_params)} LoRA parameters for task '{self.task}'")
                     else:
                         logger.warning("Model does not support set_lora_parameters")
                         params_updated = False

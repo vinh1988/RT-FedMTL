@@ -422,18 +422,18 @@ class FederatedServer:
                         # - Task heads: aggregated within same-task clients only
                         aggregated = self.aggregator.aggregate_mtl_updates(client_updates)
                     
-                    # Update MTL server model
-                    if aggregated['shared']:
-                        self.mtl_model.set_shared_parameters(aggregated['shared'])
-                        logger.info(f"Updated shared BERT encoder with {len(aggregated['shared'])} parameters")
-                    
-                    for task, task_params in aggregated['task_heads'].items():
-                        if task_params:
-                            self.mtl_model.set_task_head_parameters(task, task_params)
-                            logger.info(f"Updated task '{task}' head with {len(task_params)} parameters")
-                    
-                    # Increment model version for synchronization
-                    self.synchronization_manager.increment_model_version()
+                        # Update MTL server model
+                        if aggregated['shared']:
+                            self.mtl_model.set_shared_parameters(aggregated['shared'])
+                            logger.info(f"Updated shared BERT encoder with {len(aggregated['shared'])} parameters")
+                        
+                        for task, task_params in aggregated['task_heads'].items():
+                            if task_params:
+                                self.mtl_model.set_task_head_parameters(task, task_params)
+                                logger.info(f"Updated task '{task}' head with {len(task_params)} parameters")
+                        
+                        # Increment model version for synchronization
+                        self.synchronization_manager.increment_model_version()
 
                 # Record results for this round
                 # Note: Global model validation is now done on client side
@@ -653,8 +653,8 @@ class FederatedServer:
                 len(self.connected_clients),
                 len(self.connected_clients),
                 f"{time.time() - round_start:.2f}",
+                len(self.synchronization_manager.synchronization_history),  # synchronization_events
                 self.synchronization_manager.global_model_version,
-                str(self.synchronization_manager.global_model_version),
                 # Global model validation metrics (from clients)
                 f"{global_val_metrics.get('sst2_accuracy', 0.0):.4f}",
                 f"{global_val_metrics.get('sst2_f1', 0.0):.4f}",
@@ -673,16 +673,16 @@ class FederatedServer:
             total_clients = len(self.connected_clients)
             participating_clients = [update.get('client_id', 'unknown') for update in self.client_updates[round_num]] if round_num in self.client_updates else []
             
-            print(f"🏃 Round {round_num} completed")
+            print(f"[ROUND] Round {round_num} completed")
             print(f"   Client Training Avg: {metrics['avg_accuracy']:.4f}")
             print(f"   Classification Avg: {metrics['classification_accuracy']:.4f}")
             print(f"   Regression Avg: {metrics['regression_accuracy']:.4f}")
-            print(f"   📊 Global Model Validation:")
+            print(f"   [GLOBAL] Global Model Validation:")
             print(f"      SST-2: Acc={global_val_metrics.get('sst2_accuracy', 0.0):.4f}, F1={global_val_metrics.get('sst2_f1', 0.0):.4f}")
             print(f"      QQP:   Acc={global_val_metrics.get('qqp_accuracy', 0.0):.4f}, F1={global_val_metrics.get('qqp_f1', 0.0):.4f}")
             print(f"      STS-B: Pearson={global_val_metrics.get('stsb_pearson', 0.0):.4f}, Spearman={global_val_metrics.get('stsb_spearman', 0.0):.4f}")
-            print(f"📊 Participation: {responses_received}/{total_clients} clients")
-            print(f"👥 Participating clients: {participating_clients}")
+            print(f"[PARTICIPATION] Participation: {responses_received}/{total_clients} clients")
+            print(f"[CLIENTS] Participating clients: {participating_clients}")
 
     def calculate_aggregated_metrics(self, updates: List[Dict]) -> Dict:
         """Calculate aggregated metrics across all clients"""
