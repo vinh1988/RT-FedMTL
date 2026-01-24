@@ -45,6 +45,13 @@ class BaseLocalClient(ABC):
 
         # Training configuration
         self.config = self.load_config()
+        
+        # Set GLUE data directory
+        self.glove_data_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../../../../../../glue_data")
+        )
+        os.makedirs(self.glove_data_dir, exist_ok=True)
+        logger.info(f"Using GLUE data directory: {self.glove_data_dir}")
 
         # Dataset
         self.dataset_handler = None

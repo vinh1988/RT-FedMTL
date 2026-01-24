@@ -37,16 +37,35 @@ class SST2LocalClient(BaseLocalClient):
         }
 
     def _load_local_sst2_data(self) -> Tuple[List[Dict], List[Dict]]:
-        """Load SST-2 data from local files or generate dummy data"""
-        # Try to load from GLUE data first
-        glue_data_path = "/home/pc/Documents/LAB/FedAvgLS/FedBERT-LoRA/glue_data/SST-2"
-
+        """Load SST-2 data from local GLUE data files"""
+        glue_data_path = os.path.join(self.glove_data_dir, "SST2")
+        
         if os.path.exists(glue_data_path):
+            self.logger.info(f"Loading SST-2 data from {glue_data_path}")
             return self._load_glue_sst2_data(glue_data_path)
         else:
-            # Fallback to generating dummy data for testing
-            self.logger.warning("GLUE SST-2 data not found, using dummy data")
-            return self._generate_dummy_sst2_data()
+            # Fallback to loading from Hugging Face datasets if local files not found
+            self.logger.warning(f"Local SST-2 data not found at {glue_data_path}, trying to download...")
+            try:
+                # Create directory if it doesn't exist
+                os.makedirs(glue_data_path, exist_ok=True)
+                
+                # Download the dataset
+                from datasets import load_dataset
+                
+                # Load and save train/validation splits
+                for split in ['train', 'validation', 'test']:
+                    dataset = load_dataset("glue", "sst2", split=split)
+                    output_file = os.path.join(glue_data_path, f"{split}.tsv")
+                    dataset.to_csv(output_file, sep='\t', index=False)
+                    self.logger.info(f"Saved {split} split to {output_file}")
+                
+                return self._load_glue_sst2_data(glue_data_path)
+                
+            except Exception as e:
+                self.logger.error(f"Failed to download SST-2 data: {e}")
+                self.logger.warning("Using dummy data as fallback")
+                return self._generate_dummy_sst2_data()
 
     def _load_glue_sst2_data(self, data_path: str) -> Tuple[List[Dict], List[Dict]]:
         """Load SST-2 data from GLUE dataset"""
