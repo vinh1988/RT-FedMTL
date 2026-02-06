@@ -20,3 +20,5 @@ MTL LoRA Model Architecture:
 Global Results File: federated_results_20260131_232932.csv
 Client Results File: client_results_20260131_232932.csv
 Timestamp: 2026-02-01 00:41:12
+
+learning_rate: 0.0002 

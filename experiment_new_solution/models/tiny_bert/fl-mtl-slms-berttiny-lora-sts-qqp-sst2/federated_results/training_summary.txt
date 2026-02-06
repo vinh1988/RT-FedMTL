@@ -1,0 +1,21 @@
+Federated Learning Training Summary
+========================================
+
+Configuration: PEFT LoRA Federated MTL
+Architecture: LoRA Adapters + Task-Specific Heads
+Total Rounds: 3
+Total Clients: 3
+
+PEFT LoRA Model Architecture:
+  Base Model: huawei-noah/TinyBERT_General_4L_312D
+  Tasks: sst2, qqp, stsb
+  LoRA Rank: 16
+  LoRA Alpha: 32
+  Target Modules: query, key, value, dense
+  Total Parameters: 44,140,536
+  Trainable Parameters: 8,235,864
+  Trainable Percentage: 18.66%
+
+Global Results File: federated_results_20260131_145907.csv
+Client Results File: client_results_20260131_145907.csv
+Timestamp: 2026-01-31 15:28:57

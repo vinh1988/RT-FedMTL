@@ -17,7 +17,7 @@ training:
   expected_clients: 3             # Expected clients to wait for (SST2, QQP, STSB)
   local_epochs: 1                 # Local epochs per round
   batch_size: 8                  # Batch size for training (INCREASED for faster training)
-  learning_rate: 0.0002          # Learning rate
+  learning_rate: 0.00001          # Learning rate
 
 task_configs:
   sst2:                          # SST-2 sentiment analysis

@@ -1,0 +1,4 @@
+accuracy,client_id,device_type,gpu_memory_allocated_gb,gpu_memory_reserved_gb,gpu_memory_total_gb,gpu_memory_utilization_pct,gpu_name,loss,phase,round,samples_processed,task,timestamp
+0.0,stsb_client,cuda,0.056314368,0.161480704,8.071348224,0.6977070798723601,NVIDIA GeForce RTX 5060,0.0,training_start,1,0,all_tasks,2026-02-03 22:00:50
+0.6957996994839951,stsb_client,cuda,0.201689088,0.291504128,8.071348224,2.498827734879302,NVIDIA GeForce RTX 5060,0.047714945934826676,task_complete,1,4249,stsb,2026-02-03 22:03:10
+0.0,stsb_client,cuda,0.252096,0.308281344,8.071348224,3.123344365819794,NVIDIA GeForce RTX 5060,0.0,round_complete,1,0,all_tasks,2026-02-03 22:03:19
