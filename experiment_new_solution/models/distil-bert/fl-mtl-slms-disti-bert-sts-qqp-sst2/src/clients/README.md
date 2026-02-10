@@ -13,7 +13,7 @@ This directory contains 3 specialized local training clients for standalone trai
 
 ##  Key Features
 
-### ✨ **Real Data Integration**
+### **Real Data Integration**
 - Loads authentic GLUE datasets from HuggingFace `datasets` library
 - No more dummy data - real training with actual benchmarks
 - Automatic fallback to local files or dummy data if needed
@@ -143,7 +143,7 @@ Here's actual output from running the STSB client with real GLUE data:
 
 - ** Real Data Loading**: Successfully loaded 5,749 training samples from GLUE STS-B
 - ** Realistic Metrics**: 0.91 correlation (excellent for semantic similarity)
-- **⏱️ Training Time**: ~4 minutes for 3 epochs on GPU
+- **Training Time**: ~4 minutes for 3 epochs on GPU
 - ** Proper Validation**: Separate validation set evaluation
 - ** Results Persistence**: All metrics saved to files for analysis
 
@@ -154,7 +154,7 @@ Each client creates:
 - **`local_{task}_training.log`** - Detailed training logs
 - **Console output** - Real-time progress updates
 
-## 🏗️ Architecture
+## Architecture
 
 ### Class Hierarchy
 
@@ -259,7 +259,7 @@ The local training clients provide a simple, powerful way to train individual NL
 
 - ** Research and experimentation**
 - ** Baseline establishment**
-- **⚡ Quick prototyping**
+- **Quick prototyping**
 - ** Configuration testing**
 
 Start with the basic usage examples above and customize as needed for your specific use case!

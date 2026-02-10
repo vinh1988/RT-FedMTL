@@ -267,9 +267,9 @@ class FederatedClient:
                 for task in self.tasks:
                     if task in local_metrics:
                         local_metrics[task].update(self.last_global_model_metrics)
-                        logger.info(f"✅ [MERGE] Successfully added global model metrics to task {task}")
+                        logger.info(f"[MERGE] Successfully added global model metrics to task {task}")
             else:
-                logger.warning(f"⚠️ [MERGE] Failed to merge global model metrics! last_global={bool(self.last_global_model_metrics)}, local_metrics={bool(local_metrics)}")
+                logger.warning(f"[MERGE] Failed to merge global model metrics! last_global={bool(self.last_global_model_metrics)}, local_metrics={bool(local_metrics)}")
 
             # Clear GPU cache after training
             if torch.cuda.is_available():

@@ -16,7 +16,7 @@ training:
   max_clients: 3                  # Maximum clients supported
   expected_clients: 3             # Expected clients to wait for (SST2, QQP, STSB)
   local_epochs: 1                 # Local epochs per round
-  batch_size: 8                  # Batch size for training (INCREASED for faster training)
+  batch_size: 16                  # Batch size for training (INCREASED for faster training)
   learning_rate: 0.00002         # Learning rate (2e-5, reduced 10x for BERT-Medium stability)
 
 task_configs:

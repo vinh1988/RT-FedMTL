@@ -214,9 +214,9 @@ class BaseFederatedClient(ABC):
             if self.last_global_model_metrics and self.task in local_metrics:
                 # Merge global model metrics into task metrics
                 local_metrics[self.task].update(self.last_global_model_metrics)
-                logger.info(f"✅ [MERGE] Successfully added global model metrics: {list(self.last_global_model_metrics.keys())}")
+                logger.info(f"[MERGE] Successfully added global model metrics: {list(self.last_global_model_metrics.keys())}")
             else:
-                logger.warning(f"⚠️ [MERGE] Failed to merge global model metrics! last_global={bool(self.last_global_model_metrics)}, task_in_metrics={self.task in local_metrics}")
+                logger.warning(f"[MERGE] Failed to merge global model metrics! last_global={bool(self.last_global_model_metrics)}, task_in_metrics={self.task in local_metrics}")
 
             # Extract model parameters
             model_updates = self.model.get_all_parameters()

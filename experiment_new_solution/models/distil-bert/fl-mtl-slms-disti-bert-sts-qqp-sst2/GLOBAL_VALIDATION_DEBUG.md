@@ -6,7 +6,7 @@
 1. **Server broadcasts initial global model** → `broadcast_mtl_model_slices()`
 2. **Clients receive sync** → `handle_global_model_sync()`
    - Updates local model with global parameters
-   - ✅ **Validates global model** → `validate_global_model()`
+   - **Validates global model** → `validate_global_model()`
    - Stores metrics in `self.last_global_model_metrics`
 3. **Server sends training request** → `handle_training_request()`
    - Clients train locally
@@ -26,21 +26,21 @@
 
 **Possible Causes:**
 
-### 1. ❌ Validation Not Running
+### 1. Validation Not Running
 - Check if `validate_global_model()` is being called
 - Look for log: `"Validating global model on local validation data..."`
 
-### 2. ❌ Validation Failing Silently
+### 2. Validation Failing Silently
 - No validation data available
 - Model not properly synchronized
 - Exception caught but not logged
 
-### 3. ❌ Metrics Not Being Merged
+### 3. Metrics Not Being Merged
 - `self.last_global_model_metrics` is empty
 - Check log: `"Added global model metrics: ..."`
 - Condition `if self.last_global_model_metrics and self.task in local_metrics` failing
 
-### 4. ❌ Metrics Not Written to CSV
+### 4. Metrics Not Written to CSV
 - Merging works but CSV writing fails
 - Column mismatch in server's `record_client_results()`
 
@@ -153,7 +153,7 @@ if self.last_global_model_metrics:  # False!
 
 ## Next Steps
 
-1. ✅ **Set `num_rounds: 2`** in config (already done)
+1. **Set `num_rounds: 2`** in config (already done)
 2. **Run experiment again**
 3. **Check Round 2 in `client_results.csv`**
 4. **If still empty:** Check client logs for validation errors
