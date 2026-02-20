@@ -20,20 +20,20 @@ training:
   learning_rate: 0.00002         # Learning rate (2e-5, reduced 10x for BERT-Medium stability)
 
 task_configs:
-  sst2:                          # SST-2 sentiment analysis
-    train_samples: 66477           # IMPROVED: Increased 10x from 500 to 5000
-    val_samples: 872             # IMPROVED: Increased 10x from 100 to 1000
-    random_seed: 42              # Reproducibility
+  sst2:                          
+    train_samples: 66477           
+    val_samples: 872             
+    random_seed: 42              
 
-  qqp:                           # QQP question pairs
-    train_samples: 323415            # Reduced for faster testing (use 323415 for full training)
-    val_samples: 40431               # Reduced for faster testing (use 40431 for full training)
-    random_seed: 42              # Reproducibility
+  qqp:                           
+    train_samples: 323415            
+    val_samples: 40431               
+    random_seed: 42              
 
-  stsb:                          # STSB semantic similarity
-    train_samples: 4249           # IMPROVED: Increased 10x from 500 to 5000
-    val_samples: 1500             # IMPROVED: Increased 10x from 100 to 1000
-    random_seed: 42              # Reproducibility
+  stsb:                          
+    train_samples: 4249           
+    val_samples: 1500             
+    random_seed: 42              
 
 communication:
   port: 8771                     # WebSocket server port

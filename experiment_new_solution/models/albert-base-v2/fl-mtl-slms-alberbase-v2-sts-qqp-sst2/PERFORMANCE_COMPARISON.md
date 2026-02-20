@@ -7,7 +7,7 @@
 
 ---
 
-## 📊 Best Results from Federated MTL Training
+## Best Results from Federated MTL Training
 
 ### Extracted from: `federated_results_20260109_023725.csv` (30 rounds)
 
@@ -55,7 +55,7 @@ Based on literature and published results for TinyBERT/BERT-Tiny models on GLUE 
 
 ---
 
-## 📈 Detailed Comparison
+## Detailed Comparison
 
 ### **SST-2 (Sentiment Classification)**
 ```
@@ -64,9 +64,9 @@ Published Tiny:   ~93.00%
 Difference:       -11.40% (gap to centralized)
 ```
 **Analysis:**
-- ❌ Lower than centralized TinyBERT
-- ✅ Reasonable for federated setting with limited data (300 samples/client)
-- ✅ Stable convergence without overfitting
+- Lower than centralized TinyBERT
+- Reasonable for federated setting with limited data (300 samples/client)
+- Stable convergence without overfitting
 
 ### **QQP (Question Pair Classification)**
 ```
@@ -75,9 +75,9 @@ Published Tiny:   ~71.10%
 Difference:       +11.90% (BETTER than centralized!)
 ```
 **Analysis:**
-- ✅ **SIGNIFICANTLY OUTPERFORMS** published Tiny BERT!
-- ✅ MTL likely helps: QQP benefits from STS-B similarity learning
-- ✅ Federated learning with diverse data distributions may help generalization
+- **SIGNIFICANTLY OUTPERFORMS** published Tiny BERT!
+- MTL likely helps: QQP benefits from STS-B similarity learning
+- Federated learning with diverse data distributions may help generalization
 
 ### **STS-B (Semantic Similarity)**
 ```
@@ -86,21 +86,21 @@ Published Tiny:   ~85.00%
 Difference:       +3.77% to +8.09% (BETTER than centralized!)
 ```
 **Analysis:**
-- ✅ **OUTPERFORMS** published Tiny BERT
-- ✅ MTL benefits: Shared representations from classification tasks
-- ⚠️ Some volatility in later rounds (93.09% → 88.77%)
+- **OUTPERFORMS** published Tiny BERT
+- MTL benefits: Shared representations from classification tasks
+- Some volatility in later rounds (93.09% → 88.77%)
 
 ---
 
-## 🎯 Key Findings
+## Key Findings
 
 ### **Strengths of Your FL-MTL System:**
 
-1. **QQP Performance: +11.9% vs Published** 🏆
+1. **QQP Performance: +11.9% vs Published**
    - MTL cross-task learning is highly effective
    - Federated data diversity may improve generalization
    
-2. **STS-B Performance: +3.8% to +8.1% vs Published** 🏆
+2. **STS-B Performance: +3.8% to +8.1% vs Published**
    - Strong regression performance
    - Early convergence suggests effective knowledge transfer
 
@@ -111,19 +111,19 @@ Difference:       +3.77% to +8.09% (BETTER than centralized!)
 
 ### **Areas for Improvement:**
 
-1. **SST-2 Performance: -11.4% vs Published** ⚠️
+1. **SST-2 Performance: -11.4% vs Published**
    - Gap likely due to:
      - Federated data limitation (300 samples vs full dataset)
      - 2-layer model vs larger TinyBERT variants
      - No centralized pre-training on large corpus
    
-2. **STS-B Stability:** ⚠️
+2. **STS-B Stability:**
    - Peak at round 2 (93.09%), then stabilizes lower
    - Consider early stopping or learning rate scheduling
 
 ---
 
-## 💡 Recommendations
+## Recommendations
 
 ### **Immediate Improvements:**
 
@@ -154,7 +154,7 @@ Difference:       +3.77% to +8.09% (BETTER than centralized!)
 
 ---
 
-## 📊 Training Efficiency
+## Training Efficiency
 
 ### **Your FL-MTL System:**
 - **Total Training Time:** ~2.5 hours (30 rounds × 4.25 min/round)
@@ -163,13 +163,13 @@ Difference:       +3.77% to +8.09% (BETTER than centralized!)
 - **Data:** ~900 total samples (300/client)
 
 ### **Comparison:**
-- ✅ Much faster than centralized BERT training
-- ✅ Privacy-preserving (data never leaves clients)
-- ✅ Competitive or superior on 2/3 tasks
+- Much faster than centralized BERT training
+- Privacy-preserving (data never leaves clients)
+- Competitive or superior on 2/3 tasks
 
 ---
 
-## 🏆 Overall Assessment
+## Overall Assessment
 
 ### **Performance Grade: A- (Excellent)**
 
@@ -180,21 +180,21 @@ Your Federated MTL system achieves:
 
 ### **Key Success Factors:**
 
-1. ✅ **MTL Architecture:** Cross-task knowledge transfer
-2. ✅ **Server-Side Aggregation:** Efficient parameter sharing
-3. ✅ **Stable Training:** No divergence or client failures
-4. ✅ **Validation Monitoring:** Real-time performance tracking
+1. **MTL Architecture:** Cross-task knowledge transfer
+2. **Server-Side Aggregation:** Efficient parameter sharing
+3. **Stable Training:** No divergence or client failures
+4. **Validation Monitoring:** Real-time performance tracking
 
 ### **Competitive Advantage:**
 
 Your system demonstrates that **Federated Multi-Task Learning can achieve competitive or superior performance** compared to centralized models while maintaining:
-- ✅ **Data Privacy:** No raw data sharing
-- ✅ **Efficiency:** Distributed training
-- ✅ **Scalability:** Easy to add more clients/tasks
+- **Data Privacy:** No raw data sharing
+- **Efficiency:** Distributed training
+- **Scalability:** Easy to add more clients/tasks
 
 ---
 
-## 📝 Conclusion
+## Conclusion
 
 **Your Federated MTL system is production-ready for QQP and STS-B tasks**, with performance exceeding published Tiny BERT benchmarks. The SST-2 task would benefit from more training data or architectural tuning, but the current performance is acceptable for resource-constrained scenarios.
 
@@ -202,7 +202,7 @@ The **+11.9% improvement on QQP** is particularly noteworthy and suggests that y
 
 ---
 
-## 📚 References
+## References
 
 1. TinyBERT Paper: "TinyBERT: Distilling BERT for Natural Language Understanding" (2020)
 2. GLUE Benchmark: Wang et al., "GLUE: A Multi-Task Benchmark and Analysis Platform" (2019)

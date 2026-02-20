@@ -574,16 +574,16 @@ class FederatedServer:
             total_clients = len(self.connected_clients)
             participating_clients = [update.get('client_id', 'unknown') for update in self.client_updates[round_num]] if round_num in self.client_updates else []
             
-            print(f"🏃 Round {round_num} completed")
+            print(f"Round {round_num} completed")
             print(f"   Client Training Avg: {metrics['avg_accuracy']:.4f}")
             print(f"   Classification Avg: {metrics['classification_accuracy']:.4f}")
             print(f"   Regression Avg: {metrics['regression_accuracy']:.4f}")
-            print(f"   📊 Global Model Validation:")
+            print(f"   Global Model Validation:")
             print(f"      SST-2: Acc={global_val_metrics.get('sst2_accuracy', 0.0):.4f}, F1={global_val_metrics.get('sst2_f1', 0.0):.4f}")
             print(f"      QQP:   Acc={global_val_metrics.get('qqp_accuracy', 0.0):.4f}, F1={global_val_metrics.get('qqp_f1', 0.0):.4f}")
             print(f"      STS-B: Pearson={global_val_metrics.get('stsb_pearson', 0.0):.4f}, Spearman={global_val_metrics.get('stsb_spearman', 0.0):.4f}")
-            print(f"📊 Participation: {responses_received}/{total_clients} clients")
-            print(f"👥 Participating clients: {participating_clients}")
+            print(f"Participation: {responses_received}/{total_clients} clients")
+            print(f"Participating clients: {participating_clients}")
 
     def calculate_aggregated_metrics(self, updates: List[Dict]) -> Dict:
         """Calculate aggregated metrics across all clients"""

@@ -95,19 +95,83 @@ class FederatedClient:
         self.csv_initialized = False
 
     def get_device(self):
-        """Get available device (GPU/CPU)"""
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        """Get available device (GPU/CPU) with multi-GPU support"""
+        if not torch.cuda.is_available():
+            logger.warning(f"[WARNING] CUDA not available - using CPU only")
+            logger.warning(f"[WARNING] Training will be much slower!")
+            return torch.device("cpu")
         
-        # Log device information
-        if device.type == "cuda":
-            logger.info(f"[GPU] Using CUDA (GPU) for training")
+        # Check if multi-GPU is enabled
+        gpu_config = getattr(self.config, 'gpu_config', None)
+        if not gpu_config or not gpu_config.enable_multi_gpu:
+            # Default behavior: use GPU 0
+            device = torch.device("cuda:0")
+            logger.info(f"[GPU] Using CUDA (GPU 0) for training")
             logger.info(f"[GPU] GPU Device: {torch.cuda.get_device_name(0)}")
             logger.info(f"[GPU] Total GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
-        else:
-            logger.warning(f"[WARNING] Using CPU for training (CUDA not available)")
-            logger.warning(f"[WARNING] Training will be significantly slower on CPU")
+            return device
+        
+        # Multi-GPU assignment logic
+        num_gpus = torch.cuda.device_count()
+        logger.info(f"[GPU] Multi-GPU enabled: Found {num_gpus} GPUs")
+        
+        # Choose GPU based on strategy
+        if gpu_config.gpu_assignment_strategy == "manual":
+            gpu_id = self._get_manual_gpu_assignment(gpu_config)
+        elif gpu_config.gpu_assignment_strategy == "least_loaded":
+            gpu_id = self._get_least_loaded_gpu()
+        else:  # round_robin (default)
+            gpu_id = self._get_round_robin_gpu_assignment(num_gpus)
+        
+        # Validate GPU ID
+        if gpu_id >= num_gpus:
+            logger.warning(f"[WARNING] GPU {gpu_id} not available. Using GPU 0 instead.")
+            gpu_id = 0
+        
+        device = torch.device(f"cuda:{gpu_id}")
+        logger.info(f"[GPU] Using CUDA (GPU {gpu_id}) for training")
+        logger.info(f"[GPU] GPU Device: {torch.cuda.get_device_name(gpu_id)}")
+        logger.info(f"[GPU] Total GPU Memory: {torch.cuda.get_device_properties(gpu_id).total_memory / 1e9:.2f} GB")
+        logger.info(f"[GPU] Assignment Strategy: {gpu_config.gpu_assignment_strategy}")
         
         return device
+    
+    def _get_manual_gpu_assignment(self, gpu_config) -> int:
+        """Get GPU ID from manual assignment configuration"""
+        if self.client_id in gpu_config.manual_gpu_assignments:
+            gpu_id = gpu_config.manual_gpu_assignments[self.client_id]
+            logger.info(f"[GPU] Manual assignment: {self.client_id} -> GPU {gpu_id}")
+            return gpu_id
+        else:
+            logger.warning(f"[WARNING] No manual GPU assignment for {self.client_id}, using round-robin")
+            return self._get_round_robin_gpu_assignment(torch.cuda.device_count())
+    
+    def _get_round_robin_gpu_assignment(self, num_gpus: int) -> int:
+        """Get GPU ID using round-robin assignment based on client_id hash"""
+        # Simple hash-based round-robin for consistent assignment
+        client_hash = hash(self.client_id) % num_gpus
+        gpu_id = abs(client_hash)  # Ensure positive
+        logger.info(f"[GPU] Round-robin assignment: {self.client_id} -> GPU {gpu_id}")
+        return gpu_id
+    
+    def _get_least_loaded_gpu(self) -> int:
+        """Get GPU ID with least memory usage"""
+        min_memory_usage = float('inf')
+        best_gpu_id = 0
+        
+        for gpu_id in range(torch.cuda.device_count()):
+            memory_used = torch.cuda.memory_allocated(gpu_id) / 1e9  # GB
+            memory_total = torch.cuda.get_device_properties(gpu_id).total_memory / 1e9  # GB
+            memory_usage_percent = (memory_used / memory_total) * 100
+            
+            logger.info(f"[GPU] GPU {gpu_id}: {memory_used:.2f}GB/{memory_total:.2f}GB ({memory_usage_percent:.1f}%)")
+            
+            if memory_usage_percent < min_memory_usage:
+                min_memory_usage = memory_usage_percent
+                best_gpu_id = gpu_id
+        
+        logger.info(f"[GPU] Least-loaded assignment: {self.client_id} -> GPU {best_gpu_id} ({min_memory_usage:.1f}% used)")
+        return best_gpu_id
 
     def setup_logging(self):
         """Setup logging configuration"""
@@ -267,9 +331,9 @@ class FederatedClient:
                 for task in self.tasks:
                     if task in local_metrics:
                         local_metrics[task].update(self.last_global_model_metrics)
-                        logger.info(f"✅ [MERGE] Successfully added global model metrics to task {task}")
+                        logger.info(f"[MERGE] Successfully added global model metrics to task {task}")
             else:
-                logger.warning(f"⚠️ [MERGE] Failed to merge global model metrics! last_global={bool(self.last_global_model_metrics)}, local_metrics={bool(local_metrics)}")
+                logger.warning(f"[MERGE] Failed to merge global model metrics! last_global={bool(self.last_global_model_metrics)}, local_metrics={bool(local_metrics)}")
 
             # Clear GPU cache after training
             if torch.cuda.is_available():
@@ -312,15 +376,15 @@ class FederatedClient:
             # Clear GPU cache to prevent memory accumulation
             if torch.cuda.is_available():
                 # Get memory before clearing
-                allocated_before = torch.cuda.memory_allocated() / 1e9
-                reserved_before = torch.cuda.memory_reserved() / 1e9
+                allocated_before = torch.cuda.memory_allocated(self.device.index) / 1e9
+                reserved_before = torch.cuda.memory_reserved(self.device.index) / 1e9
                 
                 torch.cuda.empty_cache()
                 
                 # Get memory after clearing
-                allocated_after = torch.cuda.memory_allocated() / 1e9
-                reserved_after = torch.cuda.memory_reserved() / 1e9
-                total = torch.cuda.get_device_properties(0).total_memory / 1e9
+                allocated_after = torch.cuda.memory_allocated(self.device.index) / 1e9
+                reserved_after = torch.cuda.memory_reserved(self.device.index) / 1e9
+                total = torch.cuda.get_device_properties(self.device.index).total_memory / 1e9
                 freed = reserved_before - reserved_after
                 
                 logger.info(f"=" * 60)
@@ -491,9 +555,9 @@ class FederatedClient:
             torch.cuda.empty_cache()
             
             # Log GPU memory status
-            allocated = torch.cuda.memory_allocated() / 1e9
-            reserved = torch.cuda.memory_reserved() / 1e9
-            total = torch.cuda.get_device_properties(0).total_memory / 1e9
+            allocated = torch.cuda.memory_allocated(self.device.index) / 1e9
+            reserved = torch.cuda.memory_reserved(self.device.index) / 1e9
+            total = torch.cuda.get_device_properties(self.device.index).total_memory / 1e9
             
             logger.info(f"[GPU-MEMORY] GPU Memory Status:")
             logger.info(f"[GPU-MEMORY] Allocated: {allocated:.2f} GB / {total:.2f} GB ({allocated/total*100:.1f}%)")
@@ -987,15 +1051,20 @@ class FederatedClient:
         
         # Add CUDA metrics if available
         if torch.cuda.is_available() and self.device.type == 'cuda':
+            # Extract GPU ID from device string (e.g., "cuda:0" -> 0)
+            gpu_id = int(self.device.index) if hasattr(self.device, 'index') else 0
+            
             device_metrics.update({
-                'gpu_name': torch.cuda.get_device_name(0),
-                'gpu_memory_allocated_gb': torch.cuda.memory_allocated() / 1e9,
-                'gpu_memory_reserved_gb': torch.cuda.memory_reserved() / 1e9,
-                'gpu_memory_total_gb': torch.cuda.get_device_properties(0).total_memory / 1e9,
-                'gpu_memory_utilization_pct': (torch.cuda.memory_allocated() / torch.cuda.get_device_properties(0).total_memory) * 100,
+                'gpu_id': gpu_id,
+                'gpu_name': torch.cuda.get_device_name(gpu_id),
+                'gpu_memory_allocated_gb': torch.cuda.memory_allocated(gpu_id) / 1e9,
+                'gpu_memory_reserved_gb': torch.cuda.memory_reserved(gpu_id) / 1e9,
+                'gpu_memory_total_gb': torch.cuda.get_device_properties(gpu_id).total_memory / 1e9,
+                'gpu_memory_utilization_pct': (torch.cuda.memory_allocated(gpu_id) / torch.cuda.get_device_properties(gpu_id).total_memory) * 100,
             })
         else:
             device_metrics.update({
+                'gpu_id': -1,
                 'gpu_name': 'N/A',
                 'gpu_memory_allocated_gb': 0.0,
                 'gpu_memory_reserved_gb': 0.0,

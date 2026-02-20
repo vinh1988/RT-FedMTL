@@ -2,7 +2,7 @@
 
 Standalone training clients for individual NLP tasks using real GLUE datasets.
 
-##  Overview
+## Overview
 
 This directory contains 3 specialized local training clients for standalone training of individual NLP tasks:
 
@@ -11,28 +11,28 @@ This directory contains 3 specialized local training clients for standalone trai
 - **`stsb_local_client.py`** - STS-B semantic similarity training
 - **`base_local_client.py`** - Shared functionality and base class
 
-##  Key Features
+## Key Features
 
-### ✨ **Real Data Integration**
+### Real Data Integration
 - Loads authentic GLUE datasets from HuggingFace `datasets` library
 - No more dummy data - real training with actual benchmarks
 - Automatic fallback to local files or dummy data if needed
 
-###  **Task Specialization**
+### Task Specialization
 - **SST-2**: Binary sentiment classification (positive/negative)
 - **QQP**: Question pair duplicate detection (duplicate/not duplicate)
 - **STS-B**: Semantic similarity regression (0-5 similarity scores)
 
-###  **Comprehensive Metrics**
+### Comprehensive Metrics
 - **SST-2 & QQP**: Accuracy, loss, sample counts
 - **STS-B**: Correlation, MAE, MSE, RMSE for regression evaluation
 
-### ⚡ **Easy Configuration**
+### Easy Configuration
 - Uses same config system as federated learning
 - Command-line arguments for quick customization
 - Flexible model and training parameter selection
 
-##  Quick Start
+## Quick Start
 
 ### Basic Usage
 
@@ -59,11 +59,11 @@ python3 -m src.clients.sst2_local_client --config /path/to/custom_config.yaml
 python3 -c "
 from src.clients.sst2_local_client import run_sst2_local_training
 results = run_sst2_local_training('/path/to/config.yaml')
-print(f'Final accuracy: {results[\"final_metrics\"][\"accuracy\"]:.4f}')
+print(f'Final accuracy: {results["final_metrics"]["accuracy"]:.4f}')
 "
 ```
 
-##  Configuration
+## Configuration
 
 ### Main Configuration File
 
@@ -101,22 +101,22 @@ task_configs:
 | `num_epochs` | `3` | Number of training epochs |
 | `max_length` | `128` | Maximum sequence length |
 
-##  Expected Results
+## Expected Results
 
 ### Real Training Performance (with GLUE data)
 
 | Task | Dataset Size | Expected Accuracy | Training Time |
 |------|-------------|------------------|---------------|
-| **SST-2** | 67,349 samples | 85-92% | ~10-15 min |
-| **QQP** | 363,846 samples | 80-88% | ~30-45 min |
-| **STS-B** | 5,749 samples | 0.80-0.90 correlation | ~5-8 min |
+| SST-2 | 67,349 samples | 85-92% | ~10-15 min |
+| QQP | 363,846 samples | 80-88% | ~30-45 min |
+| STS-B | 5,749 samples | 0.80-0.90 correlation | ~5-8 min |
 
 ### Sample Training Output (Real Data)
 
 Here's actual output from running the STSB client with real GLUE data:
 
 ```
- Starting STSB Local Training
+Starting STSB Local Training
 ========================================
 2025-10-20 07:39:49,466 - STSBLlocalClient - INFO - Starting local training for stsb
 2025-10-20 07:39:49,466 - STSBLlocalClient - INFO - Loading model: bert-base-uncased
@@ -128,33 +128,33 @@ Here's actual output from running the STSB client with real GLUE data:
 2025-10-20 07:43:20,009 - STSBLlocalClient - INFO - Epoch 3/3 - Train Loss: 0.8033 - Val Loss: 0.9335
 2025-10-20 07:43:20,009 - STSBLlocalClient - INFO - Results saved to local_stsb_results/stsb_training_results.txt
 
- STSB Training Completed Successfully!
+STSB Training Completed Successfully!
 ========================================
- Final Training Loss: 0.8033
- Final Training MAE: 0.7579
- Final Training Correlation: 0.9097
- Final Validation Loss: 0.9335
- Final Validation MAE: 0.7810
- Final Validation Correlation: 0.8056
- Results saved to: local_stsb_results
+Final Training Loss: 0.8033
+Final Training MAE: 0.7579
+Final Training Correlation: 0.9097
+Final Validation Loss: 0.9335
+Final Validation MAE: 0.7810
+Final Validation Correlation: 0.8056
+Results saved to: local_stsb_results
 ```
 
 ### Key Observations from Real Training
 
-- ** Real Data Loading**: Successfully loaded 5,749 training samples from GLUE STS-B
-- ** Realistic Metrics**: 0.91 correlation (excellent for semantic similarity)
-- **⏱️ Training Time**: ~4 minutes for 3 epochs on GPU
-- ** Proper Validation**: Separate validation set evaluation
-- ** Results Persistence**: All metrics saved to files for analysis
+- Real Data Loading: Successfully loaded 5,749 training samples from GLUE STS-B
+- Realistic Metrics: 0.91 correlation (excellent for semantic similarity)
+- Training Time: ~4 minutes for 3 epochs on GPU
+- Proper Validation: Separate validation set evaluation
+- Results Persistence: All metrics saved to files for analysis
 
 ### Output Files
 
 Each client creates:
-- **`local_{task}_results/{task}_training_results.txt`** - Training metrics and results
-- **`local_{task}_training.log`** - Detailed training logs
-- **Console output** - Real-time progress updates
+- `local_{task}_results/{task}_training_results.txt` - Training metrics and results
+- `local_{task}_training.log` - Detailed training logs
+- Console output - Real-time progress updates
 
-## 🏗️ Architecture
+## Architecture
 
 ### Class Hierarchy
 
@@ -168,17 +168,17 @@ BaseLocalClient (abstract)
 ### Key Components
 
 #### BaseLocalClient
-- **Model Management**: Loading, initialization, device placement
-- **Data Loading**: GLUE dataset integration with fallbacks
-- **Training Loop**: Epoch management, metrics calculation
-- **Results Saving**: Comprehensive logging and output
+- Model Management: Loading, initialization, device placement
+- Data Loading: GLUE dataset integration with fallbacks
+- Training Loop: Epoch management, metrics calculation
+- Results Saving: Comprehensive logging and output
 
 #### Specialized Clients
-- **Data Conversion**: Task-specific format handling
-- **Metrics Calculation**: Appropriate evaluation for each task type
-- **Error Handling**: Graceful fallbacks and informative errors
+- Data Conversion: Task-specific format handling
+- Metrics Calculation: Appropriate evaluation for each task type
+- Error Handling: Graceful fallbacks and informative errors
 
-##  Advanced Usage
+## Advanced Usage
 
 ### Custom Training Parameters
 
@@ -221,7 +221,7 @@ for task_name, train_func in tasks:
     print(f"{task_name} completed: {results['final_metrics']}")
 ```
 
-##  Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -259,7 +259,7 @@ The local training clients provide a simple, powerful way to train individual NL
 
 - ** Research and experimentation**
 - ** Baseline establishment**
-- **⚡ Quick prototyping**
+- **Quick prototyping**
 - ** Configuration testing**
 
 Start with the basic usage examples above and customize as needed for your specific use case!

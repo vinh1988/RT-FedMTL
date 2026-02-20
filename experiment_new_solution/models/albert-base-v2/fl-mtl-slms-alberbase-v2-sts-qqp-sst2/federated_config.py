@@ -22,6 +22,14 @@ class CommunicationConfig:
     send_timeout: int = 3600  # Timeout for sending large updates (1 hour)
 
 @dataclass
+class GPUConfig:
+    """GPU configuration for multi-GPU support"""
+    enable_multi_gpu: bool = False
+    gpu_assignment_strategy: str = "round_robin"  # "round_robin", "least_loaded", "manual"
+    manual_gpu_assignments: Dict[str, int] = field(default_factory=dict)
+    fallback_to_cpu: bool = True
+
+@dataclass
 class FederatedConfig:
     """Centralized configuration for federated learning system"""
 
@@ -88,6 +96,9 @@ class FederatedConfig:
     gradient_clipping: float = 1.0
     weight_decay: float = 0.01
 
+    # GPU settings
+    gpu_config: GPUConfig = field(default_factory=GPUConfig)
+
     def __post_init__(self):
         """Post-initialization validation and setup"""
         # Set default task configurations if not provided
@@ -121,6 +132,23 @@ class FederatedConfig:
 
         # Flatten nested dictionary to match dataclass field names
         flattened_config = cls._flatten_config_dict(config_dict)
+
+        # Extract GPU config parameters and create GPUConfig object
+        gpu_config_params = {}
+        gpu_param_mapping = {
+            'gpu_config_enable_multi_gpu': 'enable_multi_gpu',
+            'gpu_config_gpu_assignment_strategy': 'gpu_assignment_strategy',
+            'gpu_config_manual_gpu_assignments': 'manual_gpu_assignments',
+            'gpu_config_fallback_to_cpu': 'fallback_to_cpu'
+        }
+        
+        for flat_key, gpu_key in gpu_param_mapping.items():
+            if flat_key in flattened_config:
+                gpu_config_params[gpu_key] = flattened_config.pop(flat_key)
+        
+        # Create GPUConfig object
+        gpu_config = GPUConfig(**gpu_config_params)
+        flattened_config['gpu_config'] = gpu_config
 
         # Create config instance
         return cls(**flattened_config)
@@ -178,6 +206,12 @@ class FederatedConfig:
             ('advanced', 'mixed_precision'): 'mixed_precision',
             ('advanced', 'gradient_clipping'): 'gradient_clipping',
             ('advanced', 'weight_decay'): 'weight_decay',
+
+            # GPU settings
+            ('gpu_config', 'enable_multi_gpu'): 'gpu_config_enable_multi_gpu',
+            ('gpu_config', 'gpu_assignment_strategy'): 'gpu_config_gpu_assignment_strategy',
+            ('gpu_config', 'manual_gpu_assignments'): 'gpu_config_manual_gpu_assignments',
+            ('gpu_config', 'fallback_to_cpu'): 'gpu_config_fallback_to_cpu',
         }
 
         # Flatten nested dictionary
@@ -185,10 +219,12 @@ class FederatedConfig:
             for key, value in d.items():
                 current_key = prefix + (key,)
 
-                # Special handling for task_configs - keep it as a nested dict
+                # Special handling for nested dicts that should remain nested
                 if current_key == ('task_configs',):
                     flattened['task_configs'] = value
-                elif isinstance(value, dict) and current_key not in [('task_configs',)]:
+                elif current_key == ('gpu_config', 'manual_gpu_assignments'):
+                    flattened['gpu_config_manual_gpu_assignments'] = value
+                elif isinstance(value, dict) and current_key not in [('task_configs',), ('gpu_config', 'manual_gpu_assignments')]:
                     flatten_dict(value, current_key)
                 elif current_key in key_mapping:
                     flattened[key_mapping[current_key]] = value

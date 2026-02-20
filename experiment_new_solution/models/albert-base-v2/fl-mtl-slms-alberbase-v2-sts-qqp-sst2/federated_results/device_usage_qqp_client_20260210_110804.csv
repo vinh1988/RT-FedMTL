@@ -1,0 +1,7 @@
+accuracy,client_id,device_type,gpu_id,gpu_memory_allocated_gb,gpu_memory_reserved_gb,gpu_memory_total_gb,gpu_memory_utilization_pct,gpu_name,loss,phase,round,samples_processed,task,timestamp
+0.0,qqp_client,cuda,0,0.05631744,0.159383552,25.756696576,0.21865164204510756,NVIDIA RTX A5000,0.0,training_start,1,0,all_tasks,2026-02-10 11:15:19
+0.852366154940247,qqp_client,cuda,0,0.201332224,0.32505856,25.756696576,0.7816694326694079,NVIDIA RTX A5000,0.3633891935002406,task_complete,1,323415,qqp,2026-02-10 12:23:08
+0.0,qqp_client,cuda,0,0.25174272,0.341835776,25.756696576,0.9773874505109206,NVIDIA RTX A5000,0.0,round_complete,1,0,all_tasks,2026-02-10 12:23:28
+0.0,qqp_client,cuda,0,0.201331712,0.381681664,25.756696576,0.7816674448368515,NVIDIA RTX A5000,0.0,training_start,2,0,all_tasks,2026-02-10 12:28:56
+0.848763971986457,qqp_client,cuda,0,0.201856512,0.32505856,25.756696576,0.7837049732071977,NVIDIA RTX A5000,0.3706862173713699,task_complete,2,323415,qqp,2026-02-10 13:32:02
+0.0,qqp_client,cuda,0,0.252267008,0.341835776,25.756696576,0.9794229910487106,NVIDIA RTX A5000,0.0,round_complete,2,0,all_tasks,2026-02-10 13:32:21

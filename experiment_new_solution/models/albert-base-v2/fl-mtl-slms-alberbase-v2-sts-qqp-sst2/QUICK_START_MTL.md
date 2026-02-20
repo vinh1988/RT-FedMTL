@@ -4,10 +4,10 @@
 
 Your federated learning system now implements **Server-Side Multi-Task Learning (MT-DNN style)**:
 
-- ✅ **Server maintains unified MTL model** (shared BERT + task heads)
-- ✅ **Task-aware aggregation** (shared from all clients, heads from same-task clients)
-- ✅ **Cross-task knowledge transfer** via shared encoder
-- ✅ **Task specialization** via task-specific heads
+- **Server maintains unified MTL model** (shared BERT + task heads)
+- **Task-aware aggregation** (shared from all clients, heads from same-task clients)
+- **Cross-task knowledge transfer** via shared encoder
+- **Task specialization** via task-specific heads
 
 ## Quick Start
 
@@ -203,5 +203,4 @@ Based on **MT-DNN** (Liu et al., ACL 2019) and paper **1901.11504v2.pdf**:
 
 ---
 
-**Ready to start?** Run the commands in the Quick Start section above! 🚀
-
+**Ready to start?** Run the commands in the Quick Start section above!

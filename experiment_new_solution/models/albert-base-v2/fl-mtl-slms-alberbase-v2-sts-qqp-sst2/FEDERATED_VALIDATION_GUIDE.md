@@ -5,14 +5,14 @@
 
 ---
 
-## 🎯 What Changed?
+## What Changed?
 
 ### **Before (Wrong Approach):**
 ```
 Server evaluates global model on its own 500 samples/task
-❌ Centralized validation data on server
-❌ Not truly federated
-❌ Different data than clients use
+- Centralized validation data on server
+- Not truly federated
+- Different data than clients use
 ```
 
 ### **After (Correct Federated Approach):**
@@ -20,15 +20,15 @@ Server evaluates global model on its own 500 samples/task
 Round N:
 1. Clients train locally → send updates
 2. Server aggregates → Global MTL Model
-3. Server broadcasts global model to clients ✅
-4. Clients receive & synchronize model ✅
-5. Each client validates GLOBAL model on THEIR local validation data ✅
-6. Global model metrics written to client_results.csv ✅
+3. Server broadcasts global model to clients
+4. Clients receive & synchronize model
+5. Each client validates GLOBAL model on THEIR local validation data
+6. Global model metrics written to client_results.csv
 ```
 
 ---
 
-## 📊 New Metrics in client_results.csv
+## New Metrics in client_results.csv
 
 ### **Global Model Validation Columns (New!):**
 
@@ -50,13 +50,13 @@ global_model_val_recall        # Recall (positive class)
 global_model_val_accuracy      # Normalized accuracy-like metric (1 - MSE)
 global_model_val_loss          # MSE loss
 global_model_val_samples       # Number of validation samples
-global_model_val_pearson       # Pearson correlation ✅
-global_model_val_spearman      # Spearman correlation ✅
+global_model_val_pearson       # Pearson correlation
+global_model_val_spearman      # Spearman correlation
 ```
 
 ---
 
-## 🔄 Validation Flow Details
+## Validation Flow Details
 
 ### **When Does Global Model Validation Happen?**
 
@@ -65,7 +65,7 @@ global_model_val_spearman      # Spearman correlation ✅
 2. Server broadcasts new global model to all clients
 3. **Client receives global model** → triggers `handle_global_model_sync()`
 4. **Client updates local model** with global parameters
-5. ✅ **NEW:** Client validates global model on local validation data
+5. **NEW:** Client validates global model on local validation data
 6. Client stores global model metrics
 7. **Next training request:** Client sends both training metrics AND global model metrics
 
@@ -83,7 +83,7 @@ Round 2:
 
 ---
 
-## 📈 Comparing Client vs Global Model
+## Comparing Client vs Global Model
 
 ### **client_results.csv now contains:**
 
@@ -102,19 +102,19 @@ global_model_val_accuracy,  # 0.935 - GLOBAL model validation (new!)
 ```
 
 ### **Key Insights:**
-✅ **Fair comparison:** Same validation data for both models  
-✅ **Federated-native:** No server-side validation data needed  
-✅ **Privacy-preserving:** Server never sees raw validation samples  
-✅ **True performance:** Reflects actual federated data distribution  
+**Fair comparison:** Same validation data for both models  
+**Federated-native:** No server-side validation data needed  
+**Privacy-preserving:** Server never sees raw validation samples  
+**True performance:** Reflects actual federated data distribution  
 
 ---
 
-## 🔍 What This Tells Us
+## What This Tells Us
 
 ### **1. Is Federated Learning Working?**
 ```python
 if global_model_val_accuracy > val_accuracy:
-    # ✅ Global model outperforms local model
+    # Global model outperforms local model
     # Federated aggregation is beneficial!
 ```
 
@@ -133,7 +133,7 @@ Later rounds: global >> local (aggregation helps)
 
 ---
 
-## 💻 Code Changes Summary
+## Code Changes Summary
 
 ### **1. Client-Side Validation (`base_federated_client.py`):**
 
@@ -195,34 +195,34 @@ def record_client_results(self, round_num: int, client_id: str, client_metrics: 
 
 ---
 
-## 🎯 Benefits of This Approach
+## Benefits of This Approach
 
 ### **1. True Federated Evaluation:**
-✅ No centralized test data needed on server  
-✅ Privacy-preserving (server never sees raw validation data)  
-✅ Evaluation on actual federated data distribution  
+**No centralized test data needed on server  
+**Privacy-preserving (server never sees raw validation data)  
+**Evaluation on actual federated data distribution  
 
 ### **2. Fair Comparison:**
-✅ Local model and global model evaluated on **identical data**  
-✅ Easy to quantify benefit of federated aggregation  
-✅ Per-client insights into FL effectiveness  
+**Local model and global model evaluated on **identical data**  
+**Easy to quantify benefit of federated aggregation  
+**Per-client insights into FL effectiveness  
 
 ### **3. Heterogeneous Data Support:**
-✅ Each client has different validation set sizes:
+**Each client has different validation set sizes:
   - SST-2: 872 samples
   - QQP: 40,431 samples
   - STS-B: 1,500 samples
-✅ Reflects real-world data distribution  
-✅ No need to artificially balance datasets  
+**Reflects real-world data distribution  
+**No need to artificially balance datasets  
 
 ### **4. Standard GLUE Metrics:**
-✅ SST-2: Accuracy + F1  
-✅ QQP: Accuracy + F1  
-✅ STS-B: Pearson + Spearman (standard for semantic similarity)  
+**SST-2: Accuracy + F1  
+**QQP: Accuracy + F1  
+**STS-B: Pearson + Spearman (standard for semantic similarity)  
 
 ---
 
-## 📊 Example Analysis
+## Example Analysis
 
 ### **Sample client_results.csv (Round 10):**
 
@@ -237,24 +237,24 @@ round,client_id,task,val_accuracy,global_model_val_accuracy,global_model_val_f1
 1. **SST-2 Client:**
    - Local model: 93.12% accuracy
    - Global model: 94.00% accuracy
-   - ✅ **+0.88% improvement** from FL aggregation
+   - **+0.88% improvement** from FL aggregation
 
 2. **QQP Client:**
    - Local model: 85.75% accuracy
    - Global model: 86.20% accuracy
-   - ✅ **+0.45% improvement** from FL aggregation
+   - **+0.45% improvement** from FL aggregation
 
 3. **STS-B Client:**
    - Local model: 73.45% (accuracy-like metric)
    - Global model: 75.00%
-   - ✅ **+1.55% improvement** from FL aggregation
+   - **+1.55% improvement** from FL aggregation
 
 ### **Conclusion:**
-All three tasks benefit from federated learning! The global aggregated model consistently outperforms individual local models. 🎉
+All three tasks benefit from federated learning! The global aggregated model consistently outperforms individual local models.
 
 ---
 
-## 🚀 Next Steps
+## Next Steps
 
 ### **To Run a New Experiment:**
 
@@ -325,7 +325,7 @@ accuracy_like = max(0, 1 - mse)
 
 ---
 
-## ✅ Implementation Checklist
+## Implementation Checklist
 
 - [x] Add `validate_global_model()` method to `BaseFederatedClient`
 - [x] Call validation in `handle_global_model_sync()`
@@ -361,7 +361,7 @@ This implementation enables analysis of:
 
 ---
 
-**Implementation Complete! Ready for experimentation.** 🚀
+**Implementation Complete! Ready for experimentation.**
 
 ---
 

@@ -1,2 +1,0 @@
-round,responses_received,avg_accuracy,classification_accuracy,regression_accuracy,total_clients,active_clients,training_time,synchronization_events,global_model_version,global_sst2_val_accuracy,global_sst2_val_f1,global_qqp_val_accuracy,global_qqp_val_f1,global_stsb_val_pearson,global_stsb_val_spearman,timestamp
-1,2,0.7989,0.9020,0.6958,0,0,2421.93,1,1,0.5573,0.7106,0.0000,0.0000,0.1440,0.1251,2026-02-03 22:40:32

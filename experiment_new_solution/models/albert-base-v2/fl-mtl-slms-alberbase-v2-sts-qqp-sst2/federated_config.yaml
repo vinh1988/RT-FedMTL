@@ -5,6 +5,17 @@ model:
   server_model: "albert-base-v2"  # ALBERT-base-v2 (12 layers, 768 hidden, ~12M params)
   client_model: "albert-base-v2"  # ALBERT-base-v2
 
+# GPU Configuration for Multi-GPU Support
+gpu_config:
+  enable_multi_gpu: true         # Enable multi-GPU usage
+  gpu_assignment_strategy: "manual"  # Strategy: "round_robin", "least_loaded", "manual"
+  manual_gpu_assignments:        # Manual GPU assignments (only used if strategy is "manual")
+    sst2_client: 0               # SST-2 client on GPU 0
+    qqp_client: 1                # QQP client on GPU 1  
+    stsb_client: 0               # STS-B client on GPU 0
+  fallback_to_cpu: true          # Fallback to CPU if GPU assignment fails
+
+
 synchronization:
   enabled: true                    # Enable model synchronization
   frequency: "per_round"          # Sync frequency
