@@ -1,0 +1,81 @@
+@echo off
+echo ========================================
+echo Federated Learning - Non-IID Distribution
+echo Mini BERT with Standard FL (3 STSB Clients)
+echo Non-IID Data Distribution (alpha=0.5)
+echo ========================================
+
+REM ===== Conda =====
+set CONDA_ROOT=C:\Users\hunglq\miniconda3
+set CONDA_ENV=py312
+
+REM ===== Project paths =====
+set PROJECT_ROOT=C:\Users\hunglq\docs\FedAvgLS
+set WORK_DIR=%PROJECT_ROOT%\experiment_new_solution\models\mini-bert\fl-slms-mini-lm-non-iid-stsb
+
+set PYTHONPATH=%PROJECT_ROOT%
+
+echo Project Root: %PROJECT_ROOT%
+echo Work Directory: %WORK_DIR%
+echo Conda Environment: %CONDA_ENV%
+
+REM Check if conda environment exists
+echo Checking conda environment...
+%CONDA_ROOT%\condabin\conda.bat info --envs | findstr %CONDA_ENV% >nul
+if errorlevel 1 (
+    echo ERROR: Conda environment '%CONDA_ENV%' not found!
+    echo Please create it first:
+    echo conda create -n %CONDA_ENV% python=3.12 pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+    pause
+    exit /b 1
+)
+
+echo Environment found: %CONDA_ENV%
+echo.
+
+REM ===== Server =====
+echo Starting Federated Learning Server for STSB...
+start "FL STSB Server" cmd /k ^
+"%CONDA_ROOT%\condabin\conda.bat activate %CONDA_ENV% ^&^& cd /d %WORK_DIR% ^&^& set CUDA_VISIBLE_DEVICES=0 ^&^& python federated_main.py --mode server --config federated_config.yaml"
+
+timeout /t 20 >nul
+
+REM ===== STSB Client 1 =====
+echo Starting STSB Client 1...
+start "FL STSB Client 1" cmd /k ^
+"%CONDA_ROOT%\condabin\conda.bat activate %CONDA_ENV% ^&^& cd /d %WORK_DIR% ^&^& set CUDA_VISIBLE_DEVICES=0 ^&^& python federated_main.py --mode client --client_id stsb_client_1 --tasks stsb --config federated_config.yaml"
+
+timeout /t 3 >nul
+
+REM ===== STSB Client 2 =====
+echo Starting STSB Client 2...
+start "FL STSB Client 2" cmd /k ^
+"%CONDA_ROOT%\condabin\conda.bat activate %CONDA_ENV% ^&^& cd /d %WORK_DIR% ^&^& set CUDA_VISIBLE_DEVICES=0 ^&^& python federated_main.py --mode client --client_id stsb_client_2 --tasks stsb --config federated_config.yaml"
+
+timeout /t 3 >nul
+
+REM ===== STSB Client 3 =====
+echo Starting STSB Client 3...
+start "FL STSB Client 3" cmd /k ^
+"%CONDA_ROOT%\condabin\conda.bat activate %CONDA_ENV% ^&^& cd /d %WORK_DIR% ^&^& set CUDA_VISIBLE_DEVICES=0 ^&^& python federated_main.py --mode client --client_id stsb_client_3 --tasks stsb --config federated_config.yaml"
+
+timeout /t 3 >nul
+
+echo.
+echo ========================================
+echo All STSB clients started successfully!
+echo ========================================
+echo.
+echo Server: Port 8771
+echo Clients: 3 total (STSB semantic similarity)
+echo Model: prajjwal1/bert-mini (Mini BERT, ~11M params)
+echo Distribution: Non-IID (alpha=0.5)
+echo Dataset: STSB (4,249 train + 1,500 val samples)
+echo.
+echo Each client gets ~1,416 training samples with heterogeneous similarity score distributions
+echo Validation: 500 samples per client (1/3 of validation set)
+echo.
+echo Check individual client windows for progress
+echo Results will be saved to: fl_non_iid_stsb_result
+echo.
+pause

@@ -1,14 +1,14 @@
 # Enhanced Federated Learning Configuration (YAML Format)
 
-# MiniLM-L6-H384-uncased with Full Fine-Tuning - Standard FL
+# DistilBERT with Full Fine-Tuning - Standard FL
 
 
 
 model:
 
-  server_model: "sentence-transformers/all-MiniLM-L6-v2"  # MiniLM-L6-H384-uncased (~22M params)
+  server_model: "distilbert-base-uncased"  # DistilBERT-base-uncased (~66M params)
 
-  client_model: "sentence-transformers/all-MiniLM-L6-v2"  # MiniLM-L6-H384-uncased-v2
+  client_model: "distilbert-base-uncased"  # DistilBERT-base-uncased
 
 
 

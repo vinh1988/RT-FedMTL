@@ -26,8 +26,8 @@ class FederatedConfig:
     """Centralized configuration for federated learning system"""
 
     # Model settings
-    server_model: str = "sentence-transformers/all-MiniLM-L6-v2"
-    client_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    server_model: str = "distilbert-base-uncased"
+    client_model: str = "distilbert-base-uncased"
 
     # Synchronization settings
     enable_synchronization: bool = True
@@ -36,7 +36,7 @@ class FederatedConfig:
 
     # Data settings (per-client configuration)
     samples_per_client: int = 107805     # 1/3 of QQP dataset (true federated learning)
-    validation_samples: int = 13473      # 1/8 of training (proportional)
+    validation_samples: int = 40431      # Full QQP validation set (not split in single-task FL)
     max_samples_per_client: int = 120000    # Maximum for split dataset
     data_distribution: str = "non_iid"
     non_iid_alpha: float = 0.5

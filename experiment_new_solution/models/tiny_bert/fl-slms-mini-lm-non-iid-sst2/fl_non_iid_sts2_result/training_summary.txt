@@ -1,0 +1,20 @@
+Federated Learning Training Summary
+========================================
+
+Configuration: Server-Side MTL (MT-DNN Style)
+Architecture: Shared BERT + Task-Specific Heads
+Total Rounds: 25
+Total Clients: 3
+
+MTL Model Architecture:
+  Base Model: prajjwal1/bert-tiny
+  Tasks: sst2, qqp, stsb
+  Shared Parameters: 4,385,920
+  Task 'sst2' Head: 258 parameters
+  Task 'qqp' Head: 258 parameters
+  Task 'stsb' Head: 129 parameters
+  Total Parameters: 4,386,565
+
+Global Results File: federated_results_20260223_141631.csv
+Client Results File: client_results_20260223_141631.csv
+Timestamp: 2026-02-23 14:58:52

@@ -26,8 +26,8 @@ class FederatedConfig:
     """Centralized configuration for federated learning system"""
 
     # Model settings
-    server_model: str = "sentence-transformers/all-MiniLM-L6-v2"
-    client_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    server_model: str = "distilbert-base-uncased"
+    client_model: str = "distilbert-base-uncased"
 
     # Synchronization settings
     enable_synchronization: bool = True
@@ -35,8 +35,9 @@ class FederatedConfig:
     global_model_sharing: bool = True
 
     # Data settings (per-client configuration)
-    samples_per_client: int = 1400
-    max_samples_per_client: int = 1500
+    samples_per_client: int = 1416          # 1/3 of STSB dataset for each client (true federated learning)
+    validation_samples: int = 1500           # 1/3 of STSB validation set (not split in single-task FL)
+    max_samples_per_client: int = 1500     # Maximum training samples
     data_distribution: str = "non_iid"
     non_iid_alpha: float = 0.5
     oversample_minority: bool = True

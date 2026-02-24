@@ -36,7 +36,7 @@ class WebSocketServer:
             ping_interval=None,  # Disable ping to prevent timeouts
             ping_timeout=None,   # Disable ping timeout
             close_timeout=None,  # Disable close timeout
-            max_size=1024 * 1024 * 1024  # 1GB for large BERT-Medium updates
+            max_size=2 * 1024 * 1024 * 1024  # 2GB for large DistilBERT updates
         )
         logger.info(f"WebSocket server started on port {self.port}")
 
@@ -118,7 +118,7 @@ class WebSocketClient:
                 ping_interval=None,  # Disable ping to prevent timeouts
                 ping_timeout=None,   # Disable ping timeout
                 close_timeout=None,  # Disable close timeout
-                max_size=1024 * 1024 * 1024  # 1GB for large BERT-Medium updates
+                max_size=2 * 1024 * 1024 * 1024  # 2GB for large DistilBERT updates
             )
             self.is_connected = True
             logger.info(f"Client {self.client_id} connected to server at {self.server_url}")

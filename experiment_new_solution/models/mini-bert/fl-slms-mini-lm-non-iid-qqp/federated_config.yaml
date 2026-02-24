@@ -1,0 +1,91 @@
+# Enhanced Federated Learning Configuration (YAML Format)
+
+# Mini BERT with Full Fine-Tuning - Standard FL
+
+
+
+model:
+
+  server_model: "prajjwal1/bert-mini"  # Mini BERT (~11M params)
+
+  client_model: "prajjwal1/bert-mini"  # Mini BERT
+
+
+
+synchronization:
+
+  enabled: true                    # Enable model synchronization
+
+  frequency: "per_round"          # Sync frequency
+
+  global_model_sharing: true      # Share global model with clients
+
+
+
+training:
+
+  num_rounds: 25                   # Number of federated rounds
+
+  min_clients: 1                  # Minimum clients required
+
+  max_clients: 3                  # Maximum clients supported
+
+  expected_clients: 3             # Expected clients to wait for
+
+  local_epochs: 1                 # Local epochs per round
+
+  batch_size: 8                  # Batch size for training
+
+  learning_rate: 0.00002         # Learning rate
+
+  samples_per_client: 107805          # 1/3 of QQP dataset for each client (true federated learning)
+
+  validation_samples: 40431           # Full QQP validation set (not split in single-task FL)
+
+  max_samples_per_client: 120000     # Maximum for split dataset
+
+  data_distribution: "non_iid"     # Non-IID distribution
+
+  non_iid_alpha: 0.5              # Dirichlet alpha for heterogeneity
+
+  oversample_minority: true         # Balance minority classes
+
+  normalize_weights: true           # Normalize client weights
+
+
+
+communication:
+
+  port: 8771                     # WebSocket server port
+
+  timeout: 60                    # Client timeout (seconds)
+
+  websocket_timeout: 30          # WebSocket timeout (seconds)
+
+  retry_attempts: 3              # Retry attempts
+
+  round_timeout: 3400            # Timeout for collecting client updates per round (56.7 minutes)
+
+  send_timeout: 3600             # Timeout for sending large updates (60 minutes)
+
+
+
+output:
+
+  results_dir: "fl_non_iid_qqp_result"  # Results directory
+
+  log_level: "INFO"              # Logging level
+
+  save_checkpoints: true         # Save model checkpoints
+
+
+
+monitoring:
+
+  enable_gpu_monitoring: true     # Track GPU/CPU usage
+
+  enable_validation_tracking: true # Track validation metrics
+
+  resource_sampling_interval: 10  # Seconds between samples
+
+  save_resource_logs: true       # Save resource usage logs
