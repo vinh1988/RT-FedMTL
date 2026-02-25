@@ -1,0 +1,43 @@
+config:
+  data:
+    max_length: 128
+    padding: max_length
+    truncation: true
+  model:
+    model_name: sentence-transformers/all-MiniLM-L6-v2
+  monitoring:
+    enable_gpu_monitoring: true
+    enable_validation_tracking: true
+    resource_sampling_interval: 10
+    save_resource_logs: true
+  output:
+    checkpoint_interval: 5
+    log_level: INFO
+    results_dir: centralized_sst2_results
+    save_checkpoints: true
+  paths:
+    cache_dir: cache
+    data_dir: data
+    output_dir: outputs
+  training:
+    batch_size: 8
+    dataset: sst2
+    epochs: 25
+    learning_rate: 2.0e-05
+    max_grad_norm: 1.0
+    random_seed: 42
+    test_samples: 1821
+    train_samples: 66477
+    val_samples: 872
+    warmup_steps: 500
+    weight_decay: 0.01
+test_results:
+  loss: 1.238338822616254
+  metrics:
+    accuracy: 0.8807339449541285
+    f1: 0.88470066518847
+    mcc: 0.7616403181574095
+    precision: 0.87117903930131
+    recall: 0.8986486486486487
+timestamp: '2026-02-25T14:14:54.713025'
+training_time: '2:19:36.970615'

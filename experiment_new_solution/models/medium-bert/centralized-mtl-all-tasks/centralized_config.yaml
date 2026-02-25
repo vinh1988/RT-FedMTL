@@ -1,0 +1,58 @@
+# Centralized Training Configuration (YAML Format)
+# Medium BERT with Full Fine-Tuning - Multi-Task Learning
+
+model:
+  model_name: "prajjwal1/bert-medium"  # BERT-Medium (~41M params)
+  
+training:
+  epochs: 25                          # Training epochs
+  batch_size: 8                       # Batch size for training
+  learning_rate: 0.00002               # Learning rate (2e-5)
+  warmup_steps: 1000                   # Learning rate warmup
+  weight_decay: 0.01                   # Weight decay
+  max_grad_norm: 1.0                  # Gradient clipping
+  random_seed: 42                       # Reproducibility
+  
+data:
+  max_length: 128                     # Max sequence length
+  truncation: true                     # Truncate sequences
+  padding: "max_length"               # Padding strategy
+  
+task_configs:
+  sst2:                              # SST-2 sentiment analysis
+    train_samples: 66477               # Full SST2 dataset
+    val_samples: 872                   # Full SST2 validation
+    test_samples: 1821                 # Full SST2 test set
+    num_labels: 2                      # Binary classification
+    task_type: "classification"
+    
+  qqp:                                # QQP question pairs
+    train_samples: 323415              # Full QQP dataset
+    val_samples: 40431                 # Full QQP validation
+    test_samples: 39081                # Full QQP test set
+    num_labels: 2                      # Binary classification
+    task_type: "classification"
+    
+  stsb:                               # STSB semantic similarity
+    train_samples: 4249                 # Full STSB dataset
+    val_samples: 1500                  # Full STSB validation
+    test_samples: 1379                 # Full STSB test set
+    num_labels: 1                      # Regression
+    task_type: "regression"
+  
+output:
+  results_dir: "centralized_mtl_results"  # Results directory
+  log_level: "INFO"                    # Logging level
+  save_checkpoints: true               # Save model checkpoints
+  checkpoint_interval: 5               # Save every 5 epochs
+  
+monitoring:
+  enable_gpu_monitoring: true          # Track GPU/CPU usage
+  enable_validation_tracking: true     # Track validation metrics
+  resource_sampling_interval: 10       # Seconds between samples
+  save_resource_logs: true             # Save resource usage logs
+  
+paths:
+  data_dir: "data"                    # Data directory
+  cache_dir: "cache"                  # Cache directory
+  output_dir: "outputs"                # Output directory
