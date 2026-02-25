@@ -1,0 +1,76 @@
+config:
+  data:
+    max_length: 128
+    padding: max_length
+    truncation: true
+  model:
+    model_name: distilbert-base-uncased
+  monitoring:
+    enable_gpu_monitoring: true
+    enable_validation_tracking: true
+    resource_sampling_interval: 10
+    save_resource_logs: true
+  output:
+    checkpoint_interval: 5
+    log_level: INFO
+    results_dir: centralized_mtl_results
+    save_checkpoints: true
+  paths:
+    cache_dir: cache
+    data_dir: data
+    output_dir: outputs
+  task_configs:
+    qqp:
+      num_labels: 2
+      task_type: classification
+      test_samples: 39081
+      train_samples: 323415
+      val_samples: 40431
+    sst2:
+      num_labels: 2
+      task_type: classification
+      test_samples: 1821
+      train_samples: 66477
+      val_samples: 872
+    stsb:
+      num_labels: 1
+      task_type: regression
+      test_samples: 1379
+      train_samples: 4249
+      val_samples: 1500
+  training:
+    batch_size: 8
+    epochs: 25
+    learning_rate: 2.0e-05
+    max_grad_norm: 1.0
+    random_seed: 42
+    warmup_steps: 1000
+    weight_decay: 0.01
+test_results:
+  qqp:
+    loss: 1.7540146948358954
+    metrics:
+      accuracy: 0.8137254901960784
+      f1: 0.8774193548387097
+      mcc: 0.5522826106321568
+      precision: 0.7976539589442815
+      recall: 0.974910394265233
+  sst2:
+    loss: 1.2397075827760236
+    metrics:
+      accuracy: 0.8979357798165137
+      f1: 0.9003359462486002
+      mcc: 0.7958122101220358
+      precision: 0.8953229398663697
+      recall: 0.9054054054054054
+  stsb:
+    loss: 0.593607828892926
+    metrics:
+      mae: 0.5893751382827759
+      mse: 0.5930749773979187
+      pearson: 0.8633310625347976
+      rmse: 0.7701135873794556
+      spearman: 0.8609653709761603
+  total_loss: 112.0603825970291
+timestamp: '2026-02-25T21:34:49.026605'
+training_time: '6:49:40.386907'
