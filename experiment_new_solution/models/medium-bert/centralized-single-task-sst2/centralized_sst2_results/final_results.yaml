@@ -1,0 +1,43 @@
+config:
+  data:
+    max_length: 128
+    padding: max_length
+    truncation: true
+  model:
+    model_name: prajjwal1/bert-medium
+  monitoring:
+    enable_gpu_monitoring: true
+    enable_validation_tracking: true
+    resource_sampling_interval: 10
+    save_resource_logs: true
+  output:
+    checkpoint_interval: 5
+    log_level: INFO
+    results_dir: centralized_sst2_results
+    save_checkpoints: true
+  paths:
+    cache_dir: cache
+    data_dir: data
+    output_dir: outputs
+  training:
+    batch_size: 8
+    dataset: sst2
+    epochs: 25
+    learning_rate: 2.0e-05
+    max_grad_norm: 1.0
+    random_seed: 42
+    test_samples: 1821
+    train_samples: 66477
+    val_samples: 872
+    warmup_steps: 500
+    weight_decay: 0.01
+test_results:
+  loss: 1.2247489005438645
+  metrics:
+    accuracy: 0.8887614678899083
+    f1: 0.890888638920135
+    mcc: 0.7774406857456985
+    precision: 0.8898876404494382
+    recall: 0.8918918918918919
+timestamp: '2026-02-26T03:09:30.674706'
+training_time: '3:45:34.273100'

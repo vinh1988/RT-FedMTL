@@ -1,0 +1,76 @@
+config:
+  data:
+    max_length: 128
+    padding: max_length
+    truncation: true
+  model:
+    model_name: prajjwal1/bert-medium
+  monitoring:
+    enable_gpu_monitoring: true
+    enable_validation_tracking: true
+    resource_sampling_interval: 10
+    save_resource_logs: true
+  output:
+    checkpoint_interval: 5
+    log_level: INFO
+    results_dir: centralized_mtl_results
+    save_checkpoints: true
+  paths:
+    cache_dir: cache
+    data_dir: data
+    output_dir: outputs
+  task_configs:
+    qqp:
+      num_labels: 2
+      task_type: classification
+      test_samples: 39081
+      train_samples: 323415
+      val_samples: 40431
+    sst2:
+      num_labels: 2
+      task_type: classification
+      test_samples: 1821
+      train_samples: 66477
+      val_samples: 872
+    stsb:
+      num_labels: 1
+      task_type: regression
+      test_samples: 1379
+      train_samples: 4249
+      val_samples: 1500
+  training:
+    batch_size: 8
+    epochs: 25
+    learning_rate: 2.0e-05
+    max_grad_norm: 1.0
+    random_seed: 42
+    warmup_steps: 1000
+    weight_decay: 0.01
+test_results:
+  qqp:
+    loss: 1.6371996237853725
+    metrics:
+      accuracy: 0.8137254901960784
+      f1: 0.8698630136986302
+      mcc: 0.5512821886698667
+      precision: 0.8327868852459016
+      recall: 0.910394265232975
+  sst2:
+    loss: 1.319414183959891
+    metrics:
+      accuracy: 0.8795871559633027
+      f1: 0.8842337375964718
+      mcc: 0.7596236223777871
+      precision: 0.8660907127429806
+      recall: 0.9031531531531531
+  stsb:
+    loss: 0.5986588315523051
+    metrics:
+      mae: 0.5853567123413086
+      mse: 0.5968043804168701
+      pearson: 0.8581236789613155
+      rmse: 0.7725311517715454
+      spearman: 0.8547192599096387
+  total_loss: 113.2870623988385
+timestamp: '2026-02-26T04:47:09.766790'
+training_time: '5:23:09.133158'
