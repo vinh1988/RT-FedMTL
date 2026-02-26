@@ -1,0 +1,43 @@
+config:
+  data:
+    max_length: 128
+    padding: max_length
+    truncation: true
+  model:
+    model_name: prajjwal1/bert-mini
+  monitoring:
+    enable_gpu_monitoring: true
+    enable_validation_tracking: true
+    resource_sampling_interval: 10
+    save_resource_logs: true
+  output:
+    checkpoint_interval: 5
+    log_level: INFO
+    results_dir: centralized_qqp_results
+    save_checkpoints: true
+  paths:
+    cache_dir: cache
+    data_dir: data
+    output_dir: outputs
+  training:
+    batch_size: 8
+    dataset: qqp
+    epochs: 25
+    learning_rate: 2.0e-05
+    max_grad_norm: 1.0
+    random_seed: 42
+    test_samples: 39081
+    train_samples: 323415
+    val_samples: 40431
+    warmup_steps: 1000
+    weight_decay: 0.01
+test_results:
+  loss: 1.68658852211186
+  metrics:
+    accuracy: 0.7720588235294118
+    f1: 0.8342245989304813
+    mcc: 0.46962084468020343
+    precision: 0.8297872340425532
+    recall: 0.8387096774193549
+timestamp: '2026-02-25T23:51:17.280216'
+training_time: '0:05:19.618684'
