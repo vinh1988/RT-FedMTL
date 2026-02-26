@@ -50,7 +50,7 @@ communication:
   send_timeout: 3600             # Timeout for sending large updates (60 minutes - for full dataset training)
 
 output:
-  results_dir: "fl_mtl_non-iid-3clients"  # Results directory
+  results_dir: "tinybert_fl_mtl_non-iid_9clients"  # Results directory
   log_level: "INFO"              # Logging level
   save_checkpoints: true         # Save model checkpoints
 

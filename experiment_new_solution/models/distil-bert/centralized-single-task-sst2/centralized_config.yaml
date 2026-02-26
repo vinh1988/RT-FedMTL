@@ -23,7 +23,7 @@ data:
   padding: "max_length"               # Padding strategy
   
 output:
-  results_dir: "centralized_sst2_results"  # Results directory
+  results_dir: "distilbert_centralized_single_sst2"  # Results directory
   log_level: "INFO"                    # Logging level
   save_checkpoints: true               # Save model checkpoints
   checkpoint_interval: 5               # Save every 5 epochs

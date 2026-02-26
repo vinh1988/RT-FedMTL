@@ -90,7 +90,7 @@ communication:
 
 output:
 
-  results_dir: "federated_results"  # Results directory
+  results_dir: "minilm_fl_mtl_iid_3clients"  # Results directory
 
   log_level: "INFO"              # Logging level
 

@@ -1,0 +1,43 @@
+config:
+  data:
+    max_length: 128
+    padding: max_length
+    truncation: true
+  model:
+    model_name: prajjwal1/bert-tiny
+  monitoring:
+    enable_gpu_monitoring: true
+    enable_validation_tracking: true
+    resource_sampling_interval: 10
+    save_resource_logs: true
+  output:
+    checkpoint_interval: 5
+    log_level: INFO
+    results_dir: centralized_stsb_results
+    save_checkpoints: true
+  paths:
+    cache_dir: cache
+    data_dir: data
+    output_dir: outputs
+  training:
+    batch_size: 8
+    dataset: stsb
+    epochs: 25
+    learning_rate: 2.0e-05
+    max_grad_norm: 1.0
+    random_seed: 42
+    test_samples: 1379
+    train_samples: 4249
+    val_samples: 1500
+    warmup_steps: 200
+    weight_decay: 0.01
+test_results:
+  loss: 1.0986282915828076
+  metrics:
+    mae: 0.8151073455810547
+    mse: 1.0984517335891724
+    pearson: 0.7269762520492515
+    rmse: 1.0480704307556152
+    spearman: 0.7230012598740546
+timestamp: '2026-02-26T08:03:00.771324'
+training_time: '0:39:43.123631'

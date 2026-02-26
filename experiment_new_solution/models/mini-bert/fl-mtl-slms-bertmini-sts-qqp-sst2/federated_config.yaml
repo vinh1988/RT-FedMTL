@@ -44,7 +44,7 @@ communication:
   send_timeout: 3600             # Timeout for sending large updates (60 minutes - for full dataset training)
 
 output:
-  results_dir: "federated_results"  # Results directory
+  results_dir: "minibert_fl_mtl_iid_3clients"  # Results directory
   log_level: "INFO"              # Logging level
   save_checkpoints: true         # Save model checkpoints
 

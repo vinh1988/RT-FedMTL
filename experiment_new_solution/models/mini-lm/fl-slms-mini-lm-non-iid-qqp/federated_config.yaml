@@ -72,7 +72,7 @@ communication:
 
 output:
 
-  results_dir: "fl_non_iid_qqp_result"  # Results directory
+  results_dir: "minilm_fl_single_qqp_non-iid_3clients"  # Results directory
 
   log_level: "INFO"              # Logging level
 

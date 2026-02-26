@@ -23,7 +23,7 @@ data:
   padding: "max_length"                  # Padding strategy
   
 output:
-  results_dir: "centralized_qqp_results"  # Results directory
+  results_dir: "tinybert_centralized_single_qqp"  # Results directory
   log_level: "INFO"                      # Logging level
   save_checkpoints: true                 # Save model checkpoints
   checkpoint_interval: 5                  # Save every 5 epochs
