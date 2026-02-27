@@ -1,0 +1,6 @@
+model,experiment,paradigm,system,distribution,is_lora,val_sst2_acc,val_sst2_f1,val_qqp_acc,val_qqp_f1,val_stsb_pearson,val_stsb_spearman,train_acc,train_loss,avg_gpu_mem_gb,peak_gpu_mem_gb,total_time_sec,avg_step_time_sec,total_samples,sync_events
+tiny_bert,tinybert_fl_mtl_lora_3clients,Multi-task,FL,IID,True,0.7569,0.7902,0.6766,0.4475,0.3636,0.3505,0.558090370941385,0.4187948654027353,0.035645952,0.035646464,3560.68,142.4272,394141.0,25.0
+mini-lm,minilm_fl_mtl_lora_3clients,Multi-task,FL,IID,True,0.7787,0.8102,0.7271,0.606,0.0703,0.0621,0.5281538628605552,0.3835880998611689,0.1089619626666666,0.10896384,18808.08,752.3232,394141.0,25.0
+mini-bert,minibert_fl_mtl_lora_3clients,Multi-task,FL,IID,True,0.7649,0.7915,0.6958,0.5602,0.2824,0.2773,0.5276854360371264,0.4072173207411356,0.0629906773333333,0.062991872,4191.67,167.6668,394141.0,25.0
+medium-bert,mediumbert_fl_mtl_lora_3clients,Multi-task,FL,IID,True,0.8131,0.8362,0.7388,0.6805,0.6823,0.6512,0.7133694386803467,0.3475268965823019,0.184010752,0.184013312,12885.74,515.4295999999999,394141.0,25.0
+distil-bert,distilbert_fl_mtl_lora_3clients,Multi-task,FL,IID,True,0.8257,0.8433,0.7535,0.6754,0.5108,0.4919,0.6741997960394799,0.3186714280402837,0.285237248,0.285620736,21245.26,849.8104,394141.0,25.0

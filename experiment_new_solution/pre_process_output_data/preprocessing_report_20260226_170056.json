@@ -1,8 +1,0 @@
-{
-  "preprocessing_timestamp": "20260226_170056",
-  "total_files_found": 217,
-  "files_successfully_processed": 2,
-  "processing_statistics": {
-    "files_processed": 2,
-    "tensor_values_converted": 125,
-    "missing_values_handled": 
