@@ -1,9 +1,9 @@
-# Single vs Multi-Task: Stacked Performance Comparison
+# Single vs Multi-Task: Balanced-Enhanced Stacked Performance Comparison
 
-![Single vs Multi-Task: Stacked Performance Comparison](single_vs_multitask_stacked_performance.png)
+![Single vs Multi-Task: Balanced-Enhanced Stacked Performance Comparison](single_vs_multitask_stacked_performance_balanced.png)
 
 ## Description
-Stacked performance comparison between Single-Task and Multi-Task Learning approaches. Each bar shows both approaches stacked together, sorted by total combined performance.
+Balanced-enhanced stacked performance comparison between Single-Task and Multi-Task Learning approaches. All text and numbers are 1.5x larger for optimal readability.
 
 ## Key Insights
 - **Performance Ranking**: Clear hierarchy of model-task combinations by total performance

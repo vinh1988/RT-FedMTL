@@ -1,9 +1,9 @@
-# IID vs Non-IID: Stacked Resource Usage Comparison
+# IID vs Non-IID: Balanced-Enhanced Stacked Resource Usage Comparison
 
-![IID vs Non-IID: Stacked Resource Usage Comparison](iid_vs_noniid_stacked_resource_usage.png)
+![IID vs Non-IID: Balanced-Enhanced Stacked Resource Usage Comparison](iid_vs_noniid_stacked_resource_usage_balanced.png)
 
 ## Description
-Stacked resource usage comparison between IID and Non-IID data distributions. Each bar shows both distributions stacked together, sorted by total combined resource usage.
+Balanced-enhanced stacked resource usage comparison between IID and Non-IID data distributions. All text and numbers are 1.5x larger for optimal readability.
 
 ## Key Insights
 - **Resource Scaling**: Different models show different resource requirements

@@ -1,9 +1,9 @@
-# Single vs Multi-Task: Stacked Training Time Comparison
+# Single vs Multi-Task: Balanced-Enhanced Stacked Training Time Comparison
 
-![Single vs Multi-Task: Stacked Training Time Comparison](single_vs_multitask_stacked_training_time.png)
+![Single vs Multi-Task: Balanced-Enhanced Stacked Training Time Comparison](single_vs_multitask_stacked_training_time_balanced.png)
 
 ## Description
-Stacked training time comparison between Single-Task and Multi-Task Learning approaches. Each bar shows both approaches stacked together, sorted by total combined training time.
+Balanced-enhanced stacked training time comparison between Single-Task and Multi-Task Learning approaches. All text and numbers are 1.5x larger for optimal readability.
 
 ## Key Insights
 - **Time Requirements**: Clear ranking of models by total training needs

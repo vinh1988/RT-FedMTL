@@ -1,9 +1,9 @@
-# IID vs Non-IID: Stacked Training Time Comparison
+# IID vs Non-IID: Balanced-Enhanced Stacked Training Time Comparison
 
-![IID vs Non-IID: Stacked Training Time Comparison](iid_vs_noniid_stacked_training_time.png)
+![IID vs Non-IID: Balanced-Enhanced Stacked Training Time Comparison](iid_vs_noniid_stacked_training_time_balanced.png)
 
 ## Description
-Stacked training time comparison between IID and Non-IID data distributions. Each bar shows both distributions stacked together, sorted by total combined training time.
+Balanced-enhanced stacked training time comparison between IID and Non-IID data distributions. All text and numbers are 1.5x larger for optimal readability.
 
 ## Key Insights
 - **Convergence Patterns**: Different models show different convergence requirements

@@ -1,9 +1,9 @@
-# Single vs Multi-Task: Stacked Resource Usage Comparison
+# Single vs Multi-Task: Balanced-Enhanced Stacked Resource Usage Comparison
 
-![Single vs Multi-Task: Stacked Resource Usage Comparison](single_vs_multitask_stacked_resource_usage.png)
+![Single vs Multi-Task: Balanced-Enhanced Stacked Resource Usage Comparison](single_vs_multitask_stacked_resource_usage_balanced.png)
 
 ## Description
-Stacked resource usage comparison between Single-Task and Multi-Task Learning approaches. Each bar shows both approaches stacked together, sorted by total combined resource usage.
+Balanced-enhanced stacked resource usage comparison between Single-Task and Multi-Task Learning approaches. All text and numbers are 1.5x larger for optimal readability.
 
 ## Key Insights
 - **Resource Efficiency**: Clear ranking of models by total resource consumption
