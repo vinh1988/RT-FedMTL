@@ -1,3 +1,0 @@
-/home/pqvinh/Documents/LABs/FedAvgLS/venv/bin/python3 /home/pqvinh/Documents/LABs/FedAvgLS/experiment_new_solution/extract_unified_results.py
-
-/home/pqvinh/Documents/LABs/FedAvgLS/venv/bin/python3 /home/pqvinh/Documents/LABs/FedAvgLS/experiment_new_solution/extract_unified_results.py && /home/pqvinh/Documents/LABs/FedAvgLS/venv/bin/python3 /home/pqvinh/Documents/LABs/FedAvgLS/experiment_new_solution/split_results_into_groups.py

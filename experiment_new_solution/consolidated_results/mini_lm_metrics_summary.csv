@@ -1,0 +1,11 @@
+Paradigm,Task_Type,Distribution,Experiment,Val_SST2_Acc,Val_SST2_F1,Val_QQP_Acc,Val_QQP_F1,Val_STSB_Pearson,Val_STSB_Spearman,Total_Train_Time,Resource_Usage,Model
+Centralized,Multi-Task (MTL),IID,centralized-mtl-all-tasks,0.8795871559633027,0.882943143812709,0.7916666666666666,0.8648648648648649,0.8579729233861991,0.8559583568490605,12437.119957,1.5044632406823133,mini-lm
+Centralized,Single-Task,IID,centralized-single-task-qqp,,,0.7990196078431373,0.8655737704918033,,,2388.1281400000003,1.5066975644757463,mini-lm
+Centralized,Single-Task,IID,centralized-single-task-sst2,0.9013761467889908,0.9050772626931568,,,,,8334.104373,1.4949932063834552,mini-lm
+Centralized,Single-Task,IID,centralized-single-task-stsb,,,,,0.8619868198603453,0.8592108928986084,2696.2733219999996,1.4929338118549882,mini-lm
+FL,Multi-Task (MTL),IID,fl-mtl-slms-mini-lm-sts-qqp-sst2-lora,0.7787,0.8102,0.7271,0.606,0.0703,0.0621,18808.08,0.10896196266666669,mini-lm
+FL,Multi-Task (MTL),IID,fl-mtl-slms-mini-lm-stsb-qqp-sst2,0.9369,0.9428,0.8966,0.8662,0.8384,0.8197,27930.059999999998,0.38346018133333326,mini-lm
+FL,Multi-Task (MTL),Non-IID,fl-mtl-slms-mini-lm-non-iid-stsb-qqp-sst2-3client-each,0.8888,0.8974,0.8629,0.815,0.7003,0.7061,20765.57,0.38459613866666664,mini-lm
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-qqp,,,0.8421,0.7644,,,14583.05,0.38420480000000007,mini-lm
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-sst2,0.9243,0.9293,,,,,8447.2,0.383614976,mini-lm
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-stsb,,,,,0.7877,0.7489,4920.48,0.38401391957333336,mini-lm
