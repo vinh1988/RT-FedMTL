@@ -15,19 +15,19 @@ Resource usage comparison between IID and Non-IID data distributions. All text a
 
 | Model | IID | Non-IID | Total | Ratio | Difference |
 |---|---|---|---|---|---|
-| distil-bert | 3.0740 | 1.0971 | 4.1711 | 0.3569 | -1.9769 |
-| medium-bert | 1.9161 | 0.6794 | 2.5954 | 0.3546 | -1.2367 |
-| mini-bert | 1.6785 | 0.1969 | 1.8754 | 0.1173 | -1.4817 |
-| mini-lm | 1.0819 | 0.3841 | 1.4660 | 0.3550 | -0.6978 |
-| tiny_bert | 0.2493 | 0.0881 | 0.3374 | 0.3533 | -0.1612 |
+| DistilBERT | 3.0740 | 1.0971 | 4.1711 | 0.3569 | -1.9769 |
+| BERT-Medium | 1.9161 | 0.6794 | 2.5954 | 0.3546 | -1.2367 |
+| BERT-Mini | 1.6785 | 0.1969 | 1.8754 | 0.1173 | -1.4817 |
+| MiniLM | 1.0819 | 0.3841 | 1.4660 | 0.3550 | -0.6978 |
+| TinyBERT | 0.2493 | 0.0881 | 0.3374 | 0.3533 | -0.1612 |
 
 
 ## Data Source
 - **File**: master_model_comparison.csv
 - **Total Experiments**: 50
-- **Models**: distil-bert, medium-bert, mini-bert, mini-lm, tiny_bert
+- **Models**: DistilBERT, BERT-Medium, BERT-Mini, MiniLM, TinyBERT
 - **Paradigms**: Centralized, FL
-- **Task Types**: Single-Task, Multi-Task (MTL)
+- **Task Types**: Single-Task, Multi-Task
 - **Distributions**: IID, Non-IID
 
 ---

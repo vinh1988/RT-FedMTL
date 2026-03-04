@@ -17,11 +17,11 @@ Comprehensive resource usage comparison using line plots to show trends across a
 
 | Model | Centralized | FL | IID | Non-IID | Single | Multi |
 |---|---|---|---|---|---|---|
-| distil-bert | 4.2673 | 0.9605 | 3.0740 | 1.0971 | 2.6732 | 1.6983 |
-| medium-bert | 2.6579 | 0.5970 | 1.9161 | 0.6794 | 1.6672 | 1.0527 |
-| mini-bert | 2.4528 | 0.1745 | 1.6785 | 0.1969 | 1.3228 | 0.7304 |
-| mini-lm | 1.4998 | 0.3381 | 1.0819 | 0.3841 | 0.9411 | 0.5954 |
-| tiny_bert | 0.3431 | 0.0793 | 0.2493 | 0.0881 | 0.2154 | 0.1390 |
+| DistilBERT | 4.2673 | 0.9605 | 3.0740 | 1.0971 | 2.6732 | 1.6983 |
+| BERT-Medium | 2.6579 | 0.5970 | 1.9161 | 0.6794 | 1.6672 | 1.0527 |
+| BERT-Mini | 2.4528 | 0.1745 | 1.6785 | 0.1969 | 1.3228 | 0.7304 |
+| MiniLM | 1.4998 | 0.3381 | 1.0819 | 0.3841 | 0.9411 | 0.5954 |
+| TinyBERT | 0.3431 | 0.0793 | 0.2493 | 0.0881 | 0.2154 | 0.1390 |
 
 
 ## Trend Analysis
@@ -44,9 +44,9 @@ Comprehensive resource usage comparison using line plots to show trends across a
 ## Data Source
 - **File**: master_model_comparison.csv
 - **Total Experiments**: 50
-- **Models**: distil-bert, medium-bert, mini-bert, mini-lm, tiny_bert
+- **Models**: DistilBERT, BERT-Medium, BERT-Mini, MiniLM, TinyBERT
 - **Paradigms**: Centralized, FL
-- **Task Types**: Single-Task, Multi-Task (MTL)
+- **Task Types**: Single-Task, Multi-Task
 - **Distributions**: IID, Non-IID
 
 ---

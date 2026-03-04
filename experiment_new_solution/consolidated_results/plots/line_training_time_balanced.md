@@ -17,21 +17,21 @@ Comprehensive training time comparison using line plots to show trends across al
 
 | Model | Centralized | FL | IID | Non-IID | Single | Multi |
 |---|---|---|---|---|---|---|
-| distil-bert | 12954 | 34091 | 21586 | 31712 | 16885 | 38763 |
-| medium-bert | 9834 | 23517 | 16247 | 20739 | 11610 | 27694 |
-| mini-bert | 1933 | 7432 | 4211 | 6765 | 3470 | 7876 |
-| mini-lm | 6464 | 15909 | 12099 | 12179 | 6895 | 19985 |
-| tiny_bert | 4684 | 4539 | 4846 | 4224 | 3239 | 6635 |
+| DistilBERT | 12954 | 34091 | 21586 | 31712 | 16885 | 38763 |
+| BERT-Medium | 9834 | 23517 | 16247 | 20739 | 11610 | 27694 |
+| BERT-Mini | 1933 | 7432 | 4211 | 6765 | 3470 | 7876 |
+| MiniLM | 6464 | 15909 | 12099 | 12179 | 6895 | 19985 |
+| TinyBERT | 4684 | 4539 | 4846 | 4224 | 3239 | 6635 |
 
 
 ## Training Time Analysis
 
 ### Overhead Ratios by Model:
-- **distil-bert**: FL is 2.63x slower than Centralized
-- **medium-bert**: FL is 2.39x slower than Centralized
-- **mini-bert**: FL is 3.85x slower than Centralized
-- **mini-lm**: FL is 2.46x slower than Centralized
-- **tiny_bert**: FL is 0.97x slower than Centralized
+- **DistilBERT**: FL is 2.63x slower than Centralized
+- **BERT-Medium**: FL is 2.39x slower than Centralized
+- **BERT-Mini**: FL is 3.85x slower than Centralized
+- **MiniLM**: FL is 2.46x slower than Centralized
+- **TinyBERT**: FL is 0.97x slower than Centralized
 
 
 ### Training Time Trends:
@@ -52,9 +52,9 @@ Comprehensive training time comparison using line plots to show trends across al
 ## Data Source
 - **File**: master_model_comparison.csv
 - **Total Experiments**: 50
-- **Models**: distil-bert, medium-bert, mini-bert, mini-lm, tiny_bert
+- **Models**: DistilBERT, BERT-Medium, BERT-Mini, MiniLM, TinyBERT
 - **Paradigms**: Centralized, FL
-- **Task Types**: Single-Task, Multi-Task (MTL)
+- **Task Types**: Single-Task, Multi-Task
 - **Distributions**: IID, Non-IID
 
 ---

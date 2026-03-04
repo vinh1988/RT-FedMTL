@@ -13,13 +13,64 @@ df = pd.read_csv('master_model_comparison.csv')
 plots_dir = Path('plots')
 plots_dir.mkdir(exist_ok=True)
 
+# Map old labels to new preferred labels for consistency
+label_mapping = {
+    'Multi-Task (MTL)': 'Multi-Task',
+    'mini-lm': 'MiniLM',
+    'tiny-bert': 'TinyBERT',
+    'tiny_bert': 'TinyBERT',
+    'distil-bert': 'DistilBERT',
+    'mini-bert': 'BERT-Mini',
+    'medium-bert': 'BERT-Medium'
+}
+
+# Apply mapping to Model and Task_Type columns
+df['Model'] = df['Model'].replace(label_mapping)
+df['Task_Type'] = df['Task_Type'].replace(label_mapping)
+
+# High-contrast palette for model names (easy for recognition)
+MODEL_TEXT_COLORS = {
+    'DistilBERT': '#000080',  # Deep Navy Blue
+    'BERT-Medium': '#D32F2F', # Vivid Crimson
+    'MiniLM': '#2E7D32',      # Forest Green
+    'BERT-Mini': '#E65100',   # Burnt Orange
+    'TinyBERT': '#4A148C'     # Deep Royal Purple
+}
+
+def color_model_xticks(ax):
+    """Helper to color X-axis labels by model type using muted palette"""
+    for tick in ax.get_xticklabels():
+        text = tick.get_text()
+        for model, color in MODEL_TEXT_COLORS.items():
+            if model in text:
+                tick.set_color(color)
+                break
+
+def add_model_banding(ax, df_viz):
+    """Adds subtle alternate background vertical bands to group models"""
+    models = df_viz['Model'].unique()
+    # Get the unique model positions
+    unique_models = []
+    current_model = None
+    for i, model in enumerate(df_viz['Model']):
+        if model != current_model:
+            unique_models.append(i)
+            current_model = model
+    unique_models.append(len(df_viz))
+    
+    # Draw bars
+    for i in range(len(unique_models) - 1):
+        if i % 2 == 1: # Alternate bands
+            ax.axvspan(unique_models[i] - 0.5, unique_models[i+1] - 0.5, 
+                        color='gray', alpha=0.07, zorder=0)
+
 # Balanced-enhanced font sizes (1.5x larger than original)
 BALANCED_LABELS_SIZE = 18   # was 12, now 1.5x
-BALANCED_TITLE_SIZE = 21      # was 14, now 1.5x  
+BALANCED_TITLE_SIZE = 22      # was 14, now 1.5x  
 BALANCED_LEGEND_SIZE = 17    # was 11, now 1.5x
-BALANCED_TICK_SIZE = 13       # was 8, now 1.5x
-BALANCED_VALUE_SIZE = 13      # was 8, now 1.5x
-BALANCED_XTICK_SIZE = 18      # was 12, now 1.5x for model names
+BALANCED_TICK_SIZE = 15       # was 8, now 1.5x
+BALANCED_VALUE_SIZE = 15      # was 8, now 1.5x
+BALANCED_XTICK_SIZE = 16      # was 12, now 1.5x for model names
 
 def save_plot_with_metadata(fig, filename, title, description, insights, metrics_data=None):
     """Save plot and generate markdown documentation with metrics"""
@@ -109,17 +160,20 @@ def plot_centralized_vs_fl_stacked_time_balanced():
         x_pos = np.arange(len(time_df))
         labels = time_df['Model'].tolist()
         
-        # Create stacked bars
-        bars1 = ax.bar(x_pos, time_df['Centralized'], label='Centralized', alpha=0.8, color='#1f77b4')
-        bars2 = ax.bar(x_pos, time_df['FL'], bottom=time_df['Centralized'], label='FL', alpha=0.8, color='#ff7f0e')
+        # Premium colors: Blue for Centralized, Orange for FL
+        colors = ['#1f77b4', '#ff7f0e']
         
-        # Balanced-enhanced labels and fonts
-        ax.set_xlabel('Model', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_ylabel('Stacked Training Time (seconds)', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('Centralized vs FL: Training Time Comparison (Sorted by Total)', 
+        bars1 = ax.bar(x_pos, time_df['Centralized'], label='Centralized', color=colors[0], alpha=0.9)
+        bars2 = ax.bar(x_pos, time_df['FL'], bottom=time_df['Centralized'], label='FL', color=colors[1], alpha=0.9)
+        
+        ax.set_xlabel('Model Type', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
+        ax.set_ylabel('Total Training Time (seconds)', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
+        ax.set_title('Centralized vs FL: Training Time Comparison', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
+        add_model_banding(ax, time_df) # Apply model banding
+        color_model_xticks(ax)
         ax.legend(fontsize=BALANCED_LEGEND_SIZE, frameon=True, fancybox=True, shadow=True)
         ax.grid(True, alpha=0.3, axis='y')
         
@@ -162,7 +216,7 @@ def plot_single_vs_multitask_stacked_time_balanced():
         model_data = df[df['Model'] == model]
         
         single_task = model_data[model_data['Task_Type'] == 'Single-Task']
-        multi_task = model_data[model_data['Task_Type'] == 'Multi-Task (MTL)']
+        multi_task = model_data[model_data['Task_Type'] == 'Multi-Task']
         
         single_time = single_task['Total_Train_Time'].mean()
         multi_time = multi_task['Total_Train_Time'].mean()
@@ -194,12 +248,14 @@ def plot_single_vs_multitask_stacked_time_balanced():
         bars2 = ax.bar(x_pos, time_df['Multi'], bottom=time_df['Single'], label='Multi-Task', alpha=0.8, color='#ff7f0e')
         
         # Balanced-enhanced labels and fonts
-        ax.set_xlabel('Model', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_ylabel('Stacked Training Time (seconds)', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('Single vs Multi-Task: Training Time Comparison (Sorted by Total)', 
+        ax.set_xlabel('Model Type', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
+        ax.set_ylabel('Total Training Time (seconds)', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
+        ax.set_title('Single-Task vs Multi-Task: Training Time Comparison', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
+        add_model_banding(ax, time_df)
+        color_model_xticks(ax)
         ax.legend(fontsize=BALANCED_LEGEND_SIZE, frameon=True, fancybox=True, shadow=True)
         ax.grid(True, alpha=0.3, axis='y')
         
@@ -277,12 +333,14 @@ def plot_iid_vs_noniid_stacked_time_balanced():
         bars2 = ax.bar(x_pos, time_df['Non-IID'], bottom=time_df['IID'], label='Non-IID', alpha=0.8, color='#ff7f0e')
         
         # Balanced-enhanced labels and fonts
-        ax.set_xlabel('Model', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_ylabel('Stacked Training Time (seconds)', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('IID vs Non-IID: Training Time Comparison (Sorted by Total)', 
+        ax.set_xlabel('Model Type', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
+        ax.set_ylabel('Total Training Time (seconds)', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
+        ax.set_title('IID vs Non-IID: Training Time Comparison', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
+        add_model_banding(ax, time_df)
+        color_model_xticks(ax)
         ax.legend(fontsize=BALANCED_LEGEND_SIZE, frameon=True, fancybox=True, shadow=True)
         ax.grid(True, alpha=0.3, axis='y')
         
@@ -357,12 +415,14 @@ def plot_centralized_vs_fl_stacked_resource_balanced():
         bars2 = ax.bar(x_pos, resource_df['FL'], bottom=resource_df['Centralized'], label='FL', alpha=0.8, color='#ff7f0e')
         
         # Balanced-enhanced labels and fonts
-        ax.set_xlabel('Model', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_ylabel('Stacked Resource Usage', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('Centralized vs FL: Resource Usage Comparison (Sorted by Total)', 
+        ax.set_xlabel('Model Type', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
+        ax.set_ylabel('Total GPU Memory (MB)', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
+        ax.set_title('Centralized vs FL: Resource Usage Comparison', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
+        add_model_banding(ax, resource_df)
+        color_model_xticks(ax)
         ax.legend(fontsize=BALANCED_LEGEND_SIZE, frameon=True, fancybox=True, shadow=True)
         ax.grid(True, alpha=0.3, axis='y')
         
@@ -405,7 +465,7 @@ def plot_single_vs_multitask_stacked_resource_balanced():
         model_data = df[df['Model'] == model]
         
         single_task = model_data[model_data['Task_Type'] == 'Single-Task']
-        multi_task = model_data[model_data['Task_Type'] == 'Multi-Task (MTL)']
+        multi_task = model_data[model_data['Task_Type'] == 'Multi-Task']
         
         single_resource = single_task['Resource_Usage'].mean()
         multi_resource = multi_task['Resource_Usage'].mean()
@@ -437,12 +497,14 @@ def plot_single_vs_multitask_stacked_resource_balanced():
         bars2 = ax.bar(x_pos, resource_df['Multi'], bottom=resource_df['Single'], label='Multi-Task', alpha=0.8, color='#ff7f0e')
         
         # Balanced-enhanced labels and fonts
-        ax.set_xlabel('Model', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_ylabel('Stacked Resource Usage', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('Single vs Multi-Task: Resource Usage Comparison (Sorted by Total)', 
+        ax.set_xlabel('Model Type', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
+        ax.set_ylabel('Total GPU Memory (MB)', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
+        ax.set_title('Single-Task vs Multi-Task: Resource Usage Comparison', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
+        add_model_banding(ax, resource_df)
+        color_model_xticks(ax)
         ax.legend(fontsize=BALANCED_LEGEND_SIZE, frameon=True, fancybox=True, shadow=True)
         ax.grid(True, alpha=0.3, axis='y')
         
@@ -520,12 +582,14 @@ def plot_iid_vs_noniid_stacked_resource_balanced():
         bars2 = ax.bar(x_pos, resource_df['Non-IID'], bottom=resource_df['IID'], label='Non-IID', alpha=0.8, color='#ff7f0e')
         
         # Balanced-enhanced labels and fonts
-        ax.set_xlabel('Model', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_ylabel('Stacked Resource Usage', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('IID vs Non-IID: Resource Usage Comparison (Sorted by Total)', 
+        ax.set_xlabel('Model Type', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
+        ax.set_ylabel('Total GPU Memory (MB)', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
+        ax.set_title('IID vs Non-IID: Resource Usage Comparison', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
+        add_model_banding(ax, resource_df)
+        color_model_xticks(ax)
         ax.legend(fontsize=BALANCED_LEGEND_SIZE, frameon=True, fancybox=True, shadow=True)
         ax.grid(True, alpha=0.3, axis='y')
         
