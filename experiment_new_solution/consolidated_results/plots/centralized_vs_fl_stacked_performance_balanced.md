@@ -1,9 +1,9 @@
-# Centralized vs FL: Balanced-Enhanced Stacked Performance Comparison
+# Centralized vs FL: Performance Comparison
 
-![Centralized vs FL: Balanced-Enhanced Stacked Performance Comparison](centralized_vs_fl_stacked_performance_balanced.png)
+![Centralized vs FL: Performance Comparison](centralized_vs_fl_stacked_performance_balanced.png)
 
 ## Description
-Balanced-enhanced stacked performance comparison between Centralized and Federated Learning (FL) paradigms. All text and numbers are 1.5x larger for optimal readability.
+Performance comparison between Centralized and Federated Learning (FL) paradigms. All text and numbers are 1.5x larger for optimal readability.
 
 ## Key Insights
 - **Performance Hierarchy**: Clear ranking of model-task combinations by total performance

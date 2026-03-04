@@ -17,8 +17,8 @@ plots_dir.mkdir(exist_ok=True)
 BALANCED_LABELS_SIZE = 18   # was 12, now 1.5x
 BALANCED_TITLE_SIZE = 21      # was 14, now 1.5x  
 BALANCED_LEGEND_SIZE = 17    # was 11, now 1.5x
-BALANCED_TICK_SIZE = 12       # was 8, now 1.5x
-BALANCED_VALUE_SIZE = 12      # was 8, now 1.5x
+BALANCED_TICK_SIZE = 13       # was 8, now 1.5x
+BALANCED_VALUE_SIZE = 13      # was 8, now 1.5x
 BALANCED_XTICK_SIZE = 18      # was 12, now 1.5x for model names
 
 def save_plot_with_metadata(fig, filename, title, description, insights, metrics_data=None):
@@ -72,7 +72,7 @@ def save_plot_with_metadata(fig, filename, title, description, insights, metrics
     return plot_path, md_path
 
 def plot_centralized_vs_fl_stacked_time_balanced():
-    """Balanced-enhanced stacked training time comparison: Centralized vs FL"""
+    """training time comparison: Centralized vs FL"""
     
     # Prepare data
     time_data = []
@@ -116,7 +116,7 @@ def plot_centralized_vs_fl_stacked_time_balanced():
         # Balanced-enhanced labels and fonts
         ax.set_xlabel('Model', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
         ax.set_ylabel('Stacked Training Time (seconds)', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('Centralized vs FL: Balanced-Enhanced Stacked Training Time Comparison (Sorted by Total)', 
+        ax.set_title('Centralized vs FL: Training Time Comparison (Sorted by Total)', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
@@ -145,14 +145,14 @@ def plot_centralized_vs_fl_stacked_time_balanced():
         
         plt.tight_layout()
         
-        description = "Balanced-enhanced stacked training time comparison between Centralized and Federated Learning (FL) paradigms. All text and numbers are 1.5x larger for optimal readability."
+        description = "Training time comparison between Centralized and Federated Learning (FL) paradigms. All text and numbers are 1.5x larger for optimal readability."
         insights = "- **Time Hierarchy**: Clear ranking of models by total training requirements\n- **FL Overhead**: Visual representation of FL's additional training time\n- **Model Scaling**: Larger models require more time for both paradigms\n- **Efficiency Patterns**: Different models show different time ratios"
         
         save_plot_with_metadata(fig, 'centralized_vs_fl_stacked_training_time_balanced',
-                             'Centralized vs FL: Balanced-Enhanced Stacked Training Time Comparison', description, insights, time_df)
+                             'Centralized vs FL: Training Time Comparison', description, insights, time_df)
 
 def plot_single_vs_multitask_stacked_time_balanced():
-    """Balanced-enhanced stacked training time comparison: Single vs Multi-task"""
+    """Training time comparison: Single vs Multi-task"""
     
     # Prepare data
     time_data = []
@@ -196,7 +196,7 @@ def plot_single_vs_multitask_stacked_time_balanced():
         # Balanced-enhanced labels and fonts
         ax.set_xlabel('Model', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
         ax.set_ylabel('Stacked Training Time (seconds)', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('Single vs Multi-Task: Balanced-Enhanced Stacked Training Time Comparison (Sorted by Total)', 
+        ax.set_title('Single vs Multi-Task: Training Time Comparison (Sorted by Total)', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
@@ -225,14 +225,14 @@ def plot_single_vs_multitask_stacked_time_balanced():
         
         plt.tight_layout()
         
-        description = "Balanced-enhanced stacked training time comparison between Single-Task and Multi-Task Learning approaches. All text and numbers are 1.5x larger for optimal readability."
+        description = "Training time comparison between Single-Task and Multi-Task Learning approaches. All text and numbers are 1.5x larger for optimal readability."
         insights = "- **Time Requirements**: Clear ranking of models by total training needs\n- **Multi-Task Efficiency**: Visual representation of multi-task training overhead\n- **Model Patterns**: Different models show different single vs multi-task time ratios\n- **Scalability Effects**: Training time scaling patterns across model sizes"
         
         save_plot_with_metadata(fig, 'single_vs_multitask_stacked_training_time_balanced',
-                             'Single vs Multi-Task: Balanced-Enhanced Stacked Training Time Comparison', description, insights, time_df)
+                             'Single vs Multi-Task: Training Time Comparison', description, insights, time_df)
 
 def plot_iid_vs_noniid_stacked_time_balanced():
-    """Balanced-enhanced stacked training time comparison: IID vs Non-IID"""
+    """Training time comparison: IID vs Non-IID"""
     
     # Prepare data
     time_data = []
@@ -279,7 +279,7 @@ def plot_iid_vs_noniid_stacked_time_balanced():
         # Balanced-enhanced labels and fonts
         ax.set_xlabel('Model', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
         ax.set_ylabel('Stacked Training Time (seconds)', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('IID vs Non-IID: Balanced-Enhanced Stacked Training Time Comparison (Sorted by Total)', 
+        ax.set_title('IID vs Non-IID: Training Time Comparison (Sorted by Total)', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
@@ -308,14 +308,14 @@ def plot_iid_vs_noniid_stacked_time_balanced():
         
         plt.tight_layout()
         
-        description = "Balanced-enhanced stacked training time comparison between IID and Non-IID data distributions. All text and numbers are 1.5x larger for optimal readability."
+        description = "Training time comparison between IID and Non-IID data distributions. All text and numbers are 1.5x larger for optimal readability."
         insights = "- **Convergence Patterns**: Different models show different convergence requirements\n- **Distribution Impact**: Visual representation of Non-IID training overhead\n- **Model Adaptation**: Training time scaling with distribution complexity\n- **Efficiency Patterns**: Some models handle Non-IID more efficiently"
         
         save_plot_with_metadata(fig, 'iid_vs_noniid_stacked_training_time_balanced',
-                             'IID vs Non-IID: Balanced-Enhanced Stacked Training Time Comparison', description, insights, time_df)
+                             'IID vs Non-IID: Training Time Comparison', description, insights, time_df)
 
 def plot_centralized_vs_fl_stacked_resource_balanced():
-    """Balanced-enhanced stacked resource usage comparison: Centralized vs FL"""
+    """Resource usage comparison: Centralized vs FL"""
     
     # Prepare data
     resource_data = []
@@ -359,7 +359,7 @@ def plot_centralized_vs_fl_stacked_resource_balanced():
         # Balanced-enhanced labels and fonts
         ax.set_xlabel('Model', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
         ax.set_ylabel('Stacked Resource Usage', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('Centralized vs FL: Balanced-Enhanced Stacked Resource Usage Comparison (Sorted by Total)', 
+        ax.set_title('Centralized vs FL: Resource Usage Comparison (Sorted by Total)', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
@@ -388,14 +388,14 @@ def plot_centralized_vs_fl_stacked_resource_balanced():
         
         plt.tight_layout()
         
-        description = "Balanced-enhanced stacked resource usage comparison between Centralized and Federated Learning (FL) paradigms. All text and numbers are 1.5x larger for optimal readability."
+        description = "Resource usage comparison between Centralized and Federated Learning (FL) paradigms. All text and numbers are 1.5x larger for optimal readability."
         insights = "- **Resource Hierarchy**: Clear ranking of models by total resource requirements\n- **FL Efficiency**: Visual representation of FL's distributed resource efficiency\n- **Model Scaling**: Resource usage patterns across different model sizes\n- **Deployment Patterns**: Different resource requirements for each paradigm"
         
         save_plot_with_metadata(fig, 'centralized_vs_fl_stacked_resource_usage_balanced',
-                             'Centralized vs FL: Balanced-Enhanced Stacked Resource Usage Comparison', description, insights, resource_df)
+                             'Centralized vs FL: Resource Usage Comparison', description, insights, resource_df)
 
 def plot_single_vs_multitask_stacked_resource_balanced():
-    """Balanced-enhanced stacked resource usage comparison: Single vs Multi-task"""
+    """Resource usage comparison: Single vs Multi-task"""
     
     # Prepare data
     resource_data = []
@@ -439,7 +439,7 @@ def plot_single_vs_multitask_stacked_resource_balanced():
         # Balanced-enhanced labels and fonts
         ax.set_xlabel('Model', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
         ax.set_ylabel('Stacked Resource Usage', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('Single vs Multi-Task: Balanced-Enhanced Stacked Resource Usage Comparison (Sorted by Total)', 
+        ax.set_title('Single vs Multi-Task: Resource Usage Comparison (Sorted by Total)', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
@@ -468,14 +468,14 @@ def plot_single_vs_multitask_stacked_resource_balanced():
         
         plt.tight_layout()
         
-        description = "Balanced-enhanced stacked resource usage comparison between Single-Task and Multi-Task Learning approaches. All text and numbers are 1.5x larger for optimal readability."
+        description = "Resource usage comparison between Single-Task and Multi-Task Learning approaches. All text and numbers are 1.5x larger for optimal readability."
         insights = "- **Resource Efficiency**: Clear ranking of models by total resource consumption\n- **Multi-Task Benefits**: Visual representation of shared parameter efficiency\n- **Model Patterns**: Different models show different resource scaling\n- **Deployment Considerations**: Resource requirements for different task configurations"
         
         save_plot_with_metadata(fig, 'single_vs_multitask_stacked_resource_usage_balanced',
-                             'Single vs Multi-Task: Balanced-Enhanced Stacked Resource Usage Comparison', description, insights, resource_df)
+                             'Single vs Multi-Task: Resource Usage Comparison', description, insights, resource_df)
 
 def plot_iid_vs_noniid_stacked_resource_balanced():
-    """Balanced-enhanced stacked resource usage comparison: IID vs Non-IID"""
+    """Resource usage comparison: IID vs Non-IID"""
     
     # Prepare data
     resource_data = []
@@ -522,7 +522,7 @@ def plot_iid_vs_noniid_stacked_resource_balanced():
         # Balanced-enhanced labels and fonts
         ax.set_xlabel('Model', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
         ax.set_ylabel('Stacked Resource Usage', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('IID vs Non-IID: Balanced-Enhanced Stacked Resource Usage Comparison (Sorted by Total)', 
+        ax.set_title('IID vs Non-IID: Resource Usage Comparison (Sorted by Total)', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
@@ -551,21 +551,21 @@ def plot_iid_vs_noniid_stacked_resource_balanced():
         
         plt.tight_layout()
         
-        description = "Balanced-enhanced stacked resource usage comparison between IID and Non-IID data distributions. All text and numbers are 1.5x larger for optimal readability."
+        description = "Resource usage comparison between IID and Non-IID data distributions. All text and numbers are 1.5x larger for optimal readability."
         insights = "- **Resource Scaling**: Different models show different resource requirements\n- **Distribution Impact**: Visual representation of Non-IID resource efficiency\n- **Model Adaptation**: Resource usage patterns with distribution complexity\n- **Efficiency Patterns**: Some models handle Non-IID more resource-efficiently"
         
         save_plot_with_metadata(fig, 'iid_vs_noniid_stacked_resource_usage_balanced',
-                             'IID vs Non-IID: Balanced-Enhanced Stacked Resource Usage Comparison', description, insights, resource_df)
+                             'IID vs Non-IID: Resource Usage Comparison', description, insights, resource_df)
 
 def generate_balanced_enhanced_efficiency_plots():
-    """Generate all balanced-enhanced stacked efficiency comparison plots"""
+    """Generate all efficiency comparison plots"""
     
-    print("🔄 Generating Balanced-Enhanced Stacked Efficiency Comparison Plots...")
+    print("🔄 Generating Efficiency Comparison Plots...")
     print("=" * 60)
     
     plots_generated = []
     
-    # Generate each balanced-enhanced stacked comparison
+    # Generate each comparison
     balanced_functions = [
         plot_centralized_vs_fl_stacked_time_balanced,
         plot_single_vs_multitask_stacked_time_balanced,
@@ -584,7 +584,7 @@ def generate_balanced_enhanced_efficiency_plots():
         except Exception as e:
             print(f"❌ Failed to generate {balanced_func.__name__}: {str(e)}")
     
-    print(f"\n📊 Generated {len(plots_generated)} balanced-enhanced stacked efficiency comparison plots")
+    print(f"\n📊 Generated {len(plots_generated)} efficiency comparison plots")
     print(f"📁 All plots saved to: {plots_dir.absolute()}")
     print(f"📄 Markdown documentation with metrics included for each plot")
     print(f"⚖️ BALANCED font sizes (1.5x larger) for optimal readability")

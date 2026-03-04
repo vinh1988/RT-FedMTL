@@ -1,9 +1,9 @@
-# Centralized vs FL: Balanced-Enhanced Stacked Training Time Comparison
+# Centralized vs FL: Training Time Comparison
 
-![Centralized vs FL: Balanced-Enhanced Stacked Training Time Comparison](centralized_vs_fl_stacked_training_time_balanced.png)
+![Centralized vs FL: Training Time Comparison](centralized_vs_fl_stacked_training_time_balanced.png)
 
 ## Description
-Balanced-enhanced stacked training time comparison between Centralized and Federated Learning (FL) paradigms. All text and numbers are 1.5x larger for optimal readability.
+Training time comparison between Centralized and Federated Learning (FL) paradigms. All text and numbers are 1.5x larger for optimal readability.
 
 ## Key Insights
 - **Time Hierarchy**: Clear ranking of models by total training requirements

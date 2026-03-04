@@ -1,9 +1,9 @@
-# Centralized vs FL: Balanced-Enhanced Stacked Resource Usage Comparison
+# Centralized vs FL: Resource Usage Comparison
 
-![Centralized vs FL: Balanced-Enhanced Stacked Resource Usage Comparison](centralized_vs_fl_stacked_resource_usage_balanced.png)
+![Centralized vs FL: Resource Usage Comparison](centralized_vs_fl_stacked_resource_usage_balanced.png)
 
 ## Description
-Balanced-enhanced stacked resource usage comparison between Centralized and Federated Learning (FL) paradigms. All text and numbers are 1.5x larger for optimal readability.
+Resource usage comparison between Centralized and Federated Learning (FL) paradigms. All text and numbers are 1.5x larger for optimal readability.
 
 ## Key Insights
 - **Resource Hierarchy**: Clear ranking of models by total resource requirements

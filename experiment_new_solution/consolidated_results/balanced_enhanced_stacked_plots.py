@@ -17,8 +17,8 @@ plots_dir.mkdir(exist_ok=True)
 BALANCED_LABELS_SIZE = 18   # was 12, now 1.5x
 BALANCED_TITLE_SIZE = 21      # was 14, now 1.5x  
 BALANCED_LEGEND_SIZE = 17    # was 11, now 1.5x
-BALANCED_TICK_SIZE = 12       # was 8, now 1.5x
-BALANCED_VALUE_SIZE = 12      # was 8, now 1.5x
+BALANCED_TICK_SIZE = 13       # was 8, now 1.5x
+BALANCED_VALUE_SIZE = 13      # was 8, now 1.5x
 BALANCED_XTICK_SIZE = 18      # was 12, now 1.5x for model names
 
 def save_plot_with_metadata(fig, filename, title, description, insights, metrics_data=None):
@@ -72,7 +72,7 @@ def save_plot_with_metadata(fig, filename, title, description, insights, metrics
     return plot_path, md_path
 
 def plot_centralized_vs_fl_stacked_performance_balanced():
-    """Balanced-enhanced stacked performance comparison: Centralized vs FL"""
+    """performance comparison: Centralized vs FL"""
     
     # Prepare data
     comparison_data = []
@@ -148,7 +148,7 @@ def plot_centralized_vs_fl_stacked_performance_balanced():
         # Balanced-enhanced labels and fonts
         ax.set_xlabel('Model-Task Combinations', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
         ax.set_ylabel('Stacked Performance', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('Centralized vs FL: Balanced-Enhanced Stacked Performance Comparison (Sorted by Total)', 
+        ax.set_title('Centralized vs FL: Performance Comparison (Sorted by Total)', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
@@ -177,15 +177,15 @@ def plot_centralized_vs_fl_stacked_performance_balanced():
         
         plt.tight_layout()
         
-        description = "Balanced-enhanced stacked performance comparison between Centralized and Federated Learning (FL) paradigms. All text and numbers are 1.5x larger for optimal readability."
+        description = "Performance comparison between Centralized and Federated Learning (FL) paradigms. All text and numbers are 1.5x larger for optimal readability."
         insights = "- **Performance Hierarchy**: Clear ranking of model-task combinations by total performance\n- **Paradigm Contribution**: Visual representation of each paradigm's contribution to total\n- **Top Performers**: Best configurations show strong performance from both paradigms\n- **Task Patterns**: Different tasks show different paradigm dominance patterns"
         
         metrics_df = viz_df[['Model', 'Task', 'Centralized', 'FL', 'Total', 'Difference', 'Percent_Diff']]
         save_plot_with_metadata(fig, 'centralized_vs_fl_stacked_performance_balanced',
-                             'Centralized vs FL: Balanced-Enhanced Stacked Performance Comparison', description, insights, metrics_df)
+                             'Centralized vs FL: Performance Comparison', description, insights, metrics_df)
 
 def plot_single_vs_multitask_stacked_performance_balanced():
-    """Balanced-enhanced stacked performance comparison: Single vs Multi-task"""
+    """performance comparison: Single vs Multi-task"""
     
     # Prepare data
     comparison_data = []
@@ -261,7 +261,7 @@ def plot_single_vs_multitask_stacked_performance_balanced():
         # Balanced-enhanced labels and fonts
         ax.set_xlabel('Model-Task Combinations', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
         ax.set_ylabel('Stacked Performance', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('Single vs Multi-Task: Balanced-Enhanced Stacked Performance Comparison (Sorted by Total)', 
+        ax.set_title('Single vs Multi-Task: Performance Comparison (Sorted by Total)', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
@@ -290,15 +290,15 @@ def plot_single_vs_multitask_stacked_performance_balanced():
         
         plt.tight_layout()
         
-        description = "Balanced-enhanced stacked performance comparison between Single-Task and Multi-Task Learning approaches. All text and numbers are 1.5x larger for optimal readability."
+        description = "performance comparison between Single-Task and Multi-Task Learning approaches. All text and numbers are 1.5x larger for optimal readability."
         insights = "- **Performance Ranking**: Clear hierarchy of model-task combinations by total performance\n- **Task Contribution**: Visual representation of each approach's contribution to total\n- **Transfer Effects**: Height differences show transfer learning benefits or interference\n- **Model Patterns**: Different models show different single vs multi-task balance"
         
         metrics_df = viz_df[['Model', 'Task', 'Single', 'Multi', 'Total', 'Difference', 'Percent_Diff']]
         save_plot_with_metadata(fig, 'single_vs_multitask_stacked_performance_balanced',
-                             'Single vs Multi-Task: Balanced-Enhanced Stacked Performance Comparison', description, insights, metrics_df)
+                             'Single vs Multi-Task: Performance Comparison', description, insights, metrics_df)
 
 def plot_iid_vs_noniid_stacked_performance_balanced():
-    """Balanced-enhanced stacked performance comparison: IID vs Non-IID"""
+    """performance comparison: IID vs Non-IID"""
     
     # Prepare data
     comparison_data = []
@@ -377,7 +377,7 @@ def plot_iid_vs_noniid_stacked_performance_balanced():
         # Balanced-enhanced labels and fonts
         ax.set_xlabel('Model-Task Combinations', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
         ax.set_ylabel('Stacked Performance', fontsize=BALANCED_LABELS_SIZE, fontweight='bold')
-        ax.set_title('IID vs Non-IID: Balanced-Enhanced Stacked Performance Comparison (Sorted by Total)', 
+        ax.set_title('IID vs Non-IID: Performance Comparison (Sorted by Total)', 
                     fontsize=BALANCED_TITLE_SIZE, fontweight='bold')
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=BALANCED_XTICK_SIZE, fontweight='bold')
@@ -406,22 +406,22 @@ def plot_iid_vs_noniid_stacked_performance_balanced():
         
         plt.tight_layout()
         
-        description = "Balanced-enhanced stacked performance comparison between IID and Non-IID data distributions. All text and numbers are 1.5x larger for optimal readability."
+        description = "Performance comparison between IID and Non-IID data distributions. All text and numbers are 1.5x larger for optimal readability."
         insights = "- **Performance Hierarchy**: Clear ranking of model-task combinations by total performance\n- **Distribution Impact**: Visual representation of each distribution's contribution to total\n- **Robustness Patterns**: Height ratios indicate model robustness to distribution shifts\n- **Task Sensitivity**: Different tasks show different IID vs Non-IID balance"
         
         metrics_df = viz_df[['Model', 'Task', 'IID', 'Non-IID', 'Total', 'Degradation', 'Percent_Degrad']]
         save_plot_with_metadata(fig, 'iid_vs_noniid_stacked_performance_balanced',
-                             'IID vs Non-IID: Balanced-Enhanced Stacked Performance Comparison', description, insights, metrics_df)
+                             'IID vs Non-IID: Performance Comparison', description, insights, metrics_df)
 
 def generate_balanced_enhanced_stacked_plots():
-    """Generate all balanced-enhanced stacked comparison plots"""
+    """Generate all comparison plots"""
     
-    print("🔄 Generating Balanced-Enhanced Stacked Comparison Plots...")
+    print("🔄 Generating Comparison Plots...")
     print("=" * 60)
     
     plots_generated = []
     
-    # Generate each balanced-enhanced stacked comparison
+    # Generate each comparison
     balanced_functions = [
         plot_centralized_vs_fl_stacked_performance_balanced,
         plot_single_vs_multitask_stacked_performance_balanced,
@@ -437,7 +437,7 @@ def generate_balanced_enhanced_stacked_plots():
         except Exception as e:
             print(f"❌ Failed to generate {balanced_func.__name__}: {str(e)}")
     
-    print(f"\n📊 Generated {len(plots_generated)} balanced-enhanced stacked comparison plots")
+    print(f"\n📊 Generated {len(plots_generated)} comparison plots")
     print(f"📁 All plots saved to: {plots_dir.absolute()}")
     print(f"📄 Markdown documentation with metrics included for each plot")
     print(f"⚖️ BALANCED font sizes (1.5x larger) for optimal readability")
