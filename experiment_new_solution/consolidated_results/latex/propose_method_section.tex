@@ -1,0 +1,53 @@
+\section{PROPOSED METHOD}
+\label{sec:proposed_method}
+
+\subsection{System Overview}
+The proposed federated multi-task framework employs a hierarchical architecture designed for real-time NLU applications. As illustrated in Fig.~\ref{fig:framework_pipeline}, the system consists of a central orchestration server and multiple heterogeneous client nodes. The central server maintains the global state through a \textbf{Parameter Server} and manages the \textbf{Model Aggregation} logic. Communication is established via low-latency \textbf{WebSockets}, facilitating bidirectional exchange of model updates and aggregated parameters.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.5\textwidth]{plots/FL_MTL_FRAME_WORK.png}
+    \caption{Architecture of the Proposed Real-time Federated Multi-Task Learning Framework. The system enables seamless integration of streaming data processing and collaborative model refinement.}
+    \label{fig:framework_pipeline}
+\end{figure*}
+
+\subsection{Small Language Model Backbone}
+The framework utilizes specialized Small Language Models (SLMs) to balance computational efficiency and linguistic performance. Our current implementation support DistilBERT, BERT-Medium, and MiniLM architectures. These models serve as the shared feature extractor (encoder), which is fine-tuned collaboratively across the federated network. By using SLMs, we achieve a significant reduction in communication overhead compared to standard-sized transformers.
+
+\subsection{Multi-Task Learning Strategy}
+We adopt a hybrid parameter-sharing strategy. The lower transformer layers (encoder) are shared across all tasks to capture universal linguistic representations. In contrast, the upper layers consist of task-specific classification or regression heads. To mitigate negative transfer, we implement an adaptive loss weighting mechanism:
+\begin{equation}
+    \mathcal{L}_{total} = \sum_{j=1}^{T} \alpha_j \mathcal{L}_j
+\end{equation}
+where $\alpha_j$ is dynamically adjusted based on the convergence rate of each task $j$.
+
+\subsection{Federated Optimization and Real-time Adaptation}
+The federated optimization process is detailed in Algorithm~\ref{alg:rt_fmtl}. The system facilitates real-time adaptation by allowing clients to synchronize updates asynchronously via WebSockets. The server aggregates updates using a task-aware variant of FedAvg, ensuring that noisy updates from heterogeneous data sources (Non-IID) are properly regularized.
+
+\begin{algorithm}
+\caption{Real-Time Federated Multi-Task Learning (RT-FMTL)}
+\label{alg:rt_fmtl}
+\begin{algorithmic}[1]
+\STATE \textbf{Server Initialize:} Shared core $\phi_0$, Task heads $\{\psi_{j,0}\}_{j=1}^T$
+\FOR{each round $t = 1, 2, \dots$}
+    \STATE Server broadcasts $\phi_t, \psi_{Task(k),t}$ to client $k \in K$ via WebSockets
+    \FOR{each client $k \in K$ \textbf{in parallel}}
+        \STATE Local training: $\{\Delta\phi_k, \Delta\psi_{Task(k),k}\} \leftarrow \text{LocalUpdate}(\mathcal{D}_k, \phi_t, \psi_{Task(k),t})$
+        \STATE Send updates $\{\Delta\phi_k, \Delta\psi_{Task(k),k}\}$ to Server via WebSockets
+    \ENDFOR
+    \STATE \textbf{Task-Aware Aggregation:}
+    \STATE \quad $\phi_{t+1} \leftarrow \phi_t + \eta \sum_{k=1}^K \frac{n_k}{N} \Delta\phi_k$ \COMMENT{Universal Knowledge}
+    \FOR{each task $j \in \{1,\dots,T\}$ \textbf{in parallel}}
+        \STATE $\psi_{j,t+1} \leftarrow \psi_{j,t} + \eta \sum_{k \in K_j} \frac{n_k}{N_j} \Delta\psi_{j,k}$ \COMMENT{Heads Specialization}
+    \ENDFOR
+    \STATE Server redistributes $\{\phi_{t+1}, \psi_{Task(k),t+1}\}$ for Local Validation
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Communication-Efficient Fine-Tuning (LoRA)}
+To further optimize resource utilization on edge devices, the framework incorporates Low-Rank Adaptation (LoRA). During the local update phase, instead of updating the full weight matrices $W \in \mathbb{R}^{d \times d}$, we optimize low-rank decomposition matrices $A$ and $B$:
+\begin{equation}
+    W' = W + \Delta W = W + BA
+\end{equation}
+where $A \in \mathbb{R}^{r \times d}$ and $B \in \mathbb{R}^{d \times r}$ with rank $r \ll d$. Only the matrices $A$ and $B$ are transmitted, reducing communication volume by up to 99\% for large-scale updates.

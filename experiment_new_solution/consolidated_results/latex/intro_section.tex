@@ -1,0 +1,44 @@
+\section{INTRODUCTION}
+\label{sec:introduction}
+
+\subsection{Background and Motivation}
+The demand for privacy-preserving collaborative learning has increased rapidly as natural language understanding (NLU) systems are deployed across mobile devices, enterprise platforms, and edge services. In many practical settings, NLU data contains sensitive user information (e.g., personal messages, medical text, behavioral logs), making centralized data collection difficult due to privacy policies and regulatory constraints. Federated learning (FL) addresses this issue by keeping raw data on client devices and sharing only model updates \cite{mcmahan2017fedavg}.
+
+At the same time, distributed AI systems are now expected to support many users, domains, and tasks in parallel. This trend makes centralized single-pipeline training less suitable and motivates federated training frameworks that can learn collaboratively while respecting data locality.
+
+\subsection{Challenges in Federated Natural Language Understanding}
+Although FL is promising for NLU, three major challenges remain.
+
+First, client data is typically non-IID. Different users and organizations produce language data with distinct vocabularies, label distributions, and styles, which often slows convergence and reduces global model quality.
+
+Second, task heterogeneity is common in realistic deployments. A federation may contain intent classification, sentiment analysis, question answering, or generation-related objectives simultaneously. Classical one-model FL methods are not designed for this mixed-task regime.
+
+Third, communication and scalability constraints are fundamental. Frequent synchronization across many clients can create substantial overhead, especially when model sizes are large and client connectivity is unstable.
+
+Recent federated multi-task learning literature (e.g., MOCHA, FedBone, MIRA, and encoder--decoder based M-Fed) highlights that both data heterogeneity and task heterogeneity must be treated as first-class design factors \cite{smith2017mocha,chen2024fedbone,elbakary2025mira,zhou2025mfed}.
+
+\subsection{Role of Small Language Models in Federated Systems}
+Small Language Models (SLMs) are especially attractive in federated systems because they improve system efficiency without removing the benefits of language pretraining.
+
+Key advantages include:
+\begin{itemize}
+    \item \textbf{Communication efficiency:} fewer parameters reduce upload/download payload per communication round.
+    \item \textbf{Lower computation cost:} SLMs require less local memory and training time, enabling broader client participation.
+    \item \textbf{Edge-device deployability:} compact models are easier to run and update on resource-constrained devices.
+\end{itemize}
+
+In practice, this role extends to parameter-efficient adaptation techniques (e.g., adapter-style and low-rank updates), which preserve competitive performance while reducing federated overhead.
+
+\subsection{Real-Time Federated Learning for NLU}
+Most current FL pipelines are batch-oriented: clients train for multiple local steps and synchronize periodically. This design is effective for static datasets but less suited to streaming and dynamic NLU environments where language patterns, topics, and user intent drift over time.
+
+Real-time federated learning aims to shorten feedback loops by supporting faster synchronization, timely adaptation, and more responsive model updates. For online NLU applications (e.g., conversational assistants, live moderation, event-driven analytics), delayed global updates can quickly degrade performance. Therefore, real-time synchronization mechanisms are increasingly important for maintaining both relevance and robustness in production systems.
+
+\subsection{Contributions of This Work}
+Building on the above motivation and the reviewed literature, this work provides:
+\begin{itemize}
+    \item A real-time FL-MTL framework for heterogeneous NLU tasks.
+    \item Integration of small language models in federated environments to improve efficiency and deployability.
+    \item Analysis of how data heterogeneity affects FL-MTL convergence and downstream task performance.
+    \item Evaluation across multiple NLU benchmark tasks to assess local and global effectiveness.
+\end{itemize}

@@ -1,45 +1,110 @@
 \relax 
-\@writefile{toc}{\contentsline {section}{\numberline {I}EXPERIMENTS}{1}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-A}}Experimental Setup}{1}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {I-A}1}Datasets and Tasks}{1}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {I-A}2}Federated Data Partitioning}{1}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {I-A}3}Baselines}{1}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {I-A}4}Evaluation Metrics}{1}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {I-A}5}Implementation Details}{1}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-B}}Results}{1}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {I-B}1}Performance Trajectory Across Paradigm Complexity}{1}{}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Experimental Design Matrix}}{2}{}\protected@file@percent }
-\newlabel{tab:design_matrix}{{I}{2}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textbf  {Performance Trajectory.} Primary metric (accuracy for SST-2 / QQP; Pearson correlation for STS-B) across six paradigm-complexity stages for all five SLM architectures. Dashed vertical lines separate centralized from federated settings. The final point (LoRA) illustrates performance recovery under communication-efficient fine-tuning despite maximal system complexity.}}{2}{}\protected@file@percent }
-\newlabel{fig:perf_trajectory}{{1}{2}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {I-B}2}Resource Usage Trajectory}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {I-B}3}Training Time Trajectory}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-C}}Detailed Experimental Metrics}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-D}}Discussion}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {I-D}1}Trade-offs Between Privacy, Performance, and Efficiency}{2}{}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Performance Trajectory Data (primary metric per model–task pair)}}{3}{}\protected@file@percent }
-\newlabel{tab:perf_trajectory}{{II}{3}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \textbf  {Resource Usage Trajectory.} Average per-client GPU resource consumption (GB) across paradigm-complexity stages. Federated settings produce a clear 3--4$\times $ reduction in per-client resource usage relative to centralized training because each client holds only a data partition. LoRA further halves resource demands.}}{3}{}\protected@file@percent }
-\newlabel{fig:resource_trajectory}{{2}{3}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {I-D}2}Insights into Task Transfer and Negative Transfer}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {I-D}3}Practical Deployment Considerations}{3}{}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Resource Usage Trajectory (GB, per-client average)}}{4}{}\protected@file@percent }
-\newlabel{tab:resource_trajectory}{{III}{4}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces \textbf  {Training Time Trajectory.} Total wall-clock training time (seconds) for each model across six paradigm-complexity stages. The transition from centralized to federated multi-task settings introduces a 2.4--3.9$\times $ overhead driven by communication and synchronization costs. LoRA substantially reduces federated training time by limiting parameter transmission volume.}}{4}{}\protected@file@percent }
-\newlabel{fig:time_trajectory}{{3}{4}{}{}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Training Time Trajectory (seconds)}}{4}{}\protected@file@percent }
-\newlabel{tab:time_trajectory}{{IV}{4}{}{}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {II}Conclusion}{4}{}\protected@file@percent }
-\bibcite{ref1}{1}
-\bibcite{ref2}{2}
-\bibcite{ref3}{3}
-\bibcite{ref4}{4}
-\bibcite{ref5}{5}
-\bibcite{ref6}{6}
-\bibcite{ref7}{7}
-\bibcite{ref8}{8}
-\bibcite{ref9}{9}
-\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Comprehensive Performance and Efficiency Metrics Across All Models and Paradigms.}}{5}{}\protected@file@percent }
-\newlabel{tab:all_results}{{V}{5}{}{}{}}
-\@writefile{toc}{\contentsline {section}{References}{5}{}\protected@file@percent }
-\gdef \@abspage@last{5}
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{mcmahan2017fedavg}
+\citation{smith2017mocha}
+\citation{chen2024fedbone}
+\citation{elbakary2025mira}
+\citation{zhou2025mfed}
+\@writefile{toc}{\contentsline {section}{\numberline {I}INTRODUCTION}{1}{section.1}\protected@file@percent }
+\newlabel{sec:introduction}{{I}{1}{INTRODUCTION}{section.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-A}}Background and Motivation}{1}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-B}}Challenges in Federated Natural Language Understanding}{1}{subsection.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-C}}Role of Small Language Models in Federated Systems}{1}{subsection.1.3}\protected@file@percent }
+\citation{smith2017mocha}
+\citation{chen2024fedbone}
+\citation{sanh2019distilbert}
+\citation{wang2020minilm}
+\citation{lan2019albert}
+\citation{li2020fedprox}
+\citation{yu2020pcgrad}
+\citation{zhou2025mfed}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-D}}Real-Time Federated Learning for NLU}{2}{subsection.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-E}}Contributions of This Work}{2}{subsection.1.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {II}RELATED WORK}{2}{section.2}\protected@file@percent }
+\newlabel{sec:related_work}{{II}{2}{RELATED WORK}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Federated Learning for Natural Language Processing}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Multi-Task Learning in NLP}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Small Language Models for Efficient NLP}{2}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-D}}Federated Learning under Data Heterogeneity}{2}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-E}}Research Gap}{3}{subsection.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}PROBLEM DEFINITION}{3}{section.3}\protected@file@percent }
+\newlabel{sec:problem_definition}{{III}{3}{PROBLEM DEFINITION}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Formalization of Real-Time Federated Multi-Task Learning for NLU}{3}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Federated System Components and Privacy Constraints}{3}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Small Language Model Architecture: Shared Encoder and Task-Specific Heads}{3}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-D}}Data and Task Heterogeneity Across Clients}{3}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-E}}Optimization Objective for Federated Multi-Task Learning}{3}{subsection.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IV}PROPOSED METHOD}{4}{section.4}\protected@file@percent }
+\newlabel{sec:proposed_method}{{IV}{4}{PROPOSED METHOD}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}System Overview}{4}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Small Language Model Backbone}{4}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Multi-Task Learning Strategy}{4}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Federated Optimization and Real-time Adaptation}{4}{subsection.4.4}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Real-Time Federated Multi-Task Learning (RT-FMTL)\relax }}{4}{algorithm.1}\protected@file@percent }
+\newlabel{alg:rt_fmtl}{{1}{4}{Real-Time Federated Multi-Task Learning (RT-FMTL)\relax }{algorithm.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-E}}Communication-Efficient Fine-Tuning (LoRA)}{4}{subsection.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}EXPERIMENTS}{4}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Experimental Setup}{4}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}1}Datasets and Tasks}{4}{subsubsection.5.1.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Architecture of the Proposed Real-time Federated Multi-Task Learning Framework. The system enables seamless integration of streaming data processing and collaborative model refinement.\relax }}{5}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:framework_pipeline}{{1}{5}{Architecture of the Proposed Real-time Federated Multi-Task Learning Framework. The system enables seamless integration of streaming data processing and collaborative model refinement.\relax }{figure.caption.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Experimental Design Matrix\relax }}{5}{table.caption.2}\protected@file@percent }
+\newlabel{tab:design_matrix}{{I}{5}{Experimental Design Matrix\relax }{table.caption.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}2}Federated Data Partitioning}{5}{subsubsection.5.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}3}Baselines}{5}{subsubsection.5.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}4}Evaluation Metrics}{5}{subsubsection.5.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}5}Implementation Details}{5}{subsubsection.5.1.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Results}{5}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}1}Performance Trajectory Across Paradigm Complexity}{5}{subsubsection.5.2.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Advanced Comparative Analysis of SLM Performance across Paradigms\relax }}{6}{table.caption.3}\protected@file@percent }
+\newlabel{tab:results_consolidated}{{II}{6}{Advanced Comparative Analysis of SLM Performance across Paradigms\relax }{table.caption.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}2}Resource Usage Trajectory}{6}{subsubsection.5.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}3}Training Time Trajectory}{6}{subsubsection.5.2.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \textbf  {Performance Trajectory.} Primary metric (accuracy for SST-2 / QQP; Pearson correlation for STS-B) across six paradigm-complexity stages for all five SLM architectures. Dashed vertical lines separate centralized from federated settings. The final point (LoRA) illustrates performance recovery under communication-efficient fine-tuning despite maximal system complexity.\relax }}{7}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:perf_trajectory}{{2}{7}{\textbf {Performance Trajectory.} Primary metric (accuracy for SST-2 / QQP; Pearson correlation for STS-B) across six paradigm-complexity stages for all five SLM architectures. Dashed vertical lines separate centralized from federated settings. The final point (LoRA) illustrates performance recovery under communication-efficient fine-tuning despite maximal system complexity.\relax }{figure.caption.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Performance Trajectory Data (primary metric per model–task pair)\relax }}{7}{table.caption.5}\protected@file@percent }
+\newlabel{tab:perf_trajectory}{{III}{7}{Performance Trajectory Data (primary metric per model–task pair)\relax }{table.caption.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Detailed Experimental Metrics}{7}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Discussion}{7}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-D}1}Trade-offs Between Privacy, Performance, and Efficiency}{7}{subsubsection.5.4.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Resource Usage Trajectory (GB, per-client average)\relax }}{8}{table.caption.7}\protected@file@percent }
+\newlabel{tab:resource_trajectory}{{IV}{8}{Resource Usage Trajectory (GB, per-client average)\relax }{table.caption.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Training Time Trajectory (seconds)\relax }}{8}{table.caption.9}\protected@file@percent }
+\newlabel{tab:time_trajectory}{{V}{8}{Training Time Trajectory (seconds)\relax }{table.caption.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces \textbf  {Resource Usage Trajectory.} Average per-client GPU resource consumption (GB) across paradigm-complexity stages. Federated settings produce a clear 3--4$\times $ reduction in per-client resource usage relative to centralized training because each client holds only a data partition. LoRA further halves resource demands.\relax }}{8}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:resource_trajectory}{{3}{8}{\textbf {Resource Usage Trajectory.} Average per-client GPU resource consumption (GB) across paradigm-complexity stages. Federated settings produce a clear 3--4$\times $ reduction in per-client resource usage relative to centralized training because each client holds only a data partition. LoRA further halves resource demands.\relax }{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-D}2}Insights into Task Transfer and Negative Transfer}{8}{subsubsection.5.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-D}3}Practical Deployment Considerations}{8}{subsubsection.5.4.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \textbf  {Training Time Trajectory.} Total wall-clock training time (seconds) for each model across six paradigm-complexity stages. The transition from centralized to federated multi-task settings introduces a 2.4--3.9$\times $ overhead driven by communication and synchronization costs. LoRA substantially reduces federated training time by limiting parameter transmission volume.\relax }}{8}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:time_trajectory}{{4}{8}{\textbf {Training Time Trajectory.} Total wall-clock training time (seconds) for each model across six paradigm-complexity stages. The transition from centralized to federated multi-task settings introduces a 2.4--3.9$\times $ overhead driven by communication and synchronization costs. LoRA substantially reduces federated training time by limiting parameter transmission volume.\relax }{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}CONCLUSION}{8}{section.6}\protected@file@percent }
+\newlabel{sec:conclusion}{{VI}{8}{CONCLUSION}{section.6}{}}
+\bibcite{mcmahan2017fedavg}{1}
+\bibcite{smith2017mocha}{2}
+\bibcite{chen2024fedbone}{3}
+\bibcite{elbakary2025mira}{4}
+\bibcite{zhou2025mfed}{5}
+\bibcite{sanh2019distilbert}{6}
+\bibcite{wang2020minilm}{7}
+\bibcite{lan2019albert}{8}
+\bibcite{li2020fedprox}{9}
+\bibcite{yu2020pcgrad}{10}
+\@writefile{toc}{\contentsline {section}{References}{9}{section*.10}\protected@file@percent }
+\gdef \@abspage@last{9}

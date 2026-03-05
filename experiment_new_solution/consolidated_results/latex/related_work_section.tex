@@ -1,0 +1,35 @@
+\section{RELATED WORK}
+\label{sec:related_work}
+
+\subsection{Federated Learning for Natural Language Processing}
+FL has been applied to several NLP/NLU scenarios, including text classification and personalized language services where raw text cannot be centralized. Foundational optimization methods such as FedAvg established the standard client-update and server-aggregation loop, while FedProx introduced regularization to improve robustness under client drift.
+
+For heterogeneous settings, federated multi-task approaches such as MOCHA show that modeling inter-task relatedness can improve statistical efficiency and robustness to systems issues \cite{smith2017mocha}. More recent methods, including FedBone, extend this direction toward large-scale heterogeneous multi-task systems by explicitly separating shared and task-specific components \cite{chen2024fedbone}.
+
+Despite this progress, many FL-for-NLP studies still assume limited task diversity or focus primarily on single-task personalization.
+
+\subsection{Multi-Task Learning in NLP}
+Multi-task learning (MTL) in NLP usually follows two paradigms: hard parameter sharing and soft parameter sharing. Hard sharing uses a common encoder and separate task heads, reducing overfitting and training cost. Soft sharing keeps task-specific parameters while encouraging similarity through regularization or constrained interaction.
+
+MTL improves representation learning by transferring useful linguistic features across tasks. However, it also introduces known difficulties, including task imbalance (dominant tasks overpower smaller ones) and negative transfer (one task degrades another). These issues become more severe under federated training because client participation is partial and data distributions vary across rounds.
+
+\subsection{Small Language Models for Efficient NLP}
+SLMs such as DistilBERT, MiniLM, and ALBERT demonstrate that careful compression and distillation can preserve strong performance while reducing parameter count and inference cost \cite{sanh2019distilbert,wang2020minilm,lan2019albert}. Common reduction strategies include knowledge distillation, parameter sharing, low-rank factorization, and architectural simplification.
+
+These properties make SLMs highly suitable for edge and distributed learning: they reduce transmission overhead, lower on-device training cost, and enable faster federated iteration cycles. In federated multi-task environments, SLMs also make it easier to scale to more clients and tasks under fixed system budgets.
+
+\subsection{Federated Learning under Data Heterogeneity}
+Non-IID data remains one of the core bottlenecks in FL. Client-specific language patterns, domain shifts, and label skew can bias local updates and destabilize global optimization. In heterogeneous NLU deployments, this challenge is compounded by cross-client task diversity, where clients may optimize different objectives with partially shared representations.
+
+Prior work reports that heterogeneity can hurt both convergence speed and final generalization if aggregation ignores task structure. Approaches such as personalized layers, proximal regularization, gradient conflict mitigation, and encoder--decoder decomposition have been explored to reduce this mismatch \cite{li2020fedprox,yu2020pcgrad,zhou2025mfed}.
+
+\subsection{Research Gap}
+Existing studies provide strong building blocks but still leave an important gap for practical NLU systems:
+\begin{itemize}
+    \item \textbf{Lack of real-time FL frameworks:} most methods are designed for periodic offline rounds rather than continuous adaptation.
+    \item \textbf{Limited integration of FL + MTL + SLM:} many works treat efficiency, heterogeneity, and multi-task transfer separately.
+    \item \textbf{Insufficient heterogeneity analysis in NLU FL:} current evaluations often miss how task diversity, data skew, and communication constraints interact.
+\end{itemize}
+
+This gap motivates a unified real-time federated multi-task approach that combines efficient language modeling with heterogeneity-aware optimization for distributed NLU.
+

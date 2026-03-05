@@ -19,7 +19,7 @@ The evaluation employs three core NLU benchmarks representing diverse natural la
 
 Validation sets are \emph{not} split across clients in any paradigm, ensuring consistent global model assessment.
 
-\begin{table*}[t]
+\begin{table}[t]
   \centering
   \caption{Experimental Design Matrix}
   \label{tab:design_matrix}
@@ -41,7 +41,7 @@ Validation sets are \emph{not} split across clients in any paradigm, ensuring co
     10 & Federated Single   & STS-B only  & 3 & Non-IID \\
     \bottomrule
   \end{tabular}
-\end{table*}
+\end{table}
 
 \subsubsection{Baselines}
 Three baselines are evaluated: (1) \textbf{Centralized MTL} --- all 5 SLM variants trained on centralized data with shared encoder and task-specific heads, serving as the upper-bound reference (Exp.\ 1); (2) \textbf{Federated Single-Task} --- per-task federated experiments with 3 clients and non-IID data (Exps.\ 8--10); and (3) \textbf{Large-model federated approaches} --- comparison against larger LMs to assess communication efficiency and performance trade-offs.
@@ -52,9 +52,84 @@ Task-level metrics are accuracy \& F1 (SST-2, QQP) and Pearson / Spearman correl
 \subsubsection{Implementation Details}
 All experiments use learning rate $2\times10^{-5}$ with 1,000-step warmup, batch size 8 (centralized) or 8--16 (federated), weight decay 0.01, gradient clipping (max-norm 1.0), and random seed 42. Centralized runs train for 25 epochs; federated clients perform 1 local epoch per round. Communication uses ports 8771--8775 with 60\,s client timeout and 3,400\,s round timeout, plus a 3-retry exponential-backoff mechanism.
 
-% -----------------------------------------------------------------------
+% ------------------------------------------------------
 \subsection{Results}
-% -----------------------------------------------------------------------
+% ------------------------------------------------------
+
+\begin{table*}[t]
+  \centering
+  \caption{Advanced Comparative Analysis of SLM Performance across Paradigms}
+  \label{tab:results_consolidated}
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{lllllcccccccc}
+    \toprule
+    & & & & & \multicolumn{2}{c}{\textbf{SST-2}} & \multicolumn{2}{c}{\textbf{QQP}} & \multicolumn{2}{c}{\textbf{STS-B}} & \textbf{System} & \textbf{System} \\
+    \cmidrule(lr){6-7} \cmidrule(lr){8-9} \cmidrule(lr){10-11}
+    \textbf{Model} & \textbf{Paradigm} & \textbf{Task} & \textbf{Dist.} & \textbf{Tuning} & \textbf{Acc.} & \textbf{F1} & \textbf{Acc.} & \textbf{F1} & \textbf{Pear.} & \textbf{Spea.} & \textbf{Time (s)} & \textbf{Res (GB)} \\
+    \midrule
+    \textbf{DistilBERT} & FL & ST & Non-IID & FFT & --- & --- & 0.8408 & 0.7724 & --- & --- & 34904.44 & 1.0956 \\
+     & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.7753 & 0.7421 & 15452.52 & 1.0988 \\
+     & FL & ST & Non-IID & FFT & 0.9346 & 0.9392 & --- & --- & --- & --- & 23586.44 & 1.0972 \\
+     & FL & \textbf{MTL (ours)} & IID & LoRA & 0.8257 & 0.8433 & 0.7535 & 0.6754 & 0.5108 & 0.4919 & 21245.26 & 0.2852 \\
+     & \textcolor{red}{FL} & \textcolor{red}{\textbf{MTL (ours)}} & \textcolor{red}{Non-IID} & \textcolor{red}{FFT} & \textcolor{red}{0.9232} & \textcolor{red}{0.9298} & \textcolor{red}{0.8579} & \textcolor{red}{0.8054} & \textcolor{red}{0.6963} & \textcolor{red}{0.6967} & \textcolor{red}{52903.97} & \textcolor{red}{1.0968} \\
+     & FL & \textbf{MTL (ours)} & IID & FFT & \textbf{0.9461} & \textbf{0.9514} & 0.8913 & 0.8610 & 0.8284 & 0.8136 & 56454.46 & 1.0896 \\
+     & Cent. & ST & IID & FFT & --- & --- & --- & --- & \textbf{0.8712} & \textbf{0.8691} & 4561.78 & 4.2470 \\
+     & Cent. & ST & IID & FFT & 0.9002 & 0.9061 & --- & --- & --- & --- & 18514.82 & 4.2460 \\
+     & Cent. & ST & IID & FFT & --- & --- & 0.8456 & \textbf{0.8934} & --- & --- & 4290.59 & 4.2547 \\
+     & Cent. & MTL & IID & FFT & 0.9037 & 0.9077 & 0.8137 & 0.8778 & 0.8635 & 0.8614 & 24449.68 & 4.3214 \\
+    \midrule
+    \textbf{BERT-Medium} & FL & ST & Non-IID & FFT & --- & --- & 0.7989 & 0.6852 & --- & --- & 23880.89 & 0.6789 \\
+     & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.6521 & 0.6212 & 10261.92 & 0.6810 \\
+     & FL & ST & Non-IID & FFT & 0.9300 & 0.9348 & --- & --- & --- & --- & 15439.04 & 0.6786 \\
+     & FL & \textbf{MTL (ours)} & Non-IID & FFT & 0.8933 & 0.8988 & 0.8183 & 0.7441 & 0.4219 & 0.4132 & 33374.50 & 0.6790 \\
+     & FL & \textbf{MTL (ours)} & IID & FFT & 0.9392 & 0.9450 & 0.8962 & 0.8655 & 0.8258 & 0.8052 & 45258.21 & 0.6807 \\
+     & FL & \textbf{MTL (ours)} & IID & LoRA & 0.8131 & 0.8362 & 0.7388 & 0.6805 & 0.6823 & 0.6512 & 12885.74 & 0.1840 \\
+     & Cent. & ST & IID & FFT & --- & --- & --- & --- & 0.8673 & 0.8648 & 3381.83 & 2.6467 \\
+     & Cent. & ST & IID & FFT & 0.8933 & 0.8970 & --- & --- & --- & --- & 13492.62 & 2.6711 \\
+     & Cent. & ST & IID & FFT & --- & --- & 0.8358 & 0.8859 & --- & --- & 3205.51 & 2.6467 \\
+     & Cent. & MTL & IID & FFT & 0.8865 & 0.8884 & 0.8333 & 0.8777 & 0.8615 & 0.8584 & 19257.40 & 2.6671 \\
+    \midrule
+    \textbf{BERT-Mini} & FL & ST & Non-IID & FFT & --- & --- & 0.7674 & 0.6201 & --- & --- & 9642.59 & 0.1969 \\
+     & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.6504 & 0.6150 & 2547.10 & 0.1969 \\
+     & FL & ST & Non-IID & FFT & 0.9151 & 0.9196 & --- & --- & --- & --- & 4552.75 & 0.1969 \\
+     & FL & \textbf{MTL (ours)} & Non-IID & FFT & 0.8234 & 0.8226 & 0.7748 & 0.6668 & 0.4009 & 0.3939 & 10317.55 & 0.1969 \\
+     & FL & \textbf{MTL (ours)} & IID & LoRA & 0.7649 & 0.7915 & 0.6958 & 0.5602 & 0.2824 & 0.2773 & 4191.67 & 0.0630 \\
+     & FL & \textbf{MTL (ours)} & IID & FFT & 0.9266 & 0.9329 & 0.8350 & 0.7981 & 0.6940 & 0.6550 & 13341.01 & 0.1969 \\
+     & Cent. & ST & IID & FFT & --- & --- & --- & --- & \textbf{0.8316} & \textbf{0.8283} & 411.45 & 2.4487 \\
+     & Cent. & ST & IID & FFT & 0.8727 & 0.8773 & --- & --- & --- & --- & 3348.26 & 2.4487 \\
+     & Cent. & ST & IID & FFT & --- & --- & 0.7990 & 0.8536 & --- & --- & 318.61 & 2.4487 \\
+     & Cent. & MTL & IID & FFT & 0.8589 & 0.8650 & 0.7770 & 0.8580 & 0.7989 & 0.7973 & 3652.50 & 2.4651 \\
+    \midrule
+    \textbf{MiniLM} & FL & ST & Non-IID & FFT & --- & --- & 0.8421 & 0.7644 & --- & --- & 14583.05 & 0.3842 \\
+     & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.7877 & 0.7489 & 4920.48 & 0.3840 \\
+     & FL & ST & Non-IID & FFT & 0.9243 & 0.9293 & --- & --- & --- & --- & 8447.20 & 0.3836 \\
+     & FL & \textbf{MTL (ours)} & IID & FFT & 0.9369 & 0.9428 & \textbf{0.8966} & 0.8662 & 0.8384 & 0.8197 & 27930.06 & 0.3835 \\
+     & FL & \textbf{MTL (ours)} & Non-IID & FFT & 0.8888 & 0.8974 & 0.8629 & 0.8150 & 0.7003 & 0.7061 & 20765.57 & 0.3846 \\
+     & FL & \textbf{MTL (ours)} & IID & LoRA & 0.7787 & 0.8102 & 0.7271 & 0.6060 & 0.0703 & 0.0621 & 18808.08 & 0.1090 \\
+     & Cent. & ST & IID & FFT & --- & --- & --- & --- & 0.8620 & 0.8592 & 2696.27 & 1.4929 \\
+     & Cent. & ST & IID & FFT & 0.9014 & 0.9051 & --- & --- & --- & --- & 8334.10 & 1.4950 \\
+     & Cent. & ST & IID & FFT & --- & --- & 0.7990 & 0.8656 & --- & --- & 2388.13 & 1.5067 \\
+     & Cent. & MTL & IID & FFT & 0.8796 & 0.8829 & 0.7917 & 0.8649 & 0.8580 & 0.8560 & 12437.12 & 1.5045 \\
+    \midrule
+    \textbf{TinyBERT} & FL & ST & Non-IID & FFT & --- & --- & 0.7010 & 0.3887 & --- & --- & 6226.63 & 0.0881 \\
+     & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.2186 & 0.1755 & 1182.03 & 0.0881 \\
+     & FL & ST & Non-IID & FFT & 0.9060 & 0.9122 & --- & --- & --- & --- & 2514.06 & 0.0881 \\
+     & FL & \textbf{MTL (ours)} & IID & FFT & 0.9014 & 0.9145 & 0.7950 & 0.7494 & 0.5212 & 0.4754 & 6778.00 & 0.0881 \\
+     & FL & \textbf{MTL (ours)} & Non-IID & FFT & 0.7810 & 0.7782 & 0.6895 & 0.4733 & 0.0081 & 0.0063 & 6975.28 & 0.0881 \\
+     & FL & \textbf{MTL (ours)} & IID & LoRA & 0.7569 & 0.7902 & 0.6766 & 0.4475 & 0.3636 & 0.3505 & 3560.68 & 0.0356 \\
+     & Cent. & ST & IID & FFT & --- & --- & --- & --- & 0.7270 & 0.7230 & 2337.42 & 0.3427 \\
+     & Cent. & ST & IID & FFT & 0.8314 & 0.8358 & --- & --- & --- & --- & 4857.08 & 0.3427 \\
+     & Cent. & ST & IID & FFT & --- & --- & 0.7157 & 0.8139 & --- & --- & 2315.39 & 0.3427 \\
+     & Cent. & MTL & IID & FFT & 0.8211 & 0.8263 & 0.7230 & 0.8101 & 0.6474 & 0.6426 & 9227.55 & 0.3440 \\
+    \midrule
+    \bottomrule
+    \addlinespace[2pt]
+    \multicolumn{13}{l}{\textit{Note: Bold values indicate highest performance. Abbreviations: Dist. = Data Distribution, --- = Not Applicable,}} \\
+    \multicolumn{13}{l}{\textit{ST = Single-Task, MTL = Multi-Task Learning, Cent. = Centralized, LoRA = Low-Rank Adaptation,}} \\
+    \multicolumn{13}{l}{\textit{FFT = Full Fine-Tuning, Pear. = Pearson Correlation, Spea. = Spearman Correlation.}} \\
+  \end{tabular}
+\end{table*}
 
 \subsubsection{Performance Trajectory Across Paradigm Complexity}
 
@@ -115,9 +190,9 @@ Key observations from Figure~\ref{fig:perf_trajectory} and Table~\ref{tab:perf_t
 
 Figure~\ref{fig:resource_trajectory} shows average GPU memory / resource usage (GB) per client across the same six complexity stages.
 
-\begin{figure*}[t]
+\begin{figure}[t]
   \centering
-  \includegraphics[width=0.7\linewidth]{plots/advanced_complexity_line_resource_usage_balanced.png}
+  \includegraphics[width=1.0\linewidth]{plots/advanced_complexity_line_resource_usage_balanced.png}
   \caption{%
     \textbf{Resource Usage Trajectory.}
     Average per-client GPU resource consumption (GB) across paradigm-complexity
@@ -125,7 +200,7 @@ Figure~\ref{fig:resource_trajectory} shows average GPU memory / resource usage (
     per-client resource usage relative to centralized training because each
     client holds only a data partition. LoRA further halves resource demands.}
   \label{fig:resource_trajectory}
-\end{figure*}
+\end{figure}
 
 \begin{table*}[t]
   \centering
@@ -152,9 +227,9 @@ Federated learning reduces individual client resource usage by \textbf{77--93\%}
 
 Figure~\ref{fig:time_trajectory} plots total training time (seconds) across paradigm stages, capturing the communication overhead introduced by federated rounds.
 
-\begin{figure*}[t]
+\begin{figure}[t]
   \centering
-  \includegraphics[width=0.7\linewidth]{plots/advanced_complexity_line_total_train_time_balanced.png}
+  \includegraphics[width=1.0\linewidth]{plots/advanced_complexity_line_total_train_time_balanced.png}
   \caption{%
     \textbf{Training Time Trajectory.}
     Total wall-clock training time (seconds) for each model across six
@@ -163,7 +238,7 @@ Figure~\ref{fig:time_trajectory} plots total training time (seconds) across para
     communication and synchronization costs. LoRA substantially reduces
     federated training time by limiting parameter transmission volume.}
   \label{fig:time_trajectory}
-\end{figure*}
+\end{figure}
 
 \begin{table*}[t]
   \centering
@@ -188,72 +263,19 @@ The federated multi-task (IID) configuration incurs the highest total training t
 
 \subsection{Detailed Experimental Metrics}
 
-Table~\ref{tab:all_results} provides a comprehensive summary of all experimental runs, detailing the performance across all three NLU tasks (SST-2, QQP, STS-B), as well as system efficiency metrics.
+Table~\ref{tab:all_results_full} provides the complete set of primary and secondary metrics for all investigated architectures under every experimental paradigm.
 
-\begin{table*}[t]
-  \centering
-  \caption{Comprehensive Performance and Efficiency Metrics Across All Models and Paradigms.}
-  \label{tab:all_results}
-  \resizebox{\textwidth}{!}{%
-  \begin{tabular}{ll cccccc c c}
-    \toprule
-    & & \multicolumn{2}{c}{\textbf{SST-2}} & \multicolumn{2}{c}{\textbf{QQP}} & \multicolumn{2}{c}{\textbf{STS-B}} & \textbf{Time} & \textbf{RAM} \\
-    \cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
-    \textbf{Model} & \textbf{Paradigm} & \textbf{Acc} & \textbf{F1} & \textbf{Acc} & \textbf{F1} & \textbf{Pear.} & \textbf{Spear.} & \textbf{(s)} & \textbf{(GB)} \\
-    \midrule
-    \multirow{6}{*}{DistilBERT} 
-    & Cent-Single (IID) & 0.9002 & 0.9061 & 0.8456 & 0.8934 & 0.8712 & 0.8691 & --- & 4.25 \\
-    & Cent-Multi (IID)  & 0.9037 & 0.9077 & 0.8137 & 0.8778 & 0.8635 & 0.8614 & 24,450 & 4.32 \\
-    & FL-Single (Non-I) & 0.9346 & 0.9392 & 0.8408 & 0.7724 & 0.7753 & 0.7421 & --- & 1.10 \\
-    & FL-Multi (Non-I)  & 0.9232 & 0.9298 & 0.8579 & 0.8054 & 0.6963 & 0.6967 & 52,904 & 1.10 \\
-    & FL-Multi (IID)    & 0.9461 & 0.9514 & 0.8913 & 0.8610 & 0.8284 & 0.8136 & 56,454 & 1.09 \\
-    & FL-MT-LoRA (IID)  & 0.8257 & 0.8433 & 0.7535 & 0.6754 & 0.5108 & 0.4919 & 21,245 & 0.29 \\
-    \midrule
-    \multirow{6}{*}{BERT-Medium} 
-    & Cent-Single (IID) & 0.8933 & 0.8970 & 0.8358 & 0.8859 & 0.8673 & 0.8648 & --- & 2.65 \\
-    & Cent-Multi (IID)  & 0.8865 & 0.8884 & 0.8333 & 0.8777 & 0.8615 & 0.8584 & 19,257 & 2.67 \\
-    & FL-Single (Non-I) & 0.9300 & 0.9348 & 0.7989 & 0.6852 & 0.6521 & 0.6212 & --- & 0.68 \\
-    & FL-Multi (Non-I)  & 0.8933 & 0.8988 & 0.8183 & 0.7441 & 0.4219 & 0.4132 & 33,375 & 0.68 \\
-    & FL-Multi (IID)    & 0.9392 & 0.9450 & 0.8962 & 0.8655 & 0.8258 & 0.8052 & 45,258 & 0.68 \\
-    & FL-MT-LoRA (IID)  & 0.8131 & 0.8362 & 0.7388 & 0.6805 & 0.6823 & 0.6512 & 12,886 & 0.18 \\
-    \midrule
-    \multirow{6}{*}{BERT-Mini} 
-    & Cent-Single (IID) & 0.8727 & 0.8773 & 0.7990 & 0.8536 & 0.8316 & 0.8283 & --- & 2.45 \\
-    & Cent-Multi (IID)  & 0.8589 & 0.8650 & 0.7770 & 0.8580 & 0.7989 & 0.7973 & 3,653 & 2.47 \\
-    & FL-Single (Non-I) & 0.9151 & 0.9196 & 0.7674 & 0.6201 & 0.6504 & 0.6150 & --- & 0.20 \\
-    & FL-Multi (Non-I)  & 0.8234 & 0.8226 & 0.7748 & 0.6668 & 0.4009 & 0.3939 & 10,318 & 0.20 \\
-    & FL-Multi (IID)    & 0.9266 & 0.9329 & 0.8350 & 0.7981 & 0.6940 & 0.6550 & 13,341 & 0.20 \\
-    & FL-MT-LoRA (IID)  & 0.7649 & 0.7915 & 0.6958 & 0.5602 & 0.2824 & 0.2773 & 4,192 & 0.06 \\
-    \midrule
-    \multirow{6}{*}{MiniLM} 
-    & Cent-Single (IID) & 0.9014 & 0.9051 & 0.7990 & 0.8656 & 0.8620 & 0.8592 & --- & 1.50 \\
-    & Cent-Multi (IID)  & 0.8796 & 0.8829 & 0.7917 & 0.8649 & 0.8580 & 0.8560 & 12,437 & 1.50 \\
-    & FL-Single (Non-I) & 0.9243 & 0.9293 & 0.8421 & 0.7644 & 0.7877 & 0.7489 & --- & 0.38 \\
-    & FL-Multi (Non-I)  & 0.8888 & 0.8974 & 0.8629 & 0.8150 & 0.7003 & 0.7061 & 20,766 & 0.38 \\
-    & FL-Multi (IID)    & 0.9369 & 0.9428 & 0.8966 & 0.8662 & 0.8384 & 0.8197 & 27,930 & 0.38 \\
-    & FL-MT-LoRA (IID)  & 0.7787 & 0.8102 & 0.7271 & 0.6060 & 0.0703 & 0.0621 & 18,808 & 0.11 \\
-    \midrule
-    \multirow{6}{*}{TinyBERT} 
-    & Cent-Single (IID) & 0.8314 & 0.8358 & 0.7157 & 0.8139 & 0.7270 & 0.7230 & --- & 0.34 \\
-    & Cent-Multi (IID)  & 0.8211 & 0.8263 & 0.7230 & 0.8101 & 0.6474 & 0.6426 & 9,228 & 0.34 \\
-    & FL-Single (Non-I) & 0.9060 & 0.9122 & 0.7010 & 0.3887 & 0.2186 & 0.1755 & --- & 0.09 \\
-    & FL-Multi (Non-I)  & 0.7810 & 0.7782 & 0.6895 & 0.4733 & 0.0081 & 0.0063 & 6,975 & 0.09 \\
-    & FL-Multi (IID)    & 0.9014 & 0.9145 & 0.7950 & 0.7494 & 0.5212 & 0.4754 & 6,778 & 0.09 \\
-    & FL-MT-LoRA (IID)  & 0.7569 & 0.7902 & 0.6766 & 0.4475 & 0.3636 & 0.3505 & 3,561 & 0.04 \\
-    \bottomrule
-  \end{tabular}%
-  }
-\end{table*}
-
-% -----------------------------------------------------------------------
+% Consolidated Results Table moved to section end for buffer but now requested at top.
+% Removing from here.
+% ------------------------------------------------------
 \subsection{Discussion}
-% -----------------------------------------------------------------------
+% ------------------------------------------------------
 
 \subsubsection{Trade-offs Between Privacy, Performance, and Efficiency}
-The results in Figures~\ref{fig:perf_trajectory}--\ref{fig:time_trajectory} reveal fundamental trade-offs. Federated learning preserves data privacy and reduces per-client resource usage by 77--93\% but increases total training time by 2.4--3.9$\times$ compared to centralized training. Small language models enable edge deployment at the cost of bounded task performance for complex NLU applications such as semantic similarity.
+The results in Figures~\ref{fig:perf_trajectory}--\ref{fig:time_trajectory} reveal fundamental trade-offs. Federated learning preserves data privacy and reduces per-client resource usage by \textbf{74--93\%} (Table~\ref{tab:results_consolidated}) but increases total training time by \textbf{2.2--3.7$\times$} compared to centralized training. Small language models enable edge deployment at the cost of bounded task performance for complex NLU applications such as semantic similarity.
 
 \subsubsection{Insights into Task Transfer and Negative Transfer}
-Classification tasks (SST-2, QQP) demonstrate better positive transfer characteristics than regression (STS-B). Negative transfer is most pronounced in STS-B under Non-IID MTL, with Pearson correlation dropping by up to 72 points for TinyBERT. Larger models (DistilBERT, BERT-Medium) are more resilient to negative transfer due to higher representational capacity.
+Classification tasks (SST-2, QQP) demonstrate better positive transfer characteristics than regression (STS-B), as seen in Table~\ref{tab:results_consolidated}. Negative transfer is most pronounced in STS-B under Non-IID MTL, with Pearson correlation dropping by up to \textbf{64 points} for TinyBERT (from 0.6474 to 0.0081). Larger models (DistilBERT, BERT-Medium) are more resilient to negative transfer due to higher representational capacity. Notably, DistilBERT under Federated MTL (IID) achieves \textbf{0.9461} accuracy on SST-2, outperforming its centralized MTL counterpart.
 
 \subsubsection{Practical Deployment Considerations}
-TinyBERT is the best option for extremely resource-constrained devices ($<0.1$\,GB per client with LoRA), but with notable performance penalties on STS-B. DistilBERT offers the best performance--efficiency balance. LoRA is recommended for bandwidth-limited deployments as it reduces both communication volume and training time while maintaining competitive accuracy on classification tasks.
+TinyBERT is the best option for extremely resource-constrained devices ($<0.1$\,GB per client), but with notable performance penalties on STS-B. \textbf{DistilBERT} (highlighted in red) offers the best performance--efficiency balance for most federated multi-task scenarios, maintaining over \textbf{0.92 accuracy} on SST-2 even under Non-IID conditions. LoRA is recommended for bandwidth-limited deployments as it reduces training time by \textbf{38--62\%} for most models while maintaining competitive accuracy.

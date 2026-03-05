@@ -6,83 +6,45 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{url}
+\usepackage[table]{xcolor}
+\usepackage{caption}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{subcaption}
 
 \begin{document}
 
-\title{Federated Learning with Small Language Models: Multi-Task Learning and Data Heterogeneity Analysis}
+\title{Real-Time Federated Learning with Small Language Models: Multi-Task Learning and Data Heterogeneity Analysis}
 
-\author{
-    \IEEEauthorblockN{Author Name(s)}
-    \IEEEauthorblockA{Institution\\
-    Email: author@example.com}
-}
+\author{\IEEEauthorblockN{Quang-Vinh Pham}
+\IEEEauthorblockA{Department of Data Science\\
+TMA Tech Group, Gia Lai, Vietnam\\
+Email: pqvinh@tma.com.vn}
+\and
+\IEEEauthorblockN{Quang-Hung Le}
+\IEEEauthorblockA{Department of Information Technology\\
+Quy Nhon University, Vietnam\\
+Email: lequanghung@qnu.edu.vn}}
 
 \maketitle
 
 \begin{abstract}
-This paper presents a comprehensive analysis of federated learning with small language models (SLMs) in multi-task learning scenarios under data heterogeneity. We evaluate the performance of five different model architectures across three NLU benchmarks (SST-2, QQP, STS-B) under centralized and federated paradigms, comparing single-task versus multi-task learning approaches. Our experiments reveal significant insights into task transfer effects, privacy-performance trade-offs, and efficiency considerations for practical deployment. Results show that while federated learning introduces 2.4-3.9x training overhead, it maintains competitive accuracy for classification tasks and reduces individual client resource usage by 77-93\%. Multi-task learning exhibits negative transfer effects in 85\% of configurations, with performance degradation ranging from -1.93\% to -26.58\% depending on task similarity and model capacity.
+The demand for privacy-preserving Natural Language Understanding (NLU) has led to the rapid adoption of Federated Learning (FL). However, real-time multi-task deployments on edge devices face significant challenges regarding communication efficiency and data heterogeneity. In this paper, we propose a Real-Time Federated Multi-Task Learning framework using Small Language Models (RT-FMTL-SLM). We systematically evaluate our approach across five diverse SLM architectures using benchmarks from the GLUE suite (SST-2, QQP, and STS-B) under multiple paradigm-complexity stages, including IID and Non-IID data distributions. Our results demonstrate that RT-FMTL-SLM achieves a significant reduction in per-client resource consumption by \textbf{74--93\%} relative to centralized baselines. While federated synchronization introduces a \textbf{2.2--3.7$\times$} training time overhead due to real-time coordination, we observe a critical performance-efficiency trade-off with Low-Rank Adaptation (LoRA); although it reduces communication volume by over \textbf{90\%}, it leads to substantial performance degradation in regression tasks like STS-B. We identify DistilBERT as the most robust architecture for multi-task stability under heterogeneous conditions. The source code and implementation are available at: \url{https://github.com/vinh1988/RT-FMTL-SLM.git}.
 \end{abstract}
 
 \begin{IEEEkeywords}
 Federated Learning, Small Language Models, Multi-Task Learning, Data Heterogeneity, Privacy-Preserving Machine Learning
 \end{IEEEkeywords}
 
+\input{intro_section}
+\input{related_work_section}
+\input{problem_definition_section}
+\input{propose_method_section}
 \input{experiments_section}
-
-\section{Conclusion}
-
-This study provides a comprehensive analysis of federated learning with small language models in multi-task scenarios. Our key contributions include:
-
-\begin{itemize}
-    \item Systematic evaluation of five SLM architectures across three NLU benchmarks
-    \item Detailed analysis of single-task vs multi-task learning in federated settings
-    \item Quantification of privacy-performance trade-offs and efficiency metrics
-    \item Practical insights for real-world deployment of federated systems
-\end{itemize}
-
-\textbf{Main Findings:}
-\begin{enumerate}
-    \item Federated learning maintains competitive performance for classification tasks with significant resource efficiency gains
-    \item Multi-task learning shows limited benefits in federated scenarios due to negative transfer effects
-    \item Model architecture selection crucial for balancing performance and efficiency
-    \item Data heterogeneity significantly impacts convergence and final performance
-\end{enumerate}
-
-\textbf{Future Work:}
-\begin{itemize}
-    \item Exploration of adaptive task sharing strategies
-    \item Investigation of personalized federated learning approaches
-    \item Development of efficient communication protocols for multi-task FL
-    \item Extension to more diverse task combinations and model architectures
-\end{itemize}
-
-\begin{thebibliography}{9}
-\bibitem{ref1}
-McMahan, B., et al. (2017). Communication-Efficient Learning of Deep Networks from Decentralized Data. \emph{AISTATS}.
-
-\bibitem{ref2}
-Devlin, J., et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. \emph{NAACL}.
-
-\bibitem{ref3}
-Wang, A., et al. (2019). GLUE: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding. \emph{ICLR}.
-
-\bibitem{ref4}
-Caruana, R. (1997). Multitask Learning. \emph{Machine Learning}, 28(1), 41-75.
-
-\bibitem{ref5}
-Kairouz, P., et al. (2021). Advances and Open Problems in Federated Learning. \emph{Foundations and Trends in Machine Learning}.
-
-\bibitem{ref6}
-Hsu, C., et al. (2020). Measuring the Effects of Non-Identical Data Distribution on Federated Learning. \emph{arXiv preprint}.
-
-\bibitem{ref7}
-Sanh, V., et al. (2019). DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter. \emph{arXiv preprint}.
-
-\bibitem{ref8}
-Yang, Y., et al. (2020). Federated Learning Based on Dynamic Regularization. \emph{ICLR}.
-
-\bibitem{ref9}
-Wang, X., et al. (2021). FedBN: Federated Learning on Non-IID Data with Local Batch Normalization. \emph{arXiv preprint}.
-\end{thebibliography}
+\input{conclusion_section}
+\newpage
+\input{references}
 
 \end{document}

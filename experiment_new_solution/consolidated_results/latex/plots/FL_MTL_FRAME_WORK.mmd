@@ -1,0 +1,41 @@
+---
+config:
+  layout: elk
+---
+graph TD
+    subgraph Server [Global Orchestration Server]
+        GlobalW[Global State: <br/> Shared Encoder φ <br/> Task Heads ψ_1, ψ_2, ψ_3]
+        AggShared[<b>4. Multi-Task Aggregation</b> <br/> FedAvg across ALL clients for φ]
+        AggHeads[<b>4. Multi-Task Aggregation</b> <br/> FedAvg per-task groups for ψ_t]
+    end
+
+    subgraph WS [<b>Real-Time WebSocket Gateway</b>]
+        WSE["Low-Latency Bidirectional Hub <br/> (Async Parameter Exchange)"]
+    end
+
+    subgraph ClientNodes [Heterogeneous Clients]
+        CSST[Client A: Task SST-2 <br/> φ_global + ψ_sst2]
+        CQQP[Client B: Task QQP <br/> φ_global + ψ_qqp]
+        CSTS[Client C: Task STS-B <br/> φ_global + ψ_stsb]
+        Valid[<b>6. Local Validation</b> <br/> Measure Transfer Performance]
+    end
+    GlobalW -- "1. Global Model Broadcast" --> WSE
+    WSE -- "Distributed φ & ψ_t" --> CSST
+    WSE -- "Distributed φ & ψ_t" --> CQQP
+    WSE -- "Distributed φ & ψ_t" --> CSTS
+    CSST -.-> LT1["2. Local Training (Update φ & ψ_sst2)"]
+    LT1 -.-> CSST
+    CQQP -.-> LT2["2. Local Training (Update φ & ψ_qqp)"]
+    LT2 -.-> CQQP
+    CSTS -.-> LT3["2. Local Training (Update φ & ψ_stsb)"]
+    LT3 -.-> CSTS
+    CSST -- "3. Update Upload" --> WSE
+    CQQP -- "3. Update Upload" --> WSE
+    CSTS -- "3. Update Upload" --> WSE
+    WSE -- "Send Δφ, Δψ_t" --> AggShared
+    AggShared -- All Δφ --> GlobalW
+    AggShared -- Δψ_t --> AggHeads
+    AggHeads -- Task-Specific Aggregation --> GlobalW
+    GlobalW -- "5. Model Redistribution" --> WSE
+    WSE -- "Updated Global φ & ψ_t" --> ClientNodes
+    ClientNodes --> Valid
