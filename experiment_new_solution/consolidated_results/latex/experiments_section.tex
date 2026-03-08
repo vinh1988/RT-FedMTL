@@ -148,38 +148,7 @@ Figure~\ref{fig:perf_trajectory} plots model accuracy / correlation as experimen
   \label{fig:perf_trajectory}
 \end{figure*}
 
-\begin{table*}[t]
-  \centering
-  \caption{Performance Trajectory Data (primary metric per model–task pair)}
-  \label{tab:perf_trajectory}
-  \footnotesize
-  \setlength{\tabcolsep}{3pt}
-  \begin{tabular}{lcccccc}
-    \toprule
-    \textbf{Model -- Task} & \textbf{Cent-S} & \textbf{Cent-M} & \textbf{FL-S} & \textbf{FL-M\,(Non-IID)} & \textbf{FL-M\,(IID)} & \textbf{FL-M\,(LoRA)} \\
-    \midrule
-    DistilBERT -- SST-2  & 0.9002 & 0.9037 & 0.9346 & 0.9232 & 0.9461 & 0.8257 \\
-    BERT-Medium -- SST-2 & 0.8933 & 0.8865 & 0.9300 & 0.8933 & 0.9392 & 0.8131 \\
-    BERT-Mini -- SST-2   & 0.8727 & 0.8589 & 0.9151 & 0.8234 & 0.9266 & 0.7649 \\
-    MiniLM -- SST-2      & 0.9014 & 0.8796 & 0.9243 & 0.8888 & 0.9369 & 0.7787 \\
-    TinyBERT -- SST-2    & 0.8314 & 0.8211 & 0.9060 & 0.7810 & 0.9014 & 0.7569 \\
-    \midrule
-    DistilBERT -- QQP    & 0.8456 & 0.8137 & 0.8408 & 0.8579 & 0.8913 & 0.7535 \\
-    BERT-Medium -- QQP   & 0.8358 & 0.8333 & 0.7989 & 0.8183 & 0.8962 & 0.7388 \\
-    BERT-Mini -- QQP     & 0.7990 & 0.7770 & 0.7674 & 0.7748 & 0.8350 & 0.6958 \\
-    MiniLM -- QQP        & 0.7990 & 0.7917 & 0.8421 & 0.8629 & 0.8966 & 0.7271 \\
-    TinyBERT -- QQP      & 0.7157 & 0.7230 & 0.7010 & 0.6895 & 0.7950 & 0.6766 \\
-    \midrule
-    DistilBERT -- STS-B  & 0.8712 & 0.8635 & 0.7753 & 0.6963 & 0.8284 & 0.5108 \\
-    BERT-Medium -- STS-B & 0.8673 & 0.8615 & 0.6521 & 0.4219 & 0.8258 & 0.6823 \\
-    BERT-Mini -- STS-B   & 0.8316 & 0.7989 & 0.6504 & 0.4009 & 0.6940 & 0.2824 \\
-    MiniLM -- STS-B      & 0.8620 & 0.8580 & 0.7877 & 0.7003 & 0.8384 & 0.0703 \\
-    TinyBERT -- STS-B    & 0.7270 & 0.6474 & 0.2186 & 0.0081 & 0.5212 & 0.3636 \\
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-Key observations from Figure~\ref{fig:perf_trajectory} and Table~\ref{tab:perf_trajectory}:
+Key observations from Figure~\ref{fig:perf_trajectory}:
 \begin{itemize}
   \item \textbf{Reliability gap}: classification accuracy (SST-2, QQP) degrades moderately (${\le}5\%$) in federated settings, while STS-B Pearson correlation shows larger drops — up to 72 points for TinyBERT under Non-IID MTL.
   \item \textbf{MTL benefit}: comparing FL-Single and FL-Multi (Non-IID) reveals task-interaction effects; SST-2 suffers modest negative transfer whereas QQP can benefit from shared representations.
