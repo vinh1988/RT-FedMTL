@@ -11,15 +11,24 @@
 \usepackage[margin=1in]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[hidelinks]{hyperref}
+% \usepackage[hidelinks]{hyperref}
 \usepackage{subcaption}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Real-Time Federated Learning with Small Language Models: Multi-Task Learning and Data Heterogeneity Analysis},
+    pdfpagemode=FullScreen,
+}
 
 \begin{document}
 
 \title{Real-Time Federated Learning with Small Language Models: Multi-Task Learning and Data Heterogeneity Analysis}
 
 \author{\IEEEauthorblockN{Quang-Vinh Pham}
-\IEEEauthorblockA{Department of Data Science\\
+\IEEEauthorblockA{Department of Data Science\\  
 TMA Tech Group, Gia Lai, Vietnam\\
 Email: pqvinh@tma.com.vn}
 \and
@@ -31,7 +40,7 @@ Email: lequanghung@qnu.edu.vn}}
 \maketitle
 
 \begin{abstract}
-The demand for privacy-preserving Natural Language Understanding (NLU) has led to the rapid adoption of Federated Learning (FL). However, real-time multi-task deployments on edge devices face significant challenges regarding communication efficiency and data heterogeneity. In this paper, we propose a Real-Time Federated Multi-Task Learning framework using Small Language Models (RT-FMTL-SLM). We systematically evaluate our approach across five diverse SLM architectures using benchmarks from the GLUE suite (SST-2, QQP, and STS-B) under multiple paradigm-complexity stages, including IID and Non-IID data distributions. Our results demonstrate that RT-FMTL-SLM achieves a significant reduction in per-client resource consumption by \textbf{74--93\%} relative to centralized baselines. While federated synchronization introduces a \textbf{2.2--3.7$\times$} training time overhead due to real-time coordination, we observe a critical performance-efficiency trade-off with Low-Rank Adaptation (LoRA); although it reduces communication volume by over \textbf{90\%}, it leads to substantial performance degradation in regression tasks like STS-B. We identify DistilBERT as the most robust architecture for multi-task stability under heterogeneous conditions. The source code and implementation are available at: \url{https://github.com/vinh1988/RT-FMTL-SLM.git}.
+The adoption of Federated Learning (FL) for privacy-preserving Natural Language Understanding (NLU) is often hindered by the resource constraints of edge devices and the complexity of multi-task environments. This paper proposes a Real-Time Federated Multi-Task Learning framework using Small Language Models (RT-FMTL-SLM). We systematically evaluate five SLM architectures across benchmarks from the GLUE suite under multiple paradigm-complexity stages and data distributions. Our findings reveal that RT-FMTL-SLM achieves a per-client resource reduction of 74--93\% relative to centralized training, though it incurs a 2.2--3.7$\times$ training time overhead due to real-time synchronization. We further analyze the trade-offs of Low-Rank Adaptation (LoRA), which reduces communication volume by over 90\% but challenges regression stability in tasks like STS-B. DistilBERT emerges as the most robust architecture for multi-task stability under heterogeneous conditions. The source code is available at: \url{https://github.com/vinh1988/RT-FMTL-SLM.git}.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -45,6 +54,7 @@ Federated Learning, Small Language Models, Multi-Task Learning, Data Heterogenei
 \input{experiments_section}
 \input{conclusion_section}
 
+\bibliographystyle{IEEEtran}
 \input{references}
 
 \end{document}

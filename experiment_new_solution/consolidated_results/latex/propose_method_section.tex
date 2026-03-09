@@ -2,17 +2,17 @@
 \label{sec:proposed_method}
 
 \subsection{System Overview}
-The proposed federated multi-task framework employs a hierarchical architecture designed for real-time NLU applications. As illustrated in Fig.~\ref{fig:framework_pipeline}, the system consists of a central orchestration server and multiple heterogeneous client nodes. The central server maintains the global state through a \textbf{Parameter Server} and manages the \textbf{Model Aggregation} logic. Communication is established via low-latency \textbf{WebSockets}, facilitating bidirectional exchange of model updates and aggregated parameters.
+The proposed federated multi-task framework employs a hierarchical architecture designed for real-time NLU applications. As illustrated in Fig.~\ref{fig:framework_pipeline}, the system consists of a central orchestration server and multiple heterogeneous client nodes. The central server maintains the global state through a Parameter Server and manages the Model Aggregation logic. Communication is established via low-latency WebSockets, facilitating bidirectional exchange of model updates and aggregated parameters.
 
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=0.8\textwidth]{plots/FL_MTL_FRAME_WORK.png}
+    \includegraphics[width=0.7\textwidth]{plots/FL_MTL_FRAME_WORK.png}
     \caption{Architecture of the Proposed Real-time Federated Multi-Task Learning Framework. The system enables seamless integration of streaming data processing and collaborative model refinement.}
     \label{fig:framework_pipeline}
 \end{figure*}
 
 \subsection{Small Language Model Backbone}
-The framework utilizes specialized Small Language Models (SLMs) to balance computational efficiency and linguistic performance. Our current implementation support DistilBERT, BERT-Medium, and MiniLM architectures. These models serve as the shared feature extractor (encoder), which is fine-tuned collaboratively across the federated network. By using SLMs, we achieve a significant reduction in communication overhead compared to standard-sized transformers.
+The framework utilizes specialized Small Language Models (SLMs) to balance computational efficiency and linguistic performance. Our current implementation supports DistilBERT \cite{sanh2019distilbert}, BERT-Medium \cite{devlin2018bert}, and MiniLM \cite{wang2020minilm} architectures. These models serve as the shared feature extractor (encoder), which is fine-tuned collaboratively across the federated network. By using SLMs, we achieve a significant reduction in communication overhead compared to standard-sized transformers.
 
 \subsection{Multi-Task Learning Strategy}
 We adopt a hybrid parameter-sharing strategy. The lower transformer layers (encoder) are shared across all tasks to capture universal linguistic representations. In contrast, the upper layers consist of task-specific classification or regression heads. To mitigate negative transfer, we implement an adaptive loss weighting mechanism:
@@ -46,7 +46,7 @@ The federated optimization process is detailed in Algorithm~\ref{alg:rt_fmtl}. T
 \end{algorithm}
 
 \subsection{Communication-Efficient Fine-Tuning (LoRA)}
-To further optimize resource utilization on edge devices, the framework incorporates Low-Rank Adaptation (LoRA). During the local update phase, instead of updating the full weight matrices $W \in \mathbb{R}^{d \times d}$, we optimize low-rank decomposition matrices $A$ and $B$:
+To further optimize resource utilization on edge devices, the framework incorporates Low-Rank Adaptation (LoRA) \cite{hu2021lora}. During the local update phase, instead of updating the full weight matrices $W \in \mathbb{R}^{d \times d}$, we optimize low-rank decomposition matrices $A$ and $B$:
 \begin{equation}
     W' = W + \Delta W = W + BA
 \end{equation}

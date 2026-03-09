@@ -2,14 +2,14 @@
 \label{sec:related_work}
 
 \subsection{Federated Learning for Natural Language Processing}
-FL has been applied to several NLP/NLU scenarios, including text classification and personalized language services where raw text cannot be centralized. Foundational optimization methods such as FedAvg established the standard client-update and server-aggregation loop, while FedProx introduced regularization to improve robustness under client drift.
+FL has been applied to several NLP/NLU scenarios, including text classification and personalized language services where raw text cannot be centralized \cite{mcmahan2017fedavg,li2020fedprox}. Foundational optimization methods such as FedAvg established the standard client-update and server-aggregation loop, while FedProx introduced regularization to improve robustness under client drift \cite{mcmahan2017fedavg,li2020fedprox}.
 
 For heterogeneous settings, federated multi-task approaches such as MOCHA show that modeling inter-task relatedness can improve statistical efficiency and robustness to systems issues \cite{smith2017mocha}. More recent methods, including FedBone, extend this direction toward large-scale heterogeneous multi-task systems by explicitly separating shared and task-specific components \cite{chen2024fedbone}.
 
 Despite this progress, many FL-for-NLP studies still assume limited task diversity or focus primarily on single-task personalization.
 
 \subsection{Multi-Task Learning in NLP}
-Multi-task learning (MTL) in NLP usually follows two paradigms: hard parameter sharing and soft parameter sharing. Hard sharing uses a common encoder and separate task heads, reducing overfitting and training cost. Soft sharing keeps task-specific parameters while encouraging similarity through regularization or constrained interaction.
+Multi-task learning (MTL) in NLP usually follows two paradigms: hard parameter sharing and soft parameter sharing \cite{smith2017mocha,yu2020pcgrad}. Hard sharing uses a common encoder and separate task heads, reducing overfitting and training cost. Soft sharing keeps task-specific parameters while encouraging similarity through regularization or constrained interaction.
 
 MTL improves representation learning by transferring useful linguistic features across tasks. However, it also introduces known difficulties, including task imbalance (dominant tasks overpower smaller ones) and negative transfer (one task degrades another). These issues become more severe under federated training because client participation is partial and data distributions vary across rounds.
 
@@ -26,10 +26,9 @@ Prior work reports that heterogeneity can hurt both convergence speed and final 
 \subsection{Research Gap}
 Existing studies provide strong building blocks but still leave an important gap for practical NLU systems:
 \begin{itemize}
-    \item \textbf{Lack of real-time FL frameworks:} most methods are designed for periodic offline rounds rather than continuous adaptation.
-    \item \textbf{Limited integration of FL + MTL + SLM:} many works treat efficiency, heterogeneity, and multi-task transfer separately.
-    \item \textbf{Insufficient heterogeneity analysis in NLU FL:} current evaluations often miss how task diversity, data skew, and communication constraints interact.
+    \item Lack of real-time FL frameworks: most methods are designed for periodic offline rounds rather than continuous adaptation.
+    \item Limited integration of FL + MTL + SLM: many works treat efficiency, heterogeneity, and multi-task transfer separately.
+    \item Insufficient heterogeneity analysis in NLU FL: current evaluations often miss how task diversity, data skew, and communication constraints interact.
 \end{itemize}
 
 This gap motivates a unified real-time federated multi-task approach that combines efficient language modeling with heterogeneity-aware optimization for distributed NLU.
-
