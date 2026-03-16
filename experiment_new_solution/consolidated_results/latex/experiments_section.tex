@@ -57,11 +57,11 @@ All experiments use learning rate $2\times10^{-5}$ with 1,000-step warmup, batch
 \subsection{Results and Discussion}
 % ------------------------------------------------------
 
-This section evaluates the proposed Federated MTL framework across five thematic dimensions: overall baseline comparisons, the impact of multi-task learning, paradigm performance gaps, real-time suitability, and communication efficiency.
+This section evaluates the proposed Federated MTL framework across five thematic dimensions: overall baseline comparisons, the impact of MTL, paradigm performance gaps, real-time suitability, and communication efficiency.
 
 \begin{table*}[t]
   \centering
-  \caption{Advanced Comparative Analysis of SLM Performance across Paradigms}
+  \caption{Comparative Analysis of SLM Performance across Paradigms}
   \label{tab:results_consolidated}
   \scriptsize
   \setlength{\tabcolsep}{3pt}
@@ -75,8 +75,8 @@ This section evaluates the proposed Federated MTL framework across five thematic
      & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.7753 & 0.7421 & 15452.52 & 1.0988 \\
      & FL & ST & Non-IID & FFT & 0.9346 & 0.9392 & --- & --- & --- & --- & 23586.44 & 1.0972 \\
      & FL & \textbf{MTL (ours)} & IID & LoRA & 0.8257 & 0.8433 & 0.7535 & 0.6754 & 0.5108 & 0.4919 & 21245.26 & 0.2852 \\
-     & \textcolor{red}{FL} & \textcolor{red}{\textbf{MTL (ours)}} & \textcolor{red}{Non-IID} & \textcolor{red}{FFT} & \textcolor{red}{0.9232} & \textcolor{red}{0.9298} & \textcolor{red}{0.8579} & \textcolor{red}{0.8054} & \textcolor{red}{0.6963} & \textcolor{red}{0.6967} & \textcolor{red}{52903.97} & \textcolor{red}{1.0968} \\
-     & FL & \textbf{MTL (ours)} & IID & FFT & \textbf{0.9461} & \textbf{0.9514} & 0.8913 & 0.8610 & 0.8284 & 0.8136 & 56454.46 & 1.0896 \\
+      & \textcolor{darkyellow}{FL} & \textcolor{darkyellow}{\textbf{MTL (ours)}} & \textcolor{darkyellow}{Non-IID} & \textcolor{darkyellow}{FFT} & \textcolor{darkyellow}{0.9232} & \textcolor{darkyellow}{0.9298} & \textcolor{darkyellow}{0.8579} & \textcolor{darkyellow}{0.8054} & \textcolor{darkyellow}{0.6963} & \textcolor{darkyellow}{0.6967} & \textcolor{darkyellow}{52903.97} & \textcolor{darkyellow}{1.0968} \\
+      & \textcolor{red}{FL} & \textcolor{red}{\textbf{MTL (ours)}} & \textcolor{red}{IID} & \textcolor{red}{FFT} & \textcolor{red}{\textbf{0.9461}} & \textcolor{red}{\textbf{0.9514}} & \textcolor{red}{0.8913} & \textcolor{red}{0.8610} & \textcolor{red}{0.8284} & \textcolor{red}{0.8136} & \textcolor{red}{56454.46} & \textcolor{red}{1.0896} \\
      & Cent. & ST & IID & FFT & --- & --- & --- & --- & \textbf{0.8712} & \textbf{0.8691} & 4561.78 & 4.2470 \\
      & Cent. & ST & IID & FFT & 0.9002 & 0.9061 & --- & --- & --- & --- & 18514.82 & 4.2460 \\
      & Cent. & ST & IID & FFT & --- & --- & 0.8456 & \textbf{0.8934} & --- & --- & 4290.59 & 4.2547 \\
@@ -85,8 +85,8 @@ This section evaluates the proposed Federated MTL framework across five thematic
     \textbf{BERT-Medium} \cite{devlin2018bert} & FL & ST & Non-IID & FFT & --- & --- & 0.7989 & 0.6852 & --- & --- & 23880.89 & 0.6789 \\
      & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.6521 & 0.6212 & 10261.92 & 0.6810 \\
      & FL & ST & Non-IID & FFT & 0.9300 & 0.9348 & --- & --- & --- & --- & 15439.04 & 0.6786 \\
-     & FL & \textbf{MTL (ours)} & Non-IID & FFT & 0.8933 & 0.8988 & 0.8183 & 0.7441 & 0.4219 & 0.4132 & 33374.50 & 0.6790 \\
-     & FL & \textbf{MTL (ours)} & IID & FFT & 0.9392 & 0.9450 & 0.8962 & 0.8655 & 0.8258 & 0.8052 & 45258.21 & 0.6807 \\
+      & FL & \textbf{MTL (ours)} & Non-IID & FFT & 0.8933 & 0.8988 & 0.8183 & 0.7441 & 0.4219 & 0.4132 & 33374.50 & 0.6790 \\
+      & FL & \textbf{MTL (ours)} & IID & FFT & 0.9392 & 0.9450 & 0.8962 & 0.8655 & 0.8258 & 0.8052 & 45258.21 & 0.6807 \\
      & FL & \textbf{MTL (ours)} & IID & LoRA & 0.8131 & 0.8362 & 0.7388 & 0.6805 & 0.6823 & 0.6512 & 12885.74 & 0.1840 \\
      & Cent. & ST & IID & FFT & --- & --- & --- & --- & 0.8673 & 0.8648 & 3381.83 & 2.6467 \\
      & Cent. & ST & IID & FFT & 0.8933 & 0.8970 & --- & --- & --- & --- & 13492.62 & 2.6711 \\
@@ -96,9 +96,9 @@ This section evaluates the proposed Federated MTL framework across five thematic
     \textbf{BERT-Mini} \cite{devlin2018bert} & FL & ST & Non-IID & FFT & --- & --- & 0.7674 & 0.6201 & --- & --- & 9642.59 & 0.1969 \\
      & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.6504 & 0.6150 & 2547.10 & 0.1969 \\
      & FL & ST & Non-IID & FFT & 0.9151 & 0.9196 & --- & --- & --- & --- & 4552.75 & 0.1969 \\
-     & FL & \textbf{MTL (ours)} & Non-IID & FFT & 0.8234 & 0.8226 & 0.7748 & 0.6668 & 0.4009 & 0.3939 & 10317.55 & 0.1969 \\
+      & FL & \textbf{MTL (ours)} & Non-IID & FFT & 0.8234 & 0.8226 & 0.7748 & 0.6668 & 0.4009 & 0.3939 & 10317.55 & 0.1969 \\
      & FL & \textbf{MTL (ours)} & IID & LoRA & 0.7649 & 0.7915 & 0.6958 & 0.5602 & 0.2824 & 0.2773 & 4191.67 & 0.0630 \\
-     & FL & \textbf{MTL (ours)} & IID & FFT & 0.9266 & 0.9329 & 0.8350 & 0.7981 & 0.6940 & 0.6550 & 13341.01 & 0.1969 \\
+      & FL & \textbf{MTL (ours)} & IID & FFT & 0.9266 & 0.9329 & 0.8350 & 0.7981 & 0.6940 & 0.6550 & 13341.01 & 0.1969 \\
      & Cent. & ST & IID & FFT & --- & --- & --- & --- & \textbf{0.8316} & \textbf{0.8283} & 411.45 & 2.4487 \\
      & Cent. & ST & IID & FFT & 0.8727 & 0.8773 & --- & --- & --- & --- & 3348.26 & 2.4487 \\
      & Cent. & ST & IID & FFT & --- & --- & 0.7990 & 0.8536 & --- & --- & 318.61 & 2.4487 \\
@@ -107,8 +107,8 @@ This section evaluates the proposed Federated MTL framework across five thematic
     \textbf{MiniLM} \cite{wang2020minilm} & FL & ST & Non-IID & FFT & --- & --- & 0.8421 & 0.7644 & --- & --- & 14583.05 & 0.3842 \\
      & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.7877 & 0.7489 & 4920.48 & 0.3840 \\
      & FL & ST & Non-IID & FFT & 0.9243 & 0.9293 & --- & --- & --- & --- & 8447.20 & 0.3836 \\
-     & FL & \textbf{MTL (ours)} & IID & FFT & 0.9369 & 0.9428 & \textbf{0.8966} & 0.8662 & 0.8384 & 0.8197 & 27930.06 & 0.3835 \\
-     & FL & \textbf{MTL (ours)} & Non-IID & FFT & 0.8888 & 0.8974 & 0.8629 & 0.8150 & 0.7003 & 0.7061 & 20765.57 & 0.3846 \\
+      & FL & \textbf{MTL (ours)} & IID & FFT & 0.9369 & 0.9428 & \textbf{0.8966} & 0.8662 & 0.8384 & 0.8197 & 27930.06 & 0.3835 \\
+      & FL & \textbf{MTL (ours)} & Non-IID & FFT & 0.8888 & 0.8974 & 0.8629 & 0.8150 & 0.7003 & 0.7061 & 20765.57 & 0.3846 \\
      & FL & \textbf{MTL (ours)} & IID & LoRA & 0.7787 & 0.8102 & 0.7271 & 0.6060 & 0.0703 & 0.0621 & 18808.08 & 0.1090 \\
      & Cent. & ST & IID & FFT & --- & --- & --- & --- & 0.8620 & 0.8592 & 2696.27 & 1.4929 \\
      & Cent. & ST & IID & FFT & 0.9014 & 0.9051 & --- & --- & --- & --- & 8334.10 & 1.4950 \\
@@ -118,8 +118,8 @@ This section evaluates the proposed Federated MTL framework across five thematic
     \textbf{TinyBERT} \cite{jiao2019tinybert} & FL & ST & Non-IID & FFT & --- & --- & 0.7010 & 0.3887 & --- & --- & 6226.63 & 0.0881 \\
      & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.2186 & 0.1755 & 1182.03 & 0.0881 \\
      & FL & ST & Non-IID & FFT & 0.9060 & 0.9122 & --- & --- & --- & --- & 2514.06 & 0.0881 \\
-     & FL & \textbf{MTL (ours)} & IID & FFT & 0.9014 & 0.9145 & 0.7950 & 0.7494 & 0.5212 & 0.4754 & 6778.00 & 0.0881 \\
-     & FL & \textbf{MTL (ours)} & Non-IID & FFT & 0.7810 & 0.7782 & 0.6895 & 0.4733 & 0.0081 & 0.0063 & 6975.28 & 0.0881 \\
+      & FL & \textbf{MTL (ours)} & IID & FFT & 0.9014 & 0.9145 & 0.7950 & 0.7494 & 0.5212 & 0.4754 & 6778.00 & 0.0881 \\
+      & FL & \textbf{MTL (ours)} & Non-IID & FFT & 0.7810 & 0.7782 & 0.6895 & 0.4733 & 0.0081 & 0.0063 & 6975.28 & 0.0881 \\
      & FL & \textbf{MTL (ours)} & IID & LoRA & 0.7569 & 0.7902 & 0.6766 & 0.4475 & 0.3636 & 0.3505 & 3560.68 & 0.0356 \\
      & Cent. & ST & IID & FFT & --- & --- & --- & --- & 0.7270 & 0.7230 & 2337.42 & 0.3427 \\
      & Cent. & ST & IID & FFT & 0.8314 & 0.8358 & --- & --- & --- & --- & 4857.08 & 0.3427 \\
@@ -128,7 +128,7 @@ This section evaluates the proposed Federated MTL framework across five thematic
     \midrule
     \bottomrule
     \addlinespace[2pt]
-    \multicolumn{13}{l}{\textit{Note: Bold values indicate highest performance. Abbreviations: Dist. = Data Distribution, --- = Not Applicable,}} \\
+    \multicolumn{13}{l}{\textit{Note: Bold values indicate highest performance. For DistilBERT, red color indicates best proposed method (IID), dark yellow color indicates second best (Non-IID).}} \\
     \multicolumn{13}{l}{\textit{ST = Single-Task, MTL = Multi-Task Learning, Cent. = Centralized, LoRA = Low-Rank Adaptation,}} \\
     \multicolumn{13}{l}{\textit{FFT = Full Fine-Tuning, Pear. = Pearson Correlation, Spea. = Spearman Correlation.}} \\
   \end{tabular}
@@ -138,10 +138,12 @@ This section evaluates the proposed Federated MTL framework across five thematic
 The comprehensive results in Table~\ref{tab:results_consolidated} demonstrate that Small Language Models (SLMs) integrated within a federated multi-task framework maintain high NLU performance across diverse tasks. Centralized MTL serves as the performance upper bound, yet DistilBERT under Federated MTL (IID) surprisingly achieves 0.9461 accuracy on SST-2, slightly outperforming its centralized counterpart. MiniLM also exhibits robust performance, reaching 0.8966 accuracy on QQP in the Federated MTL setting. These results validate that despite the inherent constraints of FL, SLMs can achieve competitive results relative to idealized centralized training.
 
 \subsubsection{Effect of Multi-Task Learning}
-Multi-task learning (MTL) provides significant advantages in federated settings by leveraging shared representations across related tasks. As shown in Figure~\ref{fig:perf_trajectory} and Table~\ref{tab:results_consolidated}, comparing FL-Single and FL-MTL (Non-IID) reveals complex task interactions. While SST-2 suffers modest negative transfer in certain configurations, regression tasks like STS-B often suffer more pronounced drops under Non-IID conditions. However, classification tasks generally demonstrate better positive transfer; for instance, QQP benefits from the features learned via SST-2. Larger SLMs like DistilBERT and BERT-Medium show higher resilience to negative transfer due to their greater representational capacity.
+MTL provides significant advantages in federated settings by leveraging shared representations across related tasks. As shown in Figure~\ref{fig:perf_trajectory} and Table~\ref{tab:results_consolidated}, comparing FL-Single and FL-MTL (Non-IID) reveals complex task interactions. While SST-2 suffers modest negative transfer in certain configurations, regression tasks like STS-B often suffer more pronounced drops under Non-IID conditions. However, classification tasks generally demonstrate better positive transfer; for instance, QQP benefits from the features learned via SST-2. Larger SLMs like DistilBERT and BERT-Medium show higher resilience to negative transfer due to their greater representational capacity.
 
 \subsubsection{Federated Learning Performance}
-The transition from centralized to federated learning introduces a "Reliability Gap," characterized by a moderate degradation (${\le}5\%$) in classification accuracy for tasks like SST-2 and QQP. This gap is most visible in the STS-B Pearson correlation, which drops significantly for the smallest architectures like TinyBERT under Non-IID MTL conditions. Figure~\ref{fig:perf_trajectory} maps this trajectory, showing how the proposed Federated MTL framework (red highlight in Table~\ref{tab:results_consolidated}) manages to close this gap by stabilizing performance across tasks compared to running isolated federated single-tasks on heterogeneous data partitions.
+The transition from centralized to federated learning introduces a "Reliability Gap," characterized by a moderate degradation (${\le}5\%$) in classification accuracy for tasks like SST-2 and QQP. This gap is most visible in the STS-B Pearson correlation, which drops significantly for the smallest architectures like TinyBERT under Non-IID MTL conditions. Figure~\ref{fig:perf_trajectory} maps this trajectory, showing how the proposed Federated MTL framework (highlighted in red for IID and dark yellow for Non-IID for the DistilBERT model in Table~\ref{tab:results_consolidated}) manages to close this gap by stabilizing performance across tasks.
+
+Quantitatively, the red metrics (IID) represent the framework's optimal performance, showing that MTL can yield better results than isolated centralized training for specific models (e.g., DistilBERT reaching 0.9461 on SST-2). The dark yellow metrics (Non-IID) highlight the framework's resilience under data heterogeneity; while classification tasks like SST-2 maintain stable performance (e.g., 0.9232 for DistilBERT), regression tasks like STS-B exhibit greater sensitivity, dropping from 0.8258 to 0.4219 in BERT-Medium. This demonstrates that while the framework is remarkably robust for categorical benchmarks, regression stability is heavily dependent on model capacity and data distribution.
 
 \begin{figure*}[t]
   \centering
@@ -188,7 +190,7 @@ For deployment on edge devices where real-time inference is critical, resource c
 \end{table*}
 
 \subsubsection{Communication Efficiency}
-Communication overhead is the primary bottleneck in federated multi-task learning, with wall-clock training times increasing by 2.2-3.7$\times$ compared to centralized training (Table~\ref{tab:time_trajectory}). However, as illustrated in Figure~\ref{fig:time_trajectory}, the integration of parameter-efficient fine-tuning via LoRA \cite{hu2021lora} substantially mitigates this cost. LoRA reduces federated training time by 38-62\% for most models by transmitting only low-rank adapter weights instead of full model parameters. This optimization enables the framework to maintain competitive accuracy while drastically reducing the bandwidth requirements, making it suitable for bandwidth-limited edge deployments.
+Communication overhead is the primary bottleneck in federated MTL, with wall-clock training times increasing by 2.2-3.7$\times$ compared to centralized training (Table~\ref{tab:time_trajectory}). However, as illustrated in Figure~\ref{fig:time_trajectory}, the integration of parameter-efficient fine-tuning via LoRA \cite{hu2021lora} substantially mitigates this cost. LoRA reduces federated training time by 38-62\% for most models by transmitting only low-rank adapter weights instead of full model parameters. This optimization enables the framework to maintain competitive accuracy while drastically reducing the bandwidth requirements, making it suitable for bandwidth-limited edge deployments.
 
 \begin{figure}[t]
   \centering

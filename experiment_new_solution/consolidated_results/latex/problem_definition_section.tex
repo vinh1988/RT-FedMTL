@@ -1,38 +1,110 @@
-\section{PROBLEM DEFINITION}
-\label{sec:problem_definition}
+% \section{PROBLEM DEFINITION}
+% \label{sec:problem_definition}
 
-\subsection{Formalization of Real-Time Federated Multi-Task Learning for NLU}
-We consider a real-time federated multi-task learning (RT-FMTL) setting for natural language understanding (NLU), where training proceeds over communication rounds $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. At each round, a subset of clients is selected, performs local updates on private data streams, and sends model updates to a central server for aggregation. Unlike purely offline FL, the client data distribution may evolve over time, so both local objectives and optimal parameters are time-dependent.
+% \subsection{Formalization of Real-Time Federated Multi-Task Learning for NLU}
+% We consider a real-time federated multi-task learning (RT-FMTL) setting for natural language understanding (NLU), where training proceeds over communication rounds $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. At each round, a subset of clients is selected, performs local updates on private data streams, and sends model updates to a central server for aggregation. Unlike purely offline FL, the client data distribution may evolve over time, so both local objectives and optimal parameters are time-dependent.
 
-Let $\mathcal{C}=\{1,\dots,C\}$ be the set of clients and $\mathcal{K}=\{1,\dots,K\}$ be the set of NLU tasks. Each client $c\in\mathcal{C}$ is associated with one primary task $\tau(c)\in\mathcal{K}$ (or a small task subset), and may receive new samples continuously from a local stream. The goal is to learn a federated model that preserves cross-task transfer while maintaining task-specific quality under non-IID and time-varying data.
+% Let $\mathcal{C}=\{1,\dots,C\}$ be the set of clients and $\mathcal{K}=\{1,\dots,K\}$ be the set of NLU tasks. Each client $c\in\mathcal{C}$ is associated with one primary task $\tau(c)\in\mathcal{K}$ (or a small task subset), and may receive new samples continuously from a local stream. The goal is to learn a federated model that preserves cross-task transfer while maintaining task-specific quality under non-IID and time-varying data.
 
-\subsection{Data and Task Heterogeneity Across Clients}
-Heterogeneity appears in two forms:
-\begin{itemize}
-    \item \textbf{Data heterogeneity}: for clients $c_i,c_j$, local distributions differ, i.e., $P_{c_i}(x,y)\neq P_{c_j}(x,y)$ (label skew, domain shift, vocabulary differences).
-    \item \textbf{Task heterogeneity}: clients may optimize different losses and output spaces based on $\tau(c)$, leading to mismatched gradients across tasks.
-\end{itemize}
+% \subsection{Data and Task Heterogeneity Across Clients}
+% Heterogeneity appears in two forms:
+% \begin{itemize}
+%     \item \textbf{Data heterogeneity}: for clients $c_i,c_j$, local distributions differ, i.e., $P_{c_i}(x,y)\neq P_{c_j}(x,y)$ (label skew, domain shift, vocabulary differences).
+%     \item \textbf{Task heterogeneity}: clients may optimize different losses and output spaces based on $\tau(c)$, leading to mismatched gradients across tasks.
+% \end{itemize}
 
-In addition, client availability and update frequency are asynchronous in real-time settings, which introduces system heterogeneity and stale updates \cite{mcmahan2017fedavg,li2020fedprox,chen2024fedbone}. Therefore, the optimization process must be robust to partial participation and non-uniform local progress.
+% In addition, client availability and update frequency are asynchronous in real-time settings, which introduces system heterogeneity and stale updates \cite{mcmahan2017fedavg,li2020fedprox,chen2024fedbone}. Therefore, the optimization process must be robust to partial participation and non-uniform local progress.
 
-\subsection{Optimization Objective for Federated Multi-Task Learning}
-Let $\ell_{\tau(c)}(\theta_e,\theta_{\tau(c)};\xi)$ be the task-specific loss for sample $\xi\in\mathcal{D}_c^t$. The global objective at round $t$ is:
-\begin{equation}
-\begin{aligned}
-\min_{\theta_e,\{\theta_k\}} \, F_t(\Theta)
-&= \sum_{c=1}^{C} p_c^t \, \mathbb{E}_{\xi\sim\mathcal{D}_c^t}
-\big[\ell_{\tau(c)}(\theta_e,\theta_{\tau(c)};\xi)\big] \\
-&\quad + \lambda \, \Omega(\{\theta_k\}),
-\end{aligned}
-\end{equation}
-where $p_c^t$ is the aggregation weight (e.g., proportional to local sample count), $\Omega$ is a regularizer encouraging stable cross-task learning, and $\lambda\ge0$ controls the sharing-specialization trade-off.
+% \subsection{Optimization Objective for Federated Multi-Task Learning}
+% Let $\ell_{\tau(c)}(\theta_e,\theta_{\tau(c)};\xi)$ be the task-specific loss for sample $\xi\in\mathcal{D}_c^t$. The global objective at round $t$ is:
+% \begin{equation}
+% \begin{aligned}
+% \min_{\theta_e,\{\theta_k\}} \, F_t(\Theta)\section{PROBLEM DEFINITION}
+% \label{sec:problem_definition}
 
-After local updates, the server aggregates shared encoder parameters using weighted averaging,
-\begin{equation}
-\theta_e^{t+1} = \sum_{c\in\mathcal{C}_t} \alpha_c^t \, \theta_{e,c}^{t+1},
-\end{equation}
-and updates task-specific parameters by task-wise aggregation,
-\begin{equation}
-\theta_k^{t+1} = \sum_{c\in\mathcal{C}_t: \, \tau(c)=k} \beta_c^t \, \theta_{k,c}^{t+1}.
-\end{equation}
-Here, $\mathcal{C}_t$ is the participating client subset at round $t$, and $\alpha_c^t,\beta_c^t$ are normalized aggregation coefficients \cite{mcmahan2017fedavg,smith2017mocha,zhou2025mfed}. This objective captures real-time RT-FMTL by jointly optimizing shared representations and task-specific parameters under privacy and heterogeneity constraints.
+% \subsection{Formalization of Real-Time Federated Multi-Task Learning for NLU}
+% We consider a real-time federated multi-task learning (RT-FMTL) setting for natural language understanding (NLU), where training proceeds over communication rounds $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. At each round, a subset of clients is selected, performs local updates on private data streams, and sends model updates to a central server for aggregation. Unlike purely offline FL, the client data distribution may evolve over time, so both local objectives and optimal parameters are time-dependent.
+
+% Let $\mathcal{C}=\{1,\dots,C\}$ be the set of clients and $\mathcal{K}=\{1,\dots,K\}$ be the set of NLU tasks. Each client $c\in\mathcal{C}$ is associated with one primary task $\tau(c)\in\mathcal{K}$ (or a small task subset), and may receive new samples continuously from a local stream. The goal is to learn a federated model that preserves cross-task transfer while maintaining task-specific quality under non-IID and time-varying data.
+
+% \subsection{Data and Task Heterogeneity Across Clients}
+% Heterogeneity appears in two forms:
+% \begin{itemize}
+%     \item \textbf{Data heterogeneity}: for clients $c_i,c_j$, local distributions differ, i.e., $P_{c_i}(x,y)\neq P_{c_j}(x,y)$ (label skew, domain shift, vocabulary differences).
+%     \item \textbf{Task heterogeneity}: clients may optimize different losses and output spaces based on $\tau(c)$, leading to mismatched gradients across tasks.
+% \end{itemize}
+
+% In addition, client availability and update frequency are asynchronous in real-time settings, which introduces system heterogeneity and stale updates \cite{mcmahan2017fedavg,li2020fedprox,chen2024fedbone}. Therefore, the optimization process must be robust to partial participation and non-uniform local progress.
+
+% \subsection{Optimization Objective for Federated Multi-Task Learning}
+% Let $\ell_{\tau(c)}(\theta_e,\theta_{\tau(c)};\xi)$ be the task-specific loss for sample $\xi\in\mathcal{D}_c^t$. The global objective at round $t$ is:
+% \begin{equation}
+% \begin{aligned}
+% \min_{\theta_e,\{\theta_k\}} \, F_t(\Theta)
+% &= \sum_{c=1}^{C} p_c^t \, \mathbb{E}_{\xi\sim\mathcal{D}_c^t}
+% \big[\ell_{\tau(c)}(\theta_e,\theta_{\tau(c)};\xi)\big] \\
+% &\quad + \lambda \, \Omega(\{\theta_k\}),
+% \end{aligned}
+% \end{equation}
+% where $p_c^t$ is the aggregation weight (e.g., proportional to local sample count), $\Omega$ is a regularizer encouraging stable cross-task learning, and $\lambda\ge0$ controls the sharing-specialization trade-off.
+
+% After local updates, the server aggregates shared encoder parameters using weighted averaging,
+% \begin{equation}
+% \theta_e^{t+1} = \sum_{c\in\mathcal{C}_t} \alpha_c^t \, \theta_{e,c}^{t+1},
+% \end{equation}
+% and updates task-specific parameters by task-wise aggregation,
+% \begin{equation}
+% \theta_k^{t+1} = \sum_{c\in\mathcal{C}_t: \, \tau(c)=k} \beta_c^t \, \theta_{k,c}^{t+1}.
+% \end{equation}
+% Here, $\mathcal{C}_t$ is the participating client subset at round $t$, and $\alpha_c^t,\beta_c^t$ are normalized aggregation coefficients \cite{mcmahan2017fedavg,smith2017mocha,zhou2025mfed}. This objective captures real-time RT-FMTL by jointly optimizing shared representations and task-specific parameters under privacy and heterogeneity constraints.
+
+% &= \sum_{c=1}^{C} p_c^t \, \mathbb{E}_{\xi\sim\mathcal{D}_c^t}
+% \big[\ell_{\tau(c)}(\theta_e,\theta_{\tau(c)};\xi)\big] \\
+% &\quad + \lambda \, \Omega(\{\theta_k\}),
+% \end{aligned}
+% \end{equation}
+% where $p_c^t$ is the aggregation weight (e.g., proportional to local sample count), $\Omega$ is a regularizer encouraging stable cross-task learning, and $\lambda\ge0$ controls the sharing-specialization trade-off.
+
+% After local updates, the server aggregates shared encoder parameters using weighted averaging,
+% \begin{equation}
+% \theta_e^{t+1} = \sum_{c\in\mathcal{C}_t} \alpha_c^t \, \theta_{e,c}^{t+1},
+% \end{equation}
+% and updates task-specific parameters by task-wise aggregation,
+% \begin{equation}
+% \theta_k^{t+1} = \sum_{c\in\mathcal{C}_t: \, \tau(c)=k} \beta_c^t \, \theta_{k,c}^{t+1}.
+% \end{equation}
+% Here, $\mathcal{C}_t$ is the participating client subset at round $t$, and $\alpha_c^t,\beta_c^t$ are normalized aggregation coefficients \cite{mcmahan2017fedavg,smith2017mocha,zhou2025mfed}. This objective captures real-time RT-FMTL by jointly optimizing shared representations and task-specific parameters under privacy and heterogeneity constraints.
+
+\section{PROBLEM DEFINITION}  
+\label{sec:problem_definition}  
+
+\subsection{Formalization of Real-Time Federated Multi-Task Learning For NLU}  
+We opt a real-time federated multi-task learning (RT-FMTL) environment based on natural language understanding (NLU) in which training goes over communication rounds for $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. Each round a subset of clients is selected, local updates are performed on private data streams, and the model gets pushed to a central server for aggregation. With regards to its distribution the client data distribution may vary over time, unlike in case of offline FL only, therefore, both local goals and optimum parameters are time bound. Let $\mathcal{C}=\{1,\dots,C\}$ be the set of clients and $\mathcal{K}=\{1,\dots,K\}$ be the set of NLU tasks. For each client $c\in\mathcal{C}$ it has only one major task $\tau(c)\in\mathcal{K}$ (or a small task subset), where new samples can continuously be added from a local stream. To learn a federated model that maintains cross-task transfer quality with the specific task quality in context of non-IID and time-varying data.  
+
+\subsection{Data and Task Heterogeneity in Clients}  
+Heterogeneity comes in two forms:  
+\begin{itemize}  
+\item Heterogeneity of data: the local distributions in clients $c_i,c_j$ will be different (i.e. $P_{c_i}(x,y)\neq P_{c_j}(x,y)$ (label skew, domain shift, vocabulary differences).  
+\item Task heterogeneity: clients may optimize different losses and output spaces according to $\tau(c)$, yielding dissimilar gradients across tasks.  
+\end{itemize}  
+Moreover, real-time environments have client availability and update frequency asynchronous, leading to system heterogeneity and stale updates \cite{mcmahan2017fedavg,li2020fedprox,chen2024fedbone}. Thus, the optimization process must account for partial participation and non-uniform local progress.  
+
+\subsection{Optimization Objective for Federated Multi-Task Learning}  
+Let $\ell_{\tau(c)}(\theta_e,\theta_{\tau(c)};\xi)$ be the task-specific loss cost for sample $\xi\in\mathcal{D}_c^t$. The global objective at round $t$ is:  
+\begin{equation}  
+\begin{aligned}  
+\min_{\theta_e,\{\theta_k\}} \, F_t(\Theta)  
+&= \sum_{c=1}^{C} p_c^t \, \mathbb{E}_{\xi\sim\mathcal{D}_c^t}  
+\big[\ell_{\tau(c)}(\theta_e,\theta_{\tau(c)};\xi)\big] \\  
+&\quad + \lambda \, \Omega(\{\theta_k\}),  
+\end{aligned}  
+\end{equation}  
+where $p_c^t$ represents the weight of the aggregation (e.g., the weight per unit local sample), $\Omega$ is a regularizer to promote a stable cross-task learning and $\lambda\ge0$ controls the sharing-specialization trade-off. After localized updates, the server aggregates common encoder parameters by weighted averaging,  
+\begin{equation}  
+\theta_e^{t+1} = \sum_{c\in\mathcal{C}_t} \alpha_c^t \, \theta_{e,c}^{t+1}.  
+\end{equation}  
+and updates custom task-specific parameters, as a result of task-wise aggregation,  
+\begin{equation}  
+\theta_k^{t+1} = \sum_{c\in\mathcal{C}_t: \, \tau(c)=k} \beta_c^t \, \theta_{k,c}^{t+1}.  
+\end{equation}  
+In $\mathcal{C}_t$, the client subset was measured at round $t$ and $\alpha_c^t,\beta_c^t$ are normalized aggregation coefficients \cite{mcmahan2017fedavg,smith2017mocha,zhou2025mfed}. With privacy and heterogeneity requirements in place, the goal captures RT-FMTL in real time by jointly optimizing both shared representations and task-specific parameters.
