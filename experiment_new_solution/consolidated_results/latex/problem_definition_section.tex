@@ -6,30 +6,6 @@ We consider a real-time federated multi-task learning (RT-FMTL) setting for natu
 
 Let $\mathcal{C}=\{1,\dots,C\}$ be the set of clients and $\mathcal{K}=\{1,\dots,K\}$ be the set of NLU tasks. Each client $c\in\mathcal{C}$ is associated with one primary task $\tau(c)\in\mathcal{K}$ (or a small task subset), and may receive new samples continuously from a local stream. The goal is to learn a federated model that preserves cross-task transfer while maintaining task-specific quality under non-IID and time-varying data.
 
-\subsection{Federated System Components and Privacy Constraints}
-The federated system consists of:
-\begin{itemize}
-    \item \textbf{Global server} $\mathcal{S}$: coordinates client sampling, model broadcast, and aggregation.
-    \item \textbf{Distributed clients} $\mathcal{C}$: edge devices/silos that keep raw text data local.
-    \item \textbf{Task set} $\mathcal{K}$: heterogeneous NLU tasks (e.g., intent classification, sentiment analysis, sequence labeling).
-    \item \textbf{Local datasets} $\mathcal{D}_c^t$: private, time-indexed data available at client $c$ at round $t$.
-\end{itemize}
-
-For privacy, raw samples are never uploaded. Each client transmits only model updates (or compressed adapter/head updates), and aggregation is performed on the server side \cite{mcmahan2017fedavg,elbakary2025mira}. This aligns with the standard federated privacy model in which data locality is preserved while collaborative training is enabled.
-
-\subsection{Small Language Model Architecture: Shared Encoder and Task-Specific Heads}
-We parameterize the model by
-\begin{equation}
-\Theta = \{\theta_e, \{\theta_k\}_{k=1}^{K}\},
-\end{equation}
-where $\theta_e$ is a shared small-language-model encoder and $\theta_k$ is the task-specific prediction head for task $k$ \cite{chen2024fedbone,zhou2025mfed,elbakary2025mira}.
-
-For an input-output pair $(x,y)$ from task $k$, prediction is
-\begin{equation}
-\hat{y} = h_k\big(f_e(x;\theta_e);\theta_k\big),
-\end{equation}
-where $f_e(\cdot)$ denotes the shared encoder and $h_k(\cdot)$ denotes the task head. This design supports parameter sharing for transferable linguistic features while retaining task-level specialization.
-
 \subsection{Data and Task Heterogeneity Across Clients}
 Heterogeneity appears in two forms:
 \begin{itemize}

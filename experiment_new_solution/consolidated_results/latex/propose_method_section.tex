@@ -6,10 +6,21 @@ The proposed federated multi-task framework employs a hierarchical architecture 
 
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=0.9\textwidth]{plots/FL_MTL_FRAME_WORK.png}
+    \includegraphics[width=1.0\textwidth]{plots/FL_MTL_FRAME_WORK.png}
     \caption{Architecture of the Proposed Real-time Federated Multi-Task Learning Framework. The system enables seamless integration of streaming data processing and collaborative model refinement.}
     \label{fig:framework_pipeline}
 \end{figure*}
+
+Federated system components and privacy constraints consists of:
+\begin{itemize}
+    \item \textbf{Global server} $\mathcal{S}$: coordinates client sampling, model broadcast, and aggregation.
+    \item \textbf{Distributed clients} $\mathcal{C}$: edge devices/silos that keep raw text data local.
+    \item \textbf{Task set} $\mathcal{K}$: heterogeneous NLU tasks (e.g., intent classification, sentiment analysis, sequence labeling).
+    \item \textbf{Local datasets} $\mathcal{D}_c^t$: private, time-indexed data available at client $c$ at round $t$.
+\end{itemize}
+
+For privacy, raw samples are never uploaded. Each client transmits only model updates (or compressed adapter/head updates), and aggregation is performed on the server side \cite{mcmahan2017fedavg,elbakary2025mira}. This aligns with the standard federated privacy model in which data locality is preserved while collaborative training is enabled.
+
 
 \subsection{Small Language Model Backbone}
 The framework utilizes specialized Small Language Models (SLMs) to balance computational efficiency and linguistic performance. Our current implementation supports DistilBERT \cite{sanh2019distilbert}, BERT-Medium \cite{devlin2018bert}, and MiniLM \cite{wang2020minilm} architectures. These models serve as the shared feature extractor (encoder), which is fine-tuned collaboratively across the federated network. By using SLMs, we achieve a significant reduction in communication overhead compared to standard-sized transformers.
@@ -20,6 +31,18 @@ We adopt a hybrid parameter-sharing strategy. The lower transformer layers (enco
     \mathcal{L}_{total} = \sum_{j=1}^{T} \alpha_j \mathcal{L}_j
 \end{equation}
 where $\alpha_j$ is dynamically adjusted based on the convergence rate of each task $j$.
+
+We parameterize shared encoder and task-specific heads by
+\begin{equation}
+\Theta = \{\theta_e, \{\theta_k\}_{k=1}^{K}\},
+\end{equation}
+where $\theta_e$ is a shared small-language-model encoder and $\theta_k$ is the task-specific prediction head for task $k$ \cite{chen2024fedbone,zhou2025mfed,elbakary2025mira}.
+
+For an input-output pair $(x,y)$ from task $k$, prediction is
+\begin{equation}
+\hat{y} = h_k\big(f_e(x;\theta_e);\theta_k\big),
+\end{equation}
+where $f_e(\cdot)$ denotes the shared encoder and $h_k(\cdot)$ denotes the task head. This design supports parameter sharing for transferable linguistic features while retaining task-level specialization.
 
 \subsection{Federated Optimization and Real-time Adaptation}
 The federated optimization process is detailed in Algorithm~\ref{alg:rt_fmtl}. The system facilitates real-time adaptation by allowing clients to synchronize updates asynchronously via WebSockets. The server aggregates updates using a task-aware variant of FedAvg, ensuring that noisy updates from heterogeneous data sources (Non-IID) are properly regularized.
