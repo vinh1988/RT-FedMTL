@@ -78,6 +78,8 @@
 \section{PROPOSED METHOD}
 \label{sec:proposed_method}
 
+The proposed RT-FMTL-SLM addresses the dual challenges of privacy-preserving NLU and resource-constrained edge computing. Our approach architecture integrates three core pillars: (1) a hierarchical federated architecture optimized for asynchronous real-time synchronization via WebSockets, (2) a multi-task learning strategy that leverages shared linguistic representations while maintaining task-specific specialization, and (3) the deployment of parameter-efficient SLMs to minimize the computational and communication footprint on edge devices.
+
 \subsection{System Overview}
 In this work, we propose a multistructure federated multi-task framework designed for real-time NLU applications. As illustrated in Fig.~\ref{fig:framework_pipeline}, a high level orchestration server, along with multiple, heterogeneous client nodes, structure the system. A parameter server is responsible for maintaining the global state at the center and controls the Model Aggregation logic. The communication relies on low-latency WebSockets for a bidirectional exchange of model updates and aggregated parameters.
 
@@ -119,7 +121,7 @@ for which $\theta_e$ is a common small-language-model encoder and $\theta_k$ is 
 where $f_e(\cdot)$ represents the shared encoder and $h_k(\cdot)$ refers to the task head. It allows for parameter sharing amongst transferable linguistic traits but maintains task-level specialization.
 
 \subsection{Federated Optimization and Real-time adaptation}
-The process of federated optimization is detailed in Algorithm~\ref{alg:rt_fmtl}, which describes the federated optimization of the system. Clients will be able to update in real-time while the clients are still synchronizing updates asynchronously through WebSockets using this system to adapt in real-time. Updating the server aggregates updates with an example of a task-aware version of FedAvg (i.e. a version of FedAvg) and rounds off the updating with noise from heterogeneous data sources (Non-IID), but regularizes noise correctly.
+The process of federated optimization is detailed in Algorithm~\ref{alg:rt_fmtl}, which describes the federated optimization of the system. Clients will be able to update in real-time while the clients are still synchronizing updates asynchronously through WebSockets using this system to adapt in real-time. Updating the server aggregates updates with an example of a task-aware version of FedAvg (i.e. a version of FedAvg) and rounds off the updating with noise from heterogeneous data sources (Non-IID), but regularizes noise correctly. Recent advancements in adaptive federated optimization \cite{reddi2021adaptive} suggest that incorporating momentum and adaptive learning rates can further stabilize this process.
 
 \begin{algorithm}
 \caption{RT-FMTL: Real-Time Federated Multi-Task Learning}

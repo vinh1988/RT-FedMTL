@@ -2,7 +2,7 @@
 % \label{sec:problem_definition}
 
 % \subsection{Formalization of Real-Time Federated Multi-Task Learning for NLU}
-% We consider a real-time federated multi-task learning (RT-FMTL) setting for natural language understanding (NLU), where training proceeds over communication rounds $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. At each round, a subset of clients is selected, performs local updates on private data streams, and sends model updates to a central server for aggregation. Unlike purely offline FL, the client data distribution may evolve over time, so both local objectives and optimal parameters are time-dependent.
+% We consider a RT-FMTL setting for NLU, where training proceeds over communication rounds $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. At each round, a subset of clients is selected, performs local updates on private data streams, and sends model updates to a central server for aggregation. Unlike purely offline FL, the client data distribution may evolve over time, so both local objectives and optimal parameters are time-dependent.
 
 % Let $\mathcal{C}=\{1,\dots,C\}$ be the set of clients and $\mathcal{K}=\{1,\dots,K\}$ be the set of NLU tasks. Each client $c\in\mathcal{C}$ is associated with one primary task $\tau(c)\in\mathcal{K}$ (or a small task subset), and may receive new samples continuously from a local stream. The goal is to learn a federated model that preserves cross-task transfer while maintaining task-specific quality under non-IID and time-varying data.
 
@@ -23,7 +23,7 @@
 % \label{sec:problem_definition}
 
 % \subsection{Formalization of Real-Time Federated Multi-Task Learning for NLU}
-% We consider a real-time federated multi-task learning (RT-FMTL) setting for natural language understanding (NLU), where training proceeds over communication rounds $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. At each round, a subset of clients is selected, performs local updates on private data streams, and sends model updates to a central server for aggregation. Unlike purely offline FL, the client data distribution may evolve over time, so both local objectives and optimal parameters are time-dependent.
+% We consider a RT-FMTL setting for NLU, where training proceeds over communication rounds $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. At each round, a subset of clients is selected, performs local updates on private data streams, and sends model updates to a central server for aggregation. Unlike purely offline FL, the client data distribution may evolve over time, so both local objectives and optimal parameters are time-dependent.
 
 % Let $\mathcal{C}=\{1,\dots,C\}$ be the set of clients and $\mathcal{K}=\{1,\dots,K\}$ be the set of NLU tasks. Each client $c\in\mathcal{C}$ is associated with one primary task $\tau(c)\in\mathcal{K}$ (or a small task subset), and may receive new samples continuously from a local stream. The goal is to learn a federated model that preserves cross-task transfer while maintaining task-specific quality under non-IID and time-varying data.
 
@@ -76,10 +76,12 @@
 % Here, $\mathcal{C}_t$ is the participating client subset at round $t$, and $\alpha_c^t,\beta_c^t$ are normalized aggregation coefficients \cite{mcmahan2017fedavg,smith2017mocha,zhou2025mfed}. This objective captures real-time RT-FMTL by jointly optimizing shared representations and task-specific parameters under privacy and heterogeneity constraints.
 
 \section{PROBLEM DEFINITION}  
-\label{sec:problem_definition}  
+\label{sec:problem_definition}
+
+This section formalizes the RT-FMTL environment for NLU. We define the mathematical framework for distributed multi-task optimization, address the challenges of data and system heterogeneity, and establish the global objective for collaborative model training across private edge clients.
 
 \subsection{Formalization of Real-Time Federated Multi-Task Learning For NLU}  
-We opt a real-time federated multi-task learning (RT-FMTL) environment based on natural language understanding (NLU) in which training goes over communication rounds for $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. Each round a subset of clients is selected, local updates are performed on private data streams, and the model gets pushed to a central server for aggregation. With regards to its distribution the client data distribution may vary over time, unlike in case of offline FL only, therefore, both local goals and optimum parameters are time bound. Let $\mathcal{C}=\{1,\dots,C\}$ be the set of clients and $\mathcal{K}=\{1,\dots,K\}$ be the set of NLU tasks. For each client $c\in\mathcal{C}$ it has only one major task $\tau(c)\in\mathcal{K}$ (or a small task subset), where new samples can continuously be added from a local stream. To learn a federated model that maintains cross-task transfer quality with the specific task quality in context of non-IID and time-varying data.  
+We opt a RT-FMTL environment based on NLU in which training goes over communication rounds for $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. Each round a subset of clients is selected, local updates are performed on private data streams, and the model gets pushed to a central server for aggregation. With regards to its distribution the client data distribution may vary over time, unlike in case of offline FL only, therefore, both local goals and optimum parameters are time bound. Let $\mathcal{C}=\{1,\dots,C\}$ be the set of clients and $\mathcal{K}=\{1,\dots,K\}$ be the set of NLU tasks. For each client $c\in\mathcal{C}$ it has only one major task $\tau(c)\in\mathcal{K}$ (or a small task subset), where new samples can continuously be added from a local stream. To learn a federated model that maintains cross-task transfer quality with the specific task quality in context of non-IID and time-varying data.  
 
 \subsection{Data and Task Heterogeneity in Clients}  
 Heterogeneity comes in two forms:  
