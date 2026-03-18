@@ -24,12 +24,12 @@ label_mapping = {
 }
 
 # Balanced-enhanced font sizes (Fixed at 15pt+ for readability)
-BALANCED_LABELS_SIZE = 18
-BALANCED_TITLE_SIZE = 22
-BALANCED_LEGEND_SIZE = 16
-BALANCED_TICK_SIZE = 15
-BALANCED_VALUE_SIZE = 15
-BALANCED_XTICK_SIZE = 18
+BALANCED_LABELS_SIZE = 27
+BALANCED_TITLE_SIZE = 33
+BALANCED_LEGEND_SIZE = 24
+BALANCED_TICK_SIZE = 22
+BALANCED_VALUE_SIZE = 22
+BALANCED_XTICK_SIZE = 27
 
 # Publication-quality "Journal" palette (Professional/Muted)
 MODEL_STYLES = {
@@ -46,11 +46,11 @@ def apply_publication_style():
         'font.family': 'serif',
         'font.serif': ['DejaVu Serif', 'Times New Roman', 'Liberation Serif'],
         'axes.labelweight': 'bold',
-        'axes.titlesize': 20,
-        'axes.labelsize': 16,
-        'legend.fontsize': 14,
-        'xtick.labelsize': 14,
-        'ytick.labelsize': 14,
+        'axes.titlesize': 30,
+        'axes.labelsize': 24,
+        'legend.fontsize': 21,
+        'xtick.labelsize': 21,
+        'ytick.labelsize': 21,
         'figure.dpi': 300
     })
 
@@ -211,13 +211,13 @@ def plot_advanced_complexity_line_performance_balanced():
                                xytext=(0, 12), 
                                textcoords='offset points',
                                ha='center', 
-                               fontsize=11, 
+                               fontsize=16, 
                                fontweight='bold', 
                                color=style['color'])
 
-        ax.set_title(f'{task_label} Performance Trajectory', fontsize=18, fontweight='bold', pad=25)
+        ax.set_title(f'{task_label} Performance Trajectory', fontsize=22, fontweight='bold', pad=25)
         ax.set_xticks(range(len(stages)))
-        ax.set_xticklabels(stages, rotation=35, ha='right', fontsize=13)
+        ax.set_xticklabels(stages, rotation=35, ha='right', fontsize=19)
         ax.grid(True, linestyle='--', alpha=0.3, axis='y')
         ax.set_ylim(0, 1.05)
         
@@ -226,11 +226,11 @@ def plot_advanced_complexity_line_performance_balanced():
         ax.text(3.5, 1.02, 'Federated Learning Environments', ha='center', fontsize=12, color='gray', fontstyle='italic', transform=ax.get_xaxis_transform())
 
         # Legend (Clean frame)
-        leg = ax.legend(fontsize=12, frameon=True, shadow=False, loc='lower left', framealpha=0.9)
+        leg = ax.legend(fontsize=18, frameon=True, shadow=False, loc='lower left', framealpha=0.9)
         color_model_legend(ax, leg)
 
-    plt.suptitle('Advanced Performance Comparison: Line View across System Complexity', 
-                 fontsize=BALANCED_TITLE_SIZE + 4, fontweight='bold', y=1.03)
+    # plt.suptitle('Advanced Performance Comparison: Line View across System Complexity', 
+    #              fontsize=BALANCED_TITLE_SIZE + 4, fontweight='bold', y=1.03)
     
     plt.tight_layout()
     
@@ -292,21 +292,21 @@ def plot_advanced_complexity_efficiency_trajectories():
             # Start/End labels
             if vals[0] > 0:
                 label_0 = f'{vals[0]/1000:.1f}k' if vals[0] > 1000 else f'{vals[0]:.1f}'
-                ax.annotate(label_0, xy=(0, vals[0]), xytext=(0, 10), textcoords='offset points', ha='center', fontsize=11, fontweight='bold', color=style['color'])
+                ax.annotate(label_0, xy=(0, vals[0]), xytext=(0, 10), textcoords='offset points', ha='center', fontsize=16, fontweight='bold', color=style['color'])
             if vals[5] > 0:
                 label_5 = f'{vals[5]/1000:.1f}k' if vals[5] > 1000 else f'{vals[5]:.1f}'
-                ax.annotate(label_5, xy=(5, vals[5]), xytext=(0, 10), textcoords='offset points', ha='center', fontsize=11, fontweight='bold', color=style['color'])
+                ax.annotate(label_5, xy=(5, vals[5]), xytext=(0, 10), textcoords='offset points', ha='center', fontsize=16, fontweight='bold', color=style['color'])
 
-        ax.set_title(f'{title_prefix} Scaling Trajectory', fontsize=20, fontweight='bold', pad=25)
+        # ax.set_title(f'{title_prefix} Scaling Trajectory', fontsize=30, fontweight='bold', pad=25)
         ax.set_xticks(range(len(stages)))
-        ax.set_xticklabels(stages, rotation=30, ha='right', fontsize=14)
-        ax.set_ylabel(y_label, fontsize=16, fontweight='bold')
+        ax.set_xticklabels(stages, rotation=30, ha='right', fontsize=21)
+        ax.set_ylabel(y_label, fontsize=24, fontweight='bold')
         ax.grid(True, linestyle='--', alpha=0.3, axis='y')
         
         ax.text(0.5, 1.02, 'Centralized Cost', ha='center', fontsize=12, color='gray', fontstyle='italic', transform=ax.get_xaxis_transform())
         ax.text(3.5, 1.02, 'Federated Learning Overhead', ha='center', fontsize=12, color='gray', fontstyle='italic', transform=ax.get_xaxis_transform())
         
-        leg = ax.legend(fontsize=13, frameon=True, loc='best')
+        leg = ax.legend(fontsize=19, frameon=True, loc='best')
         color_model_legend(ax, leg)
         
         filename = f"advanced_complexity_line_{col_name.lower()}_balanced"
