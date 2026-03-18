@@ -9,8 +9,8 @@
 % \subsection{Data and Task Heterogeneity Across Clients}
 % Heterogeneity appears in two forms:
 % \begin{itemize}
-%     \item \textbf{Data heterogeneity}: for clients $c_i,c_j$, local distributions differ, i.e., $P_{c_i}(x,y)\neq P_{c_j}(x,y)$ (label skew, domain shift, vocabulary differences).
-%     \item \textbf{Task heterogeneity}: clients may optimize different losses and output spaces based on $\tau(c)$, leading to mismatched gradients across tasks.
+%     \item Data heterogeneity: for clients $c_i,c_j$, local distributions differ, i.e., $P_{c_i}(x,y)\neq P_{c_j}(x,y)$ (label skew, domain shift, vocabulary differences).
+%     \item Task heterogeneity: clients may optimize different losses and output spaces based on $\tau(c)$, leading to mismatched gradients across tasks.
 % \end{itemize}
 
 % In addition, client availability and update frequency are asynchronous in real-time settings, which introduces system heterogeneity and stale updates \cite{mcmahan2017fedavg,li2020fedprox,chen2024fedbone}. Therefore, the optimization process must be robust to partial participation and non-uniform local progress.
@@ -30,8 +30,8 @@
 % \subsection{Data and Task Heterogeneity Across Clients}
 % Heterogeneity appears in two forms:
 % \begin{itemize}
-%     \item \textbf{Data heterogeneity}: for clients $c_i,c_j$, local distributions differ, i.e., $P_{c_i}(x,y)\neq P_{c_j}(x,y)$ (label skew, domain shift, vocabulary differences).
-%     \item \textbf{Task heterogeneity}: clients may optimize different losses and output spaces based on $\tau(c)$, leading to mismatched gradients across tasks.
+%     \item Data heterogeneity: for clients $c_i,c_j$, local distributions differ, i.e., $P_{c_i}(x,y)\neq P_{c_j}(x,y)$ (label skew, domain shift, vocabulary differences).
+%     \item Task heterogeneity: clients may optimize different losses and output spaces based on $\tau(c)$, leading to mismatched gradients across tasks.
 % \end{itemize}
 
 % In addition, client availability and update frequency are asynchronous in real-time settings, which introduces system heterogeneity and stale updates \cite{mcmahan2017fedavg,li2020fedprox,chen2024fedbone}. Therefore, the optimization process must be robust to partial participation and non-uniform local progress.
@@ -78,10 +78,10 @@
 \section{PROBLEM DEFINITION}  
 \label{sec:problem_definition}
 
-This section formalizes the RT-FMTL environment for NLU. We define the mathematical framework for distributed multi-task optimization, address the challenges of data and system heterogeneity, and establish the global objective for collaborative model training across private edge clients.
+This section formalizes the RT-FedMTL environment for NLU. We define the mathematical framework for distributed multi-task optimization, address the challenges of data and system heterogeneity, and establish the global objective for collaborative model training across private edge clients.
 
-\subsection{Formalization of Real-Time Federated Multi-Task Learning For NLU}  
-We opt a RT-FMTL environment based on NLU in which training goes over communication rounds for $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. Each round a subset of clients is selected, local updates are performed on private data streams, and the model gets pushed to a central server for aggregation. With regards to its distribution the client data distribution may vary over time, unlike in case of offline FL only, therefore, both local goals and optimum parameters are time bound. Let $\mathcal{C}=\{1,\dots,C\}$ be the set of clients and $\mathcal{K}=\{1,\dots,K\}$ be the set of NLU tasks. For each client $c\in\mathcal{C}$ it has only one major task $\tau(c)\in\mathcal{K}$ (or a small task subset), where new samples can continuously be added from a local stream. To learn a federated model that maintains cross-task transfer quality with the specific task quality in context of non-IID and time-varying data.  
+\subsection{Formalization of RT-FedMTL for NLU}
+We consider a RT-FedMTL environment based on NLU in which training proceeds over communication rounds $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. During each round, a subset of clients is selected, local updates are performed on private data streams, and parameters are pushed to a central server for aggregation. Unlike offline FL, client data distributions may vary over time; therefore, both local goals and optimum parameters are time-dependent. Let $\mathcal{C}=\{1,\dots,C\}$ be the set of clients and $\mathcal{K}=\{1,\dots,K\}$ be the set of NLU tasks. Each client $c\in\mathcal{C}$ is associated with one primary task $\tau(c)\in\mathcal{K}$ (or a small task subset), where new samples are continuously added from a local stream. The objective is to learn a federated model that maintains cross-task transfer quality while respecting task-level specialization under non-IID and time-varying data.
 
 \subsection{Data and Task Heterogeneity in Clients}  
 Heterogeneity comes in two forms:  
@@ -109,4 +109,4 @@ and updates custom task-specific parameters, as a result of task-wise aggregatio
 \begin{equation}  
 \theta_k^{t+1} = \sum_{c\in\mathcal{C}_t: \, \tau(c)=k} \beta_c^t \, \theta_{k,c}^{t+1}.  
 \end{equation}  
-In $\mathcal{C}_t$, the client subset was measured at round $t$ and $\alpha_c^t,\beta_c^t$ are normalized aggregation coefficients \cite{mcmahan2017fedavg,smith2017mocha,zhou2025mfed}. With privacy and heterogeneity requirements in place, the goal captures RT-FMTL in real time by jointly optimizing both shared representations and task-specific parameters.
+In $\mathcal{C}_t$, the client subset participate at round $t$ and $\alpha_c^t,\beta_c^t$ are normalized aggregation coefficients \cite{mcmahan2017fedavg,smith2017mocha,zhou2025mfed}. With privacy and heterogeneity requirements in place, the framework captures RT-FedMTL in real time by jointly optimizing both shared representations and task-specific parameters.

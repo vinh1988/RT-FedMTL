@@ -18,8 +18,8 @@
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \citation{li2020challenges}
 \citation{mcmahan2017fedavg}
-\citation{mcmahan2017fedavg}
 \citation{smith2017mocha}
+\citation{chen2024fedbone}
 \citation{lin2021fednlp}
 \citation{li2020fedprox}
 \citation{smith2017mocha}
@@ -36,6 +36,11 @@
 \newlabel{sec:introduction}{{I}{1}{INTRODUCTION}{section.1}{}}
 \citation{mcmahan2017fedavg}
 \citation{li2020fedprox}
+\citation{sanh2019distilbert}
+\citation{devlin2018bert}
+\citation{devlin2018bert}
+\citation{wang2020minilm}
+\citation{jiao2019tinybert}
 \citation{mcmahan2017fedavg}
 \citation{li2020fedprox}
 \citation{mcmahan2017fedavg}
@@ -43,6 +48,8 @@
 \citation{karimireddy2020scaffold}
 \citation{smith2017mocha}
 \citation{chen2024fedbone}
+\citation{elbakary2025mira}
+\citation{zhou2025mfed}
 \citation{smith2017mocha}
 \citation{yu2020pcgrad}
 \citation{houlsby2019parameter}
@@ -51,17 +58,16 @@
 \citation{wang2020minilm}
 \citation{lan2019albert}
 \citation{wang2025edgedistilbert}
+\@writefile{toc}{\contentsline {section}{\numberline {II}RELATED WORK}{2}{section.2}\protected@file@percent }
+\newlabel{sec:related_work}{{II}{2}{RELATED WORK}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}FL for NLP}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}MTL in NLP}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}SLMs for Efficient NLP}{2}{subsection.2.3}\protected@file@percent }
 \citation{li2021fedbn}
 \citation{huo2022fedpara}
 \citation{li2020fedprox}
 \citation{yu2020pcgrad}
 \citation{zhou2025mfed}
-\@writefile{toc}{\contentsline {section}{\numberline {II}RELATED WORK}{2}{section.2}\protected@file@percent }
-\newlabel{sec:related_work}{{II}{2}{RELATED WORK}{section.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Federated Learning for Natural Language Processing}{2}{subsection.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Multi-task learning NLP}{2}{subsection.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}NLP and Small Language Models}{2}{subsection.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-D}}Federated Learning in Heterogeneous Data}{2}{subsection.2.4}\protected@file@percent }
 \citation{khan2024systematic}
 \citation{mcmahan2017fedavg}
 \citation{smith2017mocha}
@@ -69,15 +75,16 @@
 \citation{mcmahan2017fedavg}
 \citation{li2020fedprox}
 \citation{chen2024fedbone}
-\citation{mcmahan2017fedavg}
-\citation{smith2017mocha}
-\citation{zhou2025mfed}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-D}}FL under Data Heterogeneity}{3}{subsection.2.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-E}}Research Gap}{3}{subsection.2.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {III}PROBLEM DEFINITION}{3}{section.3}\protected@file@percent }
 \newlabel{sec:problem_definition}{{III}{3}{PROBLEM DEFINITION}{section.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Formalization of Real-Time Federated Multi-Task Learning For NLU}{3}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Formalization of RT-FedMTL for NLU}{3}{subsection.3.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Data and Task Heterogeneity in Clients}{3}{subsection.3.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Optimization Objective for Federated Multi-Task Learning}{3}{subsection.3.3}\protected@file@percent }
+\citation{mcmahan2017fedavg}
+\citation{smith2017mocha}
+\citation{zhou2025mfed}
 \citation{mcmahan2017fedavg}
 \citation{elbakary2025mira}
 \citation{sanh2019distilbert}
@@ -86,15 +93,15 @@
 \citation{chen2024fedbone}
 \citation{zhou2025mfed}
 \citation{elbakary2025mira}
+\citation{mcmahan2017fedavg}
 \citation{reddi2021adaptive}
 \citation{hu2021lora}
 \@writefile{toc}{\contentsline {section}{\numberline {IV}PROPOSED METHOD}{4}{section.4}\protected@file@percent }
 \newlabel{sec:proposed_method}{{IV}{4}{PROPOSED METHOD}{section.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}System Overview}{4}{subsection.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Backbone of the Small Language Model}{4}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Small Language Model Backbone}{4}{subsection.4.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Multi-Task Learning Strategies}{4}{subsection.4.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Federated Optimization and Real-time adaptation}{4}{subsection.4.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-E}}Communication-Efficient Fine-Tuning (LoRA)}{4}{subsection.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Federated Optimization and Real-Time Adaptation}{4}{subsection.4.4}\protected@file@percent }
 \citation{wang2018glue}
 \citation{socher2013sst}
 \citation{vanrijsbergen1979}
@@ -103,21 +110,21 @@
 \citation{cer2017stsb}
 \citation{pearson1895}
 \citation{spearman1904}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Architecture of the Proposed Real-time Federated Multi-Task Learning Framework. The system enables seamless integration of streaming data processing and collaborative model refinement.\relax }}{5}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:framework_pipeline}{{1}{5}{Architecture of the Proposed Real-time Federated Multi-Task Learning Framework. The system enables seamless integration of streaming data processing and collaborative model refinement.\relax }{figure.caption.1}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces RT-FedMTL: Real-Time Federated Multi-Task Learning\relax }}{5}{algorithm.1}\protected@file@percent }
+\newlabel{alg:rt_fedmtl}{{1}{5}{RT-FedMTL: Real-Time Federated Multi-Task Learning\relax }{algorithm.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-E}}Communication-Efficient Fine-Tuning (LoRA)}{5}{subsection.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}EXPERIMENTS}{5}{section.5}\protected@file@percent }
+\newlabel{sec:experiments}{{V}{5}{EXPERIMENTS}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Experimental Setup}{5}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}1}Datasets and Tasks}{5}{subsubsection.5.1.1}\protected@file@percent }
 \citation{sanh2019distilbert}
 \citation{devlin2018bert}
 \citation{devlin2018bert}
 \citation{wang2020minilm}
 \citation{jiao2019tinybert}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Architecture of the Proposed Real-time Federated Multi-Task Learning Framework. The system enables seamless integration of streaming data processing and collaborative model refinement.\relax }}{5}{figure.caption.1}\protected@file@percent }
-\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:framework_pipeline}{{1}{5}{Architecture of the Proposed Real-time Federated Multi-Task Learning Framework. The system enables seamless integration of streaming data processing and collaborative model refinement.\relax }{figure.caption.1}{}}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces RT-FMTL: Real-Time Federated Multi-Task Learning\relax }}{5}{algorithm.1}\protected@file@percent }
-\newlabel{alg:rt_fmtl}{{1}{5}{RT-FMTL: Real-Time Federated Multi-Task Learning\relax }{algorithm.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {V}EXPERIMENTS}{5}{section.5}\protected@file@percent }
-\newlabel{sec:experiments}{{V}{5}{EXPERIMENTS}{section.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Experimental Setup}{5}{subsection.5.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}1}Datasets and Tasks}{5}{subsubsection.5.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}2}Federated Data Partitioning}{5}{subsubsection.5.1.2}\protected@file@percent }
 \citation{vanrijsbergen1979}
 \citation{pearson1895}
 \citation{spearman1904}
@@ -126,26 +133,26 @@
 \newlabel{tab:design_matrix}{{I}{6}{Experimental Design Matrix\relax }{table.caption.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Resource Usage Trajectory. Federated settings produce a clear 3-4$\times $ reduction in per-client resource usage relative to centralized training because each client holds only a data partition. LoRA further halves resource demands.\relax }}{6}{figure.caption.6}\protected@file@percent }
 \newlabel{fig:resource_trajectory}{{2}{6}{Resource Usage Trajectory. Federated settings produce a clear 3-4$\times $ reduction in per-client resource usage relative to centralized training because each client holds only a data partition. LoRA further halves resource demands.\relax }{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}2}Federated Data Partitioning}{6}{subsubsection.5.1.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}3}Baselines}{6}{subsubsection.5.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}4}Evaluation Metrics}{6}{subsubsection.5.1.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}5}Implementation Details}{6}{subsubsection.5.1.5}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Training Time Trajectory capturing the wall-clock training durations. The transition from centralized to federated multi-task settings introduces a significant overhead, which LoRA substantially offsets by limiting parameter transmission.\relax }}{6}{figure.caption.7}\protected@file@percent }
 \newlabel{fig:time_trajectory}{{3}{6}{Training Time Trajectory capturing the wall-clock training durations. The transition from centralized to federated multi-task settings introduces a significant overhead, which LoRA substantially offsets by limiting parameter transmission.\relax }{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}4}Evaluation Metrics}{6}{subsubsection.5.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-A}5}Implementation Details}{6}{subsubsection.5.1.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Results and Discussion}{6}{subsection.5.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}1}Overall Performance (Comparison across Baselines)}{6}{subsubsection.5.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}2}Effect of Multi-Task Learning}{6}{subsubsection.5.2.2}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Resource Usage Trajectory (GB, per-client average)\relax }}{7}{table.caption.3}\protected@file@percent }
 \newlabel{tab:resource_trajectory}{{II}{7}{Resource Usage Trajectory (GB, per-client average)\relax }{table.caption.3}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Training Time Trajectory (seconds)\relax }}{7}{table.caption.4}\protected@file@percent }
 \newlabel{tab:time_trajectory}{{III}{7}{Training Time Trajectory (seconds)\relax }{table.caption.4}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Performance across six paradigm-complexity stages for five SLM architectures. Dashed lines separate centralized and federated settings.\relax }}{7}{figure.caption.8}\protected@file@percent }
 \newlabel{fig:perf_trajectory}{{4}{7}{Performance across six paradigm-complexity stages for five SLM architectures. Dashed lines separate centralized and federated settings.\relax }{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}2}Effect of Multi-Task Learning}{7}{subsubsection.5.2.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}3}Federated Learning Performance}{7}{subsubsection.5.2.3}\protected@file@percent }
-\citation{hu2021lora}
 \@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Comparative Analysis of SLM Performance across Paradigms\relax }}{8}{table.caption.5}\protected@file@percent }
 \newlabel{tab:results_consolidated}{{IV}{8}{Comparative Analysis of SLM Performance across Paradigms\relax }{table.caption.5}{}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}4}Real-Time Inference Analysis}{8}{subsubsection.5.2.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}5}Communication Efficiency}{8}{subsubsection.5.2.5}\protected@file@percent }
+\citation{hu2021lora}
 \bibstyle{IEEEtran}
 \bibcite{li2020challenges}{1}
 \bibcite{mcmahan2017fedavg}{2}
@@ -173,11 +180,12 @@
 \bibcite{socher2013sst}{24}
 \bibcite{vanrijsbergen1979}{25}
 \bibcite{sharma2019qqp}{26}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}5}Communication Efficiency}{9}{subsubsection.5.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VI}CONCLUSION}{9}{section.6}\protected@file@percent }
+\newlabel{sec:conclusion}{{VI}{9}{CONCLUSION}{section.6}{}}
+\@writefile{toc}{\contentsline {section}{References}{9}{section*.9}\protected@file@percent }
 \bibcite{cer2017stsb}{27}
 \bibcite{pearson1895}{28}
 \bibcite{spearman1904}{29}
 \bibcite{jiao2019tinybert}{30}
-\@writefile{toc}{\contentsline {section}{\numberline {VI}CONCLUSION}{9}{section.6}\protected@file@percent }
-\newlabel{sec:conclusion}{{VI}{9}{CONCLUSION}{section.6}{}}
-\@writefile{toc}{\contentsline {section}{References}{9}{section*.9}\protected@file@percent }
 \gdef \@abspage@last{10}
