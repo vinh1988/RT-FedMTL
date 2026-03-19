@@ -17,17 +17,17 @@ rm -f *.aux *.log *.out *.toc *.pdf
 
 # Multi-pass compilation for references and tables
 echo "🚀 Compiling main.tex (Pass 1)..."
-pdflatex -interaction=nonstopmode RT-FedMTL-mrach-10.tex > /dev/null
+pdflatex -interaction=nonstopmode RT-FedMTL-Mar10.tex > /dev/null
 
 echo "🚀 Compiling main.tex (Pass 2)..."
-pdflatex -interaction=nonstopmode RT-FedMTL-mrach-10.tex > /dev/null
+pdflatex -interaction=nonstopmode RT-FedMTL-Mar10.tex > /dev/null
 
-if [ -f "RT-FedMTL-mrach-10.pdf" ]; then
+if [ -f "RT-FedMTL-Mar10.pdf" ]; then
     echo "========================================"
-    echo "✅ Success! Paper compiled: RT-FedMTL-mrach-10.pdf"
+    echo "✅ Success! Paper compiled: RT-FedMTL-Mar10.pdf"
     echo "📅 Finished at: $(date)"
     echo "========================================"
 else
-    echo "❌ Error: PDF compilation failed. Check RT-FedMTL-mrach-10.log for details."
+    echo "❌ Error: PDF compilation failed. Check RT-FedMTL-Mar10.log for details."
     exit 1
 fi
