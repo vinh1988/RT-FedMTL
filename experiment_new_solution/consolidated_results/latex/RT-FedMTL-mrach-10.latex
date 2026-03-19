@@ -1,4 +1,4 @@
-\documentclass[conference]{IEEEtran}
+\documentclass[journal]{IEEEtran}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{amsmath}
@@ -28,15 +28,14 @@
 
 \title{RT-FedMTL: A Real-Time Federated Multi-Task Learning Framework with Small Language Models for Natural Language Understanding Tasks}
 
-\author{\IEEEauthorblockN{Quang-Vinh Pham}
-\IEEEauthorblockA{Department of Data Science\\  
-TMA Tech Group, Gia Lai, Vietnam\\
-Email: pqvinh@tma.com.vn}
-\and
-\IEEEauthorblockN{Quang-Hung Le}
-\IEEEauthorblockA{Department of Information Technology\\
-Quy Nhon University, Vietnam\\
-Email: lequanghung@qnu.edu.vn}}
+\author{Quang-Vinh~Pham,~\IEEEmembership{Member,~IEEE,}
+        and~Quang-Hung~Le,~\IEEEmembership{Member,~IEEE}%
+\thanks{Q.-V. Pham is with the Department of Data Science, TMA Tech Group, Gia Lai, Vietnam (e-mail: pqvinh@tma.com.vn).}%
+\thanks{Q.-H. Le is with the Department of Information Technology, Quy Nhon University, Vietnam (e-mail: lequanghung@qnu.edu.vn).}}
+
+% The paper headers
+\markboth{Journal of \LaTeX\ Class Files,~Vol.~14, No.~8, August~2015}%
+{Pham \MakeLowercase{\textit{et al.}}: RT-FedMTL: A Real-Time Federated Multi-Task Learning Framework}
 
 \maketitle
 
@@ -47,6 +46,8 @@ The emergence of privacy-preserving Natural Language Understanding (NLU) using F
 \begin{IEEEkeywords}
 Federated Learning, Small Language Models, Multi-Task Learning, Data Heterogeneity, Privacy-Preserving Machine Learning
 \end{IEEEkeywords}
+
+\IEEEpeerreviewmaketitle
 
 \input{section_intro}
 \input{section_related_work}
@@ -59,5 +60,13 @@ Federated Learning, Small Language Models, Multi-Task Learning, Data Heterogenei
 
 \bibliographystyle{IEEEtran}
 \input{references}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{author/PQV.png}}]{Quang-Vinh Pham}
+received his B.Eng. degree in Electronics and Telecommunications and his Master's degree in Data Science from Quy Nhon University, Vietnam. He is currently an AI Engineer at TMA Tech Group, Vietnam. His research interests include Natural Language Processing, Computer Vision, and Physical AI.
+\end{IEEEbiography}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{author/Myteacher.png}}]{Quang-Hung Le}
+received the Ph.D. degree in Computer Science from the University of Engineering and Technology, Vietnam National University, Hanoi, in 2016. He is currently a lecturer with the Department of Information Technology, Quy Nhon University, Vietnam. His research interests include Natural Language Processing, Machine Learning, Artificial Intelligence, and Recommender Systems.
+\end{IEEEbiography}
 
 \end{document}

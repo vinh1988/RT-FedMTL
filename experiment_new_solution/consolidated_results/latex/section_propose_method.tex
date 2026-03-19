@@ -1,0 +1,152 @@
+% \section{PROPOSED METHOD}
+% \label{sec:proposed_method}
+
+% The proposed RT-FedMTL addresses the dual challenges of privacy-preserving NLU and resource-constrained edge computing. Our architecture integrates three core pillars: (1) a hierarchical federated architecture optimized for asynchronous real-time synchronization via WebSockets, (2) a multi-task learning strategy that leverages shared linguistic representations while maintaining task-specific specialization, and (3) the deployment of parameter-efficient SLMs to minimize the computational and communication footprint on edge devices.
+
+% \subsection{System Overview}
+% In this work, we propose a multistructure federated multi-task framework designed for real-time NLU applications. As illustrated in Fig.~\ref{fig:framework_pipeline}, a high level orchestration server, along with multiple, heterogeneous client nodes, structure the system. A parameter server is responsible for maintaining the global state at the center and controls the model aggregation logic. The communication relies on low-latency WebSockets for a bidirectional exchange of model updates and aggregated parameters.
+
+% \begin{figure*}[t]
+%     \centering
+%     \includegraphics[width=1.0\textwidth]{plots/FL_MTL_FRAME_WORK.png}
+%     \caption{Architecture of the Proposed Real-time Federated Multi-Task Learning Framework. The system enables seamless integration of streaming data processing and collaborative model refinement.}
+%     \label{fig:framework_pipeline}
+% \end{figure*}
+
+% Federated components and privacy constraints of a system are based on:
+% \begin{itemize}
+%     \item Global server $\mathcal{S}$: coordinates client sampling, model broadcast, and aggregation.
+%     \item Distributed clients $\mathcal{C}$: edge devices/silos to store the raw text.
+%     \item Task set $\mathcal{K}$: the heterogeneous NLU tasks (intent classification, sentiment analysis, sequence labeling).
+%     \item Local datasets $\mathcal{D}_c^t$: single private, time-stamped data for client $c$ at round $t$ that is private.
+% \end{itemize}
+
+% Samples are never uploaded, for privacy purposes. Each client transmits only model updates (or compressed adapter and head updates) and serves as host-side aggregation \cite{mcmahan2017fedavg,elbakary2025mira}. This is consistent with the usual federated privacy model in which data locality is preserved and collaborative training is promoted in the field.
+
+% \subsection{Small Language Model Backbone}
+% This framework is adapted with specialized SLMs to trade-off computational efficiency and language fluency. Our current solution also supports DistilBERT \cite{sanh2019distilbert}, BERT-Medium \cite{devlin2018bert}, MiniLM \cite{wang2020minilm} architectures. These are shared feature extractors (encoder) that are fine-tuned collaboratively across the federated network. Our SLMs drastically minimize the communication overhead in contrast to standard-sized transformers.
+
+% \subsection{Multi-Task Learning Strategies}
+% We use a hybrid strategy of parameter-sharing. The lower layers of the transformer (encoder) are the same across the tasks that represent linguistic representation universally. In contrast, the top layers are task-specific classification or regression heads. We thus do an adaptive loss weighting mechanism to reduce the negative transfer:
+% \begin{equation}
+%     \mathcal{L}_{total} = \sum_{j=1}^{T} \alpha_j \mathcal{L}_j
+% \end{equation}
+% where $\alpha_j$ is dynamically tuned according to the convergence rate of each task $j$.
+
+% We define the parameters
+% \begin{equation}
+% \Theta = \{\theta_e, \{\theta_k\}_{k=1}^{K}\},
+% \end{equation}
+% for which $\theta_e$ is a common small-language-model encoder and $\theta_k$ is the task-based prediction head of task $k$ \cite{chen2024fedbone,zhou2025mfed,elbakary2025mira}. Prediction is for an input-output pair $(x,y)$ given task $k$.
+% \begin{equation}
+% \hat{y} = h_k\big(f_e(x;\theta_e);\theta_k\big),
+% \end{equation}
+% where $f_e(\cdot)$ represents the shared encoder and $h_k(\cdot)$ refers to the task head. It allows for parameter sharing amongst transferable linguistic traits but maintains task-level specialization.
+
+% \subsection{Federated Optimization and Real-Time Adaptation}
+% The process of federated optimization is detailed in Algorithm~\ref{alg:rt_fedmtl}. The system facilitates real-time adaptation by allowing clients to synchronize updates asynchronously via WebSockets. The server aggregates updates using a task-aware variant of FedAvg \cite{mcmahan2017fedavg} and regularizes noise from heterogeneous sources (non-IID). Recent advancements in adaptive federated optimization \cite{reddi2021adaptive} suggest that incorporating momentum and adaptive learning rates can further stabilize this process.
+
+% \begin{algorithm}
+% \caption{RT-FedMTL: Real-Time Federated Multi-Task Learning}
+% \label{alg:rt_fedmtl}
+% \begin{algorithmic}[1]
+% \STATE Server Initialize: Shared core $\phi_0$, Task heads $\{\psi_{j,0}\}_{j=1}^T$
+% \FOR{each round $t = 1, 2, \dots$}
+%     \STATE Server transmits $\phi_t, \psi_{Task(k),t}$ to client $k \in K$ via WebSockets
+%     \FOR{each client $k \in K$ in parallel}
+%         \STATE Local training: $\{\Delta\phi_k, \Delta\psi_{Task(k),k}\} \leftarrow \text{LocalUpdate}(\mathcal{D}_k, \phi_t, \psi_{Task(k),t})$
+%         \STATE Updates $\{\Delta\phi_k, \Delta\psi_{Task(k),k}\}$ sent to Server using WebSockets
+%     \ENDFOR
+%     \STATE Task-Aware Aggregation:
+%     \STATE \quad $\phi_{t+1} \leftarrow \phi_t + \eta \sum_{k=1}^K \frac{n_k}{N} \Delta\phi_k$ \COMMENT{Universal Knowledge}
+%     \FOR{each task $j \in \{1,\dots,T\}$ in parallel}
+%         \STATE $\psi_{j,t+1} \leftarrow \psi_{j,t} + \eta \sum_{k \in K_j} \frac{n_k}{N_j} \Delta\psi_{j,k}$ \COMMENT{Heads Specialization}
+%     \ENDFOR
+%     \STATE Server redistributes $\{\phi_{t+1}, \psi_{Task(k),t+1}\}$ for Local Validation
+% \ENDFOR
+% \end{algorithmic}
+% \end{algorithm}
+
+% \subsection{Communication-Efficient Fine-Tuning (LoRA)}
+% To optimize resource utilization on edge devices even further, we implement LoRA \cite{hu2021lora}. This includes when to update in local $B$, where instead of updating the full weight matrices $W \in \mathbb{R}^{d \times d}$, we optimize the low rank decomposition matrices $A$ and $B$, where:
+% \begin{equation}
+% W' = W + \Delta W = W + BA.
+% \end{equation}
+% $A \in \mathbb{R}^{r \times d}$ and $B \in \mathbb{R}^{d \times r}$ with rank $r \ll d$. For big updates, only the matrices $A$ and $B$ are sent, minimizing communication volume to up to 99\%.
+
+\section{PROPOSED METHOD}
+\label{sec:proposed_method}
+
+The proposed RT-FedMTL confronts the problems simultaneously when balancing privacy-preserving NLU and resource starved edge computing. We propose a three-integrated architecture of a hierarchical federated-based architecture tailored for real-time asynchronous synchronization across WebSockets, multi-task learning, based on common linguistic representations, but for task-specific specialization, and parameter-effective SLMs to reduce computing and communication footprint on edge devices.
+
+\subsection{Overview of the System}
+This paper explores an example of a multistructure federated multi-task framework for real-time NLU applications. As illustrated in Fig.~\ref{fig:framework_pipeline}, a high level orchestration server, and several heterogeneous client nodes form the basis of the architecture. A parameter server maintains a global state at the center and controls the model aggregation logic. The communications depend on low-latency WebSockets for a bidirectional exchange of model updates, and aggregated parameters.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=1.0\textwidth]{plots/FL_MTL_FRAME_WORK.png}
+    \caption{Architecture of the Developed Frameworks for Real-time Federated Multi-Task Learning.}
+    The system allows seamless integration of streaming data processing with collaborative model refinement.
+    \label{fig:framework_pipeline}
+\end{figure*}
+
+Federated components and privacy constraints of a system are built on:
+\begin{itemize}
+    \item Global server $\mathcal{S}$: orchestrates client sampling, model broadcast, and aggregation.
+    \item Distributed clients $\mathcal{C}$: edge devices/silos to store the raw text.
+    \item Task Set $\mathcal{K}$: the heterogeneous NLU tasks (intent classification, sentiment analysis, sequence labeling).
+    \item Local Data sets $\mathcal{D}_c^t$: one private time-stamped data set for the client $c$ at round $t$ that is private.
+\end{itemize}
+
+For the sake of privacy, samples are never uploaded. Each of these clients sends only model updates (or compressed adapter and head updates) and acts as host-side aggregation \cite{mcmahan2017fedavg,elbakary2025mira}. This is in line with the traditional federated privacy model in which data locality is retained and collaborative training is advocated in the field.
+
+\subsection{Small Language Model Backbone}
+Special SLMs with the proposed framework are adapted to trade off computational efficiency and language fluency. The current solution is compatible with DistilBERT \cite{sanh2019distilbert}, BERT-Medium \cite{devlin2018bert}, MiniLM \cite{wang2020minilm} architectures as well. These are common feature extractors (encoder) that are jointly tuned across the federated network. The communication overhead of our SLMs greatly reduces compared to typical transformers of a standard size.
+
+\subsection{Strategies for Multi-Task Learning}
+We adopt a hybrid approach of sharing the parameters. Throughout the tasks that all share linguistic representation, the lower (encoder) layers of the transformer remains unchanged. On the other hand, top layers are task-centric classification or regression heads respectively. We thus maintain an adaptive loss weighting mechanism to minimize negative transfer:
+\begin{equation}
+    \mathcal{L}_{total} = \sum_{j=1}^{T} \alpha_j \mathcal{L}_j
+\end{equation}
+where $\alpha_j$ gets dynamically tuned for each task $j$ depending on the convergence rate.
+
+We define the parameters
+\begin{equation}
+    \Theta = \{\theta_e, \{\theta_k\}_{k=1}^{K}\},
+\end{equation}
+where $\theta_e$ is a well-known small-language-model encoder and $\theta_k$ is the task-based prediction head of task $k$ \cite{chen2024fedbone,zhou2025mfed,elbakary2025mira}. Prediction is for input-output joint $(x,y)$ set task $k$.
+\begin{equation}
+    \hat{y} = h_k\big(f_e(x;\theta_e);\theta_k\big),
+\end{equation}
+where $f_e(\cdot)$ is the shared encoder and $h_k(\cdot)$ is the task head. It encourages sharing of parameters among easily transferable linguistic traits but preserves task-specificity.
+
+\subsection{Federated Optimization and Real-Time Adaptation}
+The federated optimization process is described in Algorithm~\ref{alg:rt_fedmtl}. This system enables real-time adaptation by dynamically synchronizing updates on request via WebSockets. Using a task-aware version of FedAvg \cite{mcmahan2017fedavg}, the server aggregates updates and normalizes noise from heterogeneous sources (non-IID). Most recent work in adaptive federated optimization \cite{reddi2021adaptive} suggests incorporating momentum and adaptive learning rates will add an even greater level of stability.
+
+\begin{algorithm}
+\caption{RT-FedMTL: Real-Time Federated Multi-Task Learning}
+\label{alg:rt_fedmtl}
+\begin{algorithmic}[1]
+\STATE Server Initialize: Shared core $\phi_0$, task heads $\{\psi_{j,0}\}_{j=1}^T$
+\FOR{each round $t = 1, 2, \dots$}
+    \STATE Server sends $\phi_t, \psi_{Task(k),t}$ to client $k \in K$ via WebSockets
+    \FOR{each client $k \in K$ in parallel}
+        \STATE Local training: $\{\Delta\phi_k, \Delta\psi_{Task(k),k}\} \leftarrow \text{LocalUpdate}(\mathcal{D}_k, \phi_t, \psi_{Task(k),t})$
+        \STATE Updates $\{\Delta\phi_k, \Delta\psi_{Task(k),k}\}$ via WebSockets to Server
+    \ENDFOR
+    \STATE Task-Aware Aggregation:
+    \STATE \quad $\phi_{t+1} \leftarrow \phi_t + \eta \sum_{k=1}^K \frac{n_k}{N} \Delta\phi_k$ \COMMENT{Universal Knowledge}
+    \FOR{each task $j \in \{1,\dots,T\}$ in parallel}
+        \STATE $\psi_{j,t+1} \leftarrow \psi_{j,t} + \eta \sum_{k \in K_j} \frac{n_k}{N_j} \Delta\psi_{j,k}$ \COMMENT{Heads Specialization}
+    \ENDFOR
+    \STATE Server assigns $\{\phi_{t+1}, \psi_{Task(k),t+1}\}$ for Local Validation
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Communication-Efficient Fine-Tuning (LoRA)}
+To further reduce resource usage in edge devices, we perform LoRA \cite{hu2021lora}. This ranges from updating in local $B$, where instead of updating the full weight matrices $W \in \mathbb{R}^{d \times d}$, we optimize the low rank decomposition matrices $A$ and $B$, where:
+\begin{equation}
+    W' = W + \Delta W = W + BA.
+\end{equation}
+$A \in \mathbb{R}^{r \times d}$ and $B \in \mathbb{R}^{d \times r}$ with rank $r \ll d$. When performing big updates, only the matrices $A$ and $B$ are sent, minimizing communication volume up to 99%.
