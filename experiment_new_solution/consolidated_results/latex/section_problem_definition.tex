@@ -1,45 +1,9 @@
-% \section{PROBLEM DEFINITION}  
-% \label{sec:problem_definition}
-
-% This section formalizes the RT-FedMTL environment for NLU. We define the mathematical framework for distributed multi-task optimization, address the challenges of data and system heterogeneity, and establish the global objective for collaborative model training across private edge clients.
-
-% \subsection{Formalization of RT-FedMTL for NLU}
-% We consider a RT-FedMTL environment based on NLU in which training proceeds over communication rounds $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. During each round, a subset of clients is selected, local updates are performed on private data streams, and parameters are pushed to a central server for aggregation. Unlike offline FL, client data distributions may vary over time; therefore, both local goals and optimum parameters are time-dependent. Let $\mathcal{C}=\{1,\dots,C\}$ be the set of clients and $\mathcal{K}=\{1,\dots,K\}$ be the set of NLU tasks. Each client $c\in\mathcal{C}$ is associated with one primary task $\tau(c)\in\mathcal{K}$ (or a small task subset), where new samples are continuously added from a local stream. The objective is to learn a federated model that maintains cross-task transfer quality while respecting task-level specialization under non-IID and time-varying data.
-
-% \subsection{Data and Task Heterogeneity in Clients}  
-% Heterogeneity comes in two forms:  
-% \begin{itemize}  
-% \item Heterogeneity of data: the local distributions in clients $c_i,c_j$ will be different (i.e. $P_{c_i}(x,y)\neq P_{c_j}(x,y)$ (label skew, domain shift, vocabulary differences).  
-% \item Task heterogeneity: clients may optimize different losses and output spaces according to $\tau(c)$, yielding dissimilar gradients across tasks.  
-% \end{itemize}  
-% Moreover, real-time environments have client availability and update frequency asynchronous, leading to system heterogeneity and stale updates \cite{mcmahan2017fedavg,li2020fedprox,chen2024fedbone}. Thus, the optimization process must account for partial participation and non-uniform local progress.  
-
-% \subsection{Optimization Objective for Federated Multi-Task Learning}  
-% Let $\ell_{\tau(c)}(\theta_e,\theta_{\tau(c)};\xi)$ be the task-specific loss cost for sample $\xi\in\mathcal{D}_c^t$. The global objective at round $t$ is:  
-% \begin{equation}  
-% \begin{aligned}  
-% \min_{\theta_e,\{\theta_k\}} \, F_t(\Theta)  
-% &= \sum_{c=1}^{C} p_c^t \, \mathbb{E}_{\xi\sim\mathcal{D}_c^t}  
-% \big[\ell_{\tau(c)}(\theta_e,\theta_{\tau(c)};\xi)\big] \\  
-% &\quad + \lambda \, \Omega(\{\theta_k\}),  
-% \end{aligned}  
-% \end{equation}  
-% where $p_c^t$ represents the weight of the aggregation (e.g., the weight per unit local sample), $\Omega$ is a regularizer to promote a stable cross-task learning and $\lambda\ge0$ controls the sharing-specialization trade-off. After localized updates, the server aggregates common encoder parameters by weighted averaging,  
-% \begin{equation}  
-% \theta_e^{t+1} = \sum_{c\in\mathcal{C}_t} \alpha_c^t \, \theta_{e,c}^{t+1}.  
-% \end{equation}  
-% and updates custom task-specific parameters, as a result of task-wise aggregation,  
-% \begin{equation}  
-% \theta_k^{t+1} = \sum_{c\in\mathcal{C}_t: \, \tau(c)=k} \beta_c^t \, \theta_{k,c}^{t+1}.  
-% \end{equation}  
-% In $\mathcal{C}_t$, the client subset participate at round $t$ and $\alpha_c^t,\beta_c^t$ are normalized aggregation coefficients \cite{mcmahan2017fedavg,smith2017mocha,zhou2025mfed}. With privacy and heterogeneity requirements in place, the framework captures RT-FedMTL in real time by jointly optimizing both shared representations and task-specific parameters.
-
 \section{PROBLEM DEFINITION}  
 \label{sec:problem_definition}  
 This section introduces the official RT-FedMTL environment for NLU. We define the formal mathematical structure for distributed multi-task optimization work, tackle the issues of data and system heterogeneity, and set the global goal for training collaboration models across private edge clients.
 
 \subsection{RT-FedMTL Formalization for NLU}  
-We model a NLU-based RT-FedMTL system in which training is carried out across communication rounds $t=1,2,\dots$ \cite{mcmahan2017fedavg,smith2017mocha,chen2024fedbone}. In each round, a subset of clients is chosen, local updates are made to private data streams, and parameters are returned to a central server for aggregation. As opposed to offline FL, the client data distributions can vary over time. Hence, both local goals and optimum parameters are time-dependent. Let $\mathcal{C}=\{1,\dots,C\}$ represent the set of clients and $\mathcal{K}=\{1,\dots,K\}$ represent the set of NLU tasks. Each client $c\in\mathcal{C}$ is assigned to only one main task $\tau(c)\in\mathcal{K}$ (or a small subset of tasks), where new samples are added to the local stream perpetually. The goal is to learn a federated model with cross-task transfer quality but task-level specialization in the absence of IID and time-varying data.
+We model a NLU-based RT-FedMTL system in which training is carried out across communication rounds $t=1,2,\dots$ \cite{mcmahan2017communication, smith2017federated, chen2024fedbone}. In each round, a subset of clients is chosen, local updates are made to private data streams, and parameters are returned to a central server for aggregation. As opposed to offline FL, the client data distributions can vary over time. Hence, both local goals and optimum parameters are time-dependent. Let $\mathcal{C}=\{1,\dots,C\}$ represent the set of clients and $\mathcal{K}=\{1,\dots,K\}$ represent the set of NLU tasks. Each client $c\in\mathcal{C}$ is assigned to only one main task $\tau(c)\in\mathcal{K}$ (or a small subset of tasks), where new samples are added to the local stream perpetually. The goal is to learn a federated model with cross-task transfer quality but task-level specialization in the absence of IID and time-varying data.
 
 \subsection{Distribution of Clients and the Data}  
 Heterogeneity comes in two forms:  
@@ -64,4 +28,4 @@ and updates custom task-specific parameters, following task-wise aggregation,
 \begin{equation}  
 \theta_k^{t+1} = \sum_{c \in\mathcal{C}_t: \, \tau(c)=k} \beta_c^t \, \theta_{k,c}^{t+1}.  
 \end{equation}  
-In $\mathcal{C}_t$ the client subset participates at round $t$ and $\alpha_c^t,\beta_c^t$ can be viewed as normalized aggregation coefficients \cite{mcmahan2017fedavg,smith2017mocha,zhou2025mfed}. By working towards privacy and heterogeneity requirements, RT-FedMTL is captured as the architecture in real-time, jointly maximizing the optimal use of shared representations and task-specific parameters (3, 4).
+In $\mathcal{C}_t$ the client subset participates at round $t$ and $\alpha_c^t,\beta_c^t$ can be viewed as normalized aggregation coefficients \cite{mcmahan2017communication, smith2017federated, zhou2025multi}. By working towards privacy and heterogeneity requirements, RT-FedMTL is captured as the architecture in real-time, jointly maximizing the optimal use of shared representations and task-specific parameters (3, 4).

@@ -1,26 +1,10 @@
 \section{EXPERIMENTS}
 \label{sec:experiments}
 
-% This section evaluates the proposed RT-FedMTL framework across five thematic dimensions: overall baseline comparisons, the impact of MTL, paradigm performance gaps, real-time suitability, and communication efficiency.
-% \subsection{Experimental Setup}
-
-
-
-% \subsubsection{Datasets and Tasks}
-
-% The evaluation employs three core NLU benchmarks representing diverse NLU challenges from the GLUE benchmark \cite{wang2018glue}.
-
-% SST-2 \cite{socher2013sst} is a binary classification task for sentiment polarity detection, comprising 66,477 training, 872 validation, and 1,821 test samples. Performance is measured by accuracy and F1-score \cite{vanrijsbergen1979}.
-
-% QQP \cite{sharma2019qqp} is a binary classification task for paraphrase detection, with 323,415 training, 40,431 validation, and 39,081 test samples. Evaluation uses accuracy and F1-score \cite{vanrijsbergen1979}.
-
-% STS-B \cite{cer2017stsb} is a regression task for semantic similarity scoring over sentence pairs on a 1–5 scale, with 4,249 training, 1,500 validation, and 1,379 test samples. Performance is measured by Pearson \cite{pearson1895} and Spearman correlation \cite{spearman1904}.
-
-
 In this section, the proposed RT-FedMTL framework is examined in terms of five thematic dimensions: overall baseline comparisons, the impact of MTL, paradigm performance gaps, real-time suitability, and communication efficiency.  
 \subsection{Experimental Setup}  
 \subsubsection{Datasets and Tasks}  
-This evaluation combines three core NLU benchmarks that represent different NLU problems from within the GLUE benchmark \cite{wang2018glue}. SST-2 \cite{socher2013sst} is a binary classification task (66,477 training, 872 validation, 1,821 test samples) for detecting sentiment polarity. The performance is determined by accuracy and F1-score \cite{vanrijsbergen1979}. QQP \cite{sharma2019qqp} is a binary classification task for paraphrase detection with 323,415 training, 40,431 validation, and 39,081 test samples. Evaluation uses accuracy and F1-score \cite{vanrijsbergen1979}. STS-B \cite{cer2017stsb} is a regression task that scores the semantic similarity of sentence pairs on a 1 to 5 scale, with 4,249 training, 1,500 validation, and 1,379 test samples. Performance is evaluated by Pearson \cite{pearson1895} and Spearman correlation \cite{spearman1904}.
+This evaluation combines three core NLU benchmarks that represent different NLU problems from within the GLUE benchmark \cite{wang2018glue}. SST-2 \cite{socher2013recursive} is a binary classification task (66,477 training, 872 validation, 1,821 test samples) for detecting sentiment polarity. The performance is determined by accuracy and F1-score \cite{van1979information}. QQP \cite{sharma2019natural} is a binary classification task for paraphrase detection with 323,415 training, 40,431 validation, and 39,081 test samples. Evaluation uses accuracy and F1-score \cite{van1979information}. STS-B \cite{cer2017semeval} is a regression task that scores the semantic similarity of sentence pairs on a 1 to 5 scale, with 4,249 training, 1,500 validation, and 1,379 test samples. Performance is evaluated by Pearson \cite{pearson1895vii} and Spearman correlation \cite{spearman1961proof}.
 
 
 \begin{table}[t]
@@ -89,17 +73,6 @@ This evaluation combines three core NLU benchmarks that represent different NLU 
   \end{tabular}
 \end{table*}
 
-
-% \subsubsection{Federated Data Partitioning}
-
-
-
-% IID Partitioning distributes data uniformly across clients (Experiments 5-6 in Table~\ref{tab:design_matrix}, 3 clients, multi-task scenarios).
-
-% Non-IID Partitioning uses a Dirichlet distribution ($\alpha{=}0.5$) to simulate realistic data heterogeneity, with 3 clients per task (9 total), yielding 107,805 / 22,159 / 1,416 samples per client for QQP, SST-2, and STS-B respectively (Experiments 7-10 in Table~\ref{tab:design_matrix}).
-
-% Validation sets are \emph{not} split across clients in any paradigm, ensuring consistent global model assessment.
-
 subsubsection{Federated Data Partitioning} The data is uniformly distributed among clients in IID Partitioning (Experiments 5-6 in Table~\ref{tab:design_matrix}, 3 clients, multi-task scenarios). For Non-IID Partitioning the Dirichlet distribution ($\alpha{=}0.5$), which simulates real heterogeneity of data, uses three clients per task (9 total), giving 107,805 / 22,159 / 1,416 samples per client for QQP, SST-2, and STS-B respectively (Experiments 7-10 in Table~\ref{tab:design_matrix}). Validation sets are \emph{not} split over clients in any paradigm, which guarantees global model assessment consistency.
 
 \begin{table*}[t]
@@ -125,7 +98,7 @@ subsubsection{Federated Data Partitioning} The data is uniformly distributed amo
      & Cent. & ST & IID & FFT & --- & --- & 0.8456 & 0.8934 & --- & --- & 4290.59 & 4.2547 \\
      & Cent. & MTL & IID & FFT & 0.9037 & 0.9077 & 0.8137 & 0.8778 & 0.8635 & 0.8614 & 24449.68 & 4.3214 \\
     \midrule
-    BERT-Medium \cite{turc2019compact} & FL & ST & Non-IID & FFT & --- & --- & 0.7989 & 0.6852 & --- & --- & 23880.89 & 0.6789 \\
+    BERT-Medium \cite{turc2019well} & FL & ST & Non-IID & FFT & --- & --- & 0.7989 & 0.6852 & --- & --- & 23880.89 & 0.6789 \\
      & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.6521 & 0.6212 & 10261.92 & 0.6810 \\
      & FL & ST & Non-IID & FFT & 0.9300 & 0.9348 & --- & --- & --- & --- & 15439.04 & 0.6786 \\
       & FL & MTL (ours) & Non-IID & FFT & 0.8933 & 0.8988 & 0.8183 & 0.7441 & 0.4219 & 0.4132 & 33374.50 & 0.6790 \\
@@ -136,7 +109,7 @@ subsubsection{Federated Data Partitioning} The data is uniformly distributed amo
      & Cent. & ST & IID & FFT & --- & --- & 0.8358 & 0.8859 & --- & --- & 3205.51 & 2.6467 \\
      & Cent. & MTL & IID & FFT & 0.8865 & 0.8884 & 0.8333 & 0.8777 & 0.8615 & 0.8584 & 19257.40 & 2.6671 \\
     \midrule
-    BERT-Mini \cite{turc2019compact} & FL & ST & Non-IID & FFT & --- & --- & 0.7674 & 0.6201 & --- & --- & 9642.59 & 0.1969 \\
+    BERT-Mini \cite{turc2019well} & FL & ST & Non-IID & FFT & --- & --- & 0.7674 & 0.6201 & --- & --- & 9642.59 & 0.1969 \\
      & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.6504 & 0.6150 & 2547.10 & 0.1969 \\
      & FL & ST & Non-IID & FFT & 0.9151 & 0.9196 & --- & --- & --- & --- & 4552.75 & 0.1969 \\
       & FL & MTL (ours) & Non-IID & FFT & 0.8234 & 0.8226 & 0.7748 & 0.6668 & 0.4009 & 0.3939 & 10317.55 & 0.1969 \\
@@ -202,51 +175,11 @@ subsubsection{Federated Data Partitioning} The data is uniformly distributed amo
 \end{figure}
 
 
-% \subsubsection{Baselines}
-% Three baselines are evaluated: (1) Centralized MTL: all 5 SLM variants trained on centralized data with shared encoder and task-specific heads, serving as the upper-bound reference (Exp.\ 1 in Table~\ref{tab:design_matrix}); (2) Federated Single-Task: per-task federated experiments with 3 clients and non-IID data (Exps.\ 8-10 in Table~\ref{tab:design_matrix}); and (3) Large-model federated approaches: comparison against larger LMs to assess communication efficiency and performance trade-offs.
+\subsubsection{Baselines} Three baselines are tested: (1) Centralized MTL: all 5 SLM types trained on centralized data and share encoder and task head, this is used as the top-tier reference (Exp.\ 1 in Table~\ref{tab:design_matrix}); (2) Federated Single-Task: per-task federated experiments with 3 clients and non-IID data (Exps.\ 8-10 in Table~\ref{tab:design_matrix}); and (3) Large-model federated methods: evaluation against larger LMs to see communication efficiency and performance trade-offs. 
 
-% \subsubsection{Evaluation Metrics}
-% Task-level metrics are accuracy \& F1-score \cite{vanrijsbergen1979} (SST-2, QQP) and Pearson \cite{pearson1895} / Spearman correlation \cite{spearman1904} (STS-B) \cite{wang2018glue}. System-level federated metrics include communication cost per round, convergence speed, and total training time.
+\subsubsection{Evaluation Metrics} Task-level metrics are accuracy \& F1-score \cite{van1979information} (SST-2, QQP) and Pearson \cite{pearson1895vii} / Spearman correlation \cite{spearman1961proof} (STS-B) \cite{wang2018glue}. Federated system-level metrics are communication cost per round, convergence speed, and total training time. 
 
-% \subsubsection{Implementation Details}
-% All experiments use learning rate $2\times10^{-5}$ with 1,000-step warmup, batch size 8 for all experiments (Centralized to FL/FL-MTL), weight decay 0.01, gradient clipping (max-norm 1.0), and random seed 42. Centralized runs train for 25 epochs; federated clients perform 1 local epoch per round. Communication uses ports 8771-8775 with 60\,s client timeout and 3,400\,s round timeout, plus a 3-retry exponential-backoff mechanism.
-
-% % ------------------------------------------------------
-% \subsection{Results and Discussion}
-% % ------------------------------------------------------
-
-
-% \begin{figure*}[t]
-%   \centering
-%   \includegraphics[width=1.0\linewidth]{plots/advanced_complexity_line_performance_balanced.png}
-%   \caption{%
-%     Performance across six paradigm-complexity stages for five SLM architectures. Dashed lines separate centralized and federated settings.}
-%   \label{fig:perf_trajectory}
-% \end{figure*}
-
-
-
-
-
-
-
-% \subsubsection{Overall Performance (Comparison across Baselines)}
-% The results in Table~\ref{tab:results_consolidated} demonstrate that small language models (SLMs) within the RT-FedMTL framework maintain high NLU performance. Centralized MTL serves as the benchmark, yet DistilBERT under federated MTL (IID) surprisingly achieves 0.9461 accuracy on SST-2, outperforming its centralized counterpart. MiniLM exhibits an exceptional resource-to-performance ratio, achieving 0.8966 and 0.8384 in QQP and STS-B tasks under IID settings, respectively—scores that match or exceed those of much larger models while requiring only 0.38\,GB of GPU memory (compared to 1.09\,GB for DistilBERT). This validates that in distributed NLU, model size is not the sole determinant of quality, as compact architectures like MiniLM can hold their own via federated optimization.
-
-% \subsubsection{Effect of Multi-Task Learning}
-% MTL provides significant advantages in federated settings by leveraging shared representations across related tasks. As shown in Figure~\ref{fig:perf_trajectory} and Table~\ref{tab:results_consolidated}, comparing FL-Single and FL-MTL (Non-IID) reveals complex task interactions. While SST-2 suffers modest negative transfer in certain configurations, regression tasks like STS-B often suffer more pronounced drops under Non-IID conditions. However, classification tasks generally demonstrate better positive transfer; for instance, QQP benefits from the features learned via SST-2. Larger SLMs like DistilBERT and BERT-Medium show higher resilience to negative transfer due to their greater representational capacity.
-
-% \subsubsection{Federated Learning Performance}
-% The transition from centralized to federated learning introduces a "Reliability Gap," characterized by a moderate degradation (${\le}5\%$) in classification accuracy for tasks like SST-2 and QQP. This gap is most visible in the STS-B Pearson correlation, which drops significantly for the smallest architectures like TinyBERT under non-IID MTL conditions. Figure~\ref{fig:perf_trajectory} maps this trajectory, showing how the proposed RT-FedMTL framework manages to close this gap by stabilizing performance across tasks. DistilBERT consistently proves to be the most robust architecture for sentiment-heavy tasks, exhibiting minimal performance decay even under extreme non-IID skew (0.9232 Acc. on SST-2).
-
-% Quantitatively, the IID federated results represent the framework's optimal performance, showing that MTL can yield better results than isolated centralized training for specific models (e.g., DistilBERT reaching 0.9461 on SST-2). The non-IID metrics highlight the framework's resilience under data heterogeneity; while classification tasks like SST-2 maintain stable performance (e.g., 0.9232 for DistilBERT), regression tasks like STS-B exhibit greater sensitivity. MiniLM consistently emerges as the strongest versatile option across both IID and non-IID distributions, winning 2 out of 3 benchmark tasks (QQP and STS-B) with a nearly 3$\times$ reduction in memory footprint compared to DistilBERT. This demonstrates that while the framework is resilient for categorical benchmarks, model selection should be tailored: DistilBERT for sentiment robustness and MiniLM for resource-constrained multi-task stability.
-
-
-\subsubsection{Baselines}. Three baselines are tested: (1) Centralized MTL: all 5 SLM types trained on centralized data and share encoder and task head, this is used as the top-tier reference (Exp.\ 1 in Table~\ref{tab:design_matrix}); (2) Federated Single-Task: per-task federated experiments with 3 clients and non-IID data (Exps.\ 8-10 in Table~\ref{tab:design_matrix}); and (3) Large-model federated methods: evaluation against larger LMs to see communication efficiency and performance trade-offs. 
-
-\subsubsection{Evaluation Metrics}. Task-level metrics are accuracy \& F1-score \cite{vanrijsbergen1979} (SST-2, QQP) and Pearson \cite{pearson1895} / Spearman correlation \cite{spearman1904} (STS-B) \cite{wang2018glue}. Federated system-level metrics are communication cost per round, convergence speed, and total training time. 
-
-\subsubsection{Implementation Details}. All experiments use learning rate $2\times10^{-5}$ with 1,000-step warmup, batch size 8 for all experiments (Centralized to FL/FL-MTL), weight decay 0.01, gradient clipping at the max-norm of 1.0, and random seed 42. Centralized are trained with 25 epochs; federated clients train 1 local epoch per round. Communication is provided by ports 8771-8775 with 60\,s client timeout and 3,400\,s round timeout and 3-retry exponential-backoff. 
+\subsubsection{Implementation Details} All experiments use learning rate $2\times10^{-5}$ with 1,000-step warmup, batch size 8 for all experiments (Centralized to FL/FL-MTL), weight decay 0.01, gradient clipping at the max-norm of 1.0, and random seed 42. Centralized are trained with 25 epochs; federated clients train 1 local epoch per round. Communication is provided by ports 8771-8775 with 60\,s client timeout and 3,400\,s round timeout and 3-retry exponential-backoff. 
 
 % ------------------------------------------------------ 
 \subsection{Results and Discussion}  
@@ -259,9 +192,9 @@ subsubsection{Federated Data Partitioning} The data is uniformly distributed amo
 \label{fig:perf_trajectory} 
 \end{figure*} 
 
-\subsubsection{Overall Performance (Comparison across Baselines)}. Table~\ref{tab:results_consolidated} shows that small language models (SLMs) within RT-FedMTL still achieve good performance in NLU. Centralized MTL is at least a baseline; however, DistilBERT in federated MTL (IID) performance, surprisingly, is 0.9461 on SST-2, better than that of its centralized counterpart. MiniLM features a very low resource-to-function ratio with 0.8966 and 0.8384 in QQP and STS-B tasks using IID respectively—scores that are on par or better than those of much larger models and taking only 0.38\,GB of GPU memory (compared with 1.09\,GB in DistilBERT). It confirms that in distributed NLU the size of the model does not only matter for the quality, and compact architectures such as MiniLM can be fine-tuned with respect to it. 
+\subsubsection{Overall Performance (Comparison across Baselines)}. Table~\ref{tab:results_consolidated} shows that small language models (SLMs) within RT-FedMTL still achieve good performance in NLU. Centralized MTL is at least a baseline; however, DistilBERT in federated MTL (IID) performance, surprisingly, is 0.9461 on SST-2, better than that of its centralized counterpart. MiniLM features a very low resource-to-function ratio with 0.8966 and 0.8384 in QQP and STS-B tasks using IID respectively-scores that are on par or better than those of much larger models and taking only 0.38\,GB of GPU memory (compared with 1.09\,GB in DistilBERT). It confirms that in distributed NLU the size of the model does not only matter for the quality, and compact architectures such as MiniLM can be fine-tuned with respect to it. 
 
-\subsubsection{Effect of Multi-Task Learning}. MTL offers notable benefits in federated scenarios on account of its implementation of shared representations across similar tasks. As evidenced in Figure~\ref{fig:perf_trajectory} and Table~\ref{tab:results_consolidated}, it is evident that comparing FL-Single and FL-MTL (Non-IID) has rich task interplay. SST-2 shows mild negative transfer in some setups, whereas it is usually worse for regression problems such as STS-B for Non-IID situations. Nevertheless, classification tasks tend to demonstrate more positive transfer, with features learned by SST-2 benefiting QQP for example. Large SLMs such as DistilBERT and BERT-Medium exhibit robustness to the negative transfer, because they have a higher representational ability. 
+\subsubsection{Effect of Multi-Task Learning} MTL offers notable benefits in federated scenarios on account of its implementation of shared representations across similar tasks. As evidenced in Figure~\ref{fig:perf_trajectory} and Table~\ref{tab:results_consolidated}, it is evident that comparing FL-Single and FL-MTL (Non-IID) has rich task interplay. SST-2 shows mild negative transfer in some setups, whereas it is usually worse for regression problems such as STS-B for Non-IID situations. Nevertheless, classification tasks tend to demonstrate more positive transfer, with features learned by SST-2 benefiting QQP for example. Large SLMs such as DistilBERT and BERT-Medium exhibit robustness to the negative transfer, because they have a higher representational ability. 
 
 \subsubsection{Federated Learning Performance} A "Reliability Gap" emerges as the switching from centralized to federated learning is observed from a moderate quality (${\le}5\%$) degradation in classification for tasks such as SST-2 and QQP. This difference is most prominent in the STS-B Pearson correlation, which decreases notably for smallest architectures such as TinyBERT under the non-IID MTL scenario. This line is illustrated in Figure~\ref{fig:perf_trajectory}, which illustrates how a proposed RT-FedMTL does in fact mitigate this gap by stabilizing performance without loss of signal across tasks. Notably, DistilBERT is generally the most stable architecture for sentiment-heavy tasks, as it shows only a slow decay performance even under the worst of non-IID skew (0.9232 Acc. on SST-2). The performance of IID federated results, in a quantitative sense, confirms that MTL can generate better results over an isolated centralized training for discrete model performance (e.g., DistilBERT reaching 0.9461 on SST-2). The non-IID metrics highlight that the framework is more robust to data heterogeneity; classification tasks such as SST-2 retain steady performance (e.g., 0.9232 for DistilBERT), but regression tasks such as STS-B show a greater degree of sensitivity. MiniLM is consistently the greatest versatile candidate in both IID and non-IID distributions being able to win 2 of 3 benchmark tasks (QQP and STS-B) with a memory footprint savings of nearly 3$\times$ when compared to DistilBERT. This shows that although the framework is robust to categorical benchmarks, the selection of the model needs to be a delicate bit better, where DistilBERT for sentiment robustness and MiniLM for resource-constrained multi-task stability.
 
@@ -281,7 +214,7 @@ For deployment on edge devices where real-time inference is critical, resource c
 
 
 \subsubsection{Communication Efficiency}
-Communication overhead is the primary bottleneck in federated MTL, with wall-clock training times increasing by 2.2-3.7$\times$ compared to centralized training (Table~\ref{tab:time_trajectory}). However, as illustrated in Figure~\ref{fig:time_trajectory}, the integration of PEFT via LoRA \cite{hu2021lora} substantially mitigates this cost. LoRA reduces federated training time by 38-62\% for most models by transmitting only low-rank adapter weights instead of full model parameters. This optimization enables the framework to maintain competitive accuracy while drastically reducing the bandwidth requirements, making it suitable for bandwidth-limited edge deployments.
+Communication overhead is the primary bottleneck in federated MTL, with wall-clock training times increasing by 2.2-3.7$\times$ compared to centralized training (Table~\ref{tab:time_trajectory}). However, as illustrated in Figure~\ref{fig:time_trajectory}, the integration of PEFT via LoRA \cite{hu2022lora} substantially mitigates this cost. LoRA reduces federated training time by 38-62\% for most models by transmitting only low-rank adapter weights instead of full model parameters. This optimization enables the framework to maintain competitive accuracy while drastically reducing the bandwidth requirements, making it suitable for bandwidth-limited edge deployments.
 
 
 
