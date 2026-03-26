@@ -1,49 +1,39 @@
-# Federated Learning Experiment Plan
+# RT-FedMTL: A Novel Real-Time Federated Multi-Task Learning Framework with Small Language Models for Natural Language Understanding Tasks
+![Made With python](https://img.shields.io/badge/Made%20with-Python-brightgreen)![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)![Open Source Love svg1](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)![Pytorch](https://img.shields.io/badge/Made%20with-Pytorch-green.svg)
 
-## Model Configurations
 
-### Single Task Learning
-| Model Type | Federated Learning | Centralized |
-|------------|-------------------|-------------|
-| LLMs | Global & Client: BERT-base-uncased | BERT-base-uncased |
-| SLMs | Global & Client: prajjwal1/bert-tiny | prajjwal1/bert-tiny |
-| L-SLMs (Our method) | • Global: BERT-base-uncased<br>• Client: prajjwal1/bert-tiny | |
-| L-SLMs (Our method) | • Global: BERT-base-uncased<br>• Client: prajjwal1/bert-tiny + LoRA | |
+## Abstract
+Natural language understanding is a crucial component in intelligent systems such as social media monitoring, conversational agents, and information retrieval. Deploying these systems in real application scenarios requires not only accurate but also efficient, privacy-preserving, and capable of handling multiple tasks simultaneously. Centralized training of large language models based approaches raises significant challenges in terms of data privacy, communication overhead, and inference latency. This paper proposes RT-FedMTL, a novel real-time federated multi-task learning framework with small language models for efficient and privacy-preserving natural language understanding. Particularly, our framework unifies federated learning and multi-task learning to enable collaborative training across distributed clients while preserving data locality and leveraging shared representations across tasks. We utilize WebSocket protocols and small language models tuning to reduce the feedback loop and provide near-instantaneous global updates. Extensive experiments conducted on five small language model architectures with respect to three standard natural language understanding tasks to get the best trade-off between performance and resource usage. A significant result demonstrates RT-FedMTL can drastically minimize per-client GPU memory requirements (up to 74-92%) versus centralized multi-task learning baselines, while keeping performance for multiple benchmarks.
 
-### Multi-Task Learning
-| Model Type | Federated Learning | Centralized |
-|------------|-------------------|-------------|
-| LLMs | Global & Client: BERT-base-uncased | BERT-base-uncased |
-| SLMs | Global & Client: prajjwal1/bert-tiny | prajjwal1/bert-tiny |
-| L-SLMs (Our method) | • Global: BERT-base-uncased<br>• Client: prajjwal1/bert-tiny | |
-| L-SLMs (Our method) | • Global: BERT-base-uncased<br>• Client: prajjwal1/bert-tiny + LoRA | |
+## Experimental Design Matrix (Table I)
 
-## Experiment Details
+| Exp. | Paradigm | Task Config. | Clients | Data Dist. |
+| :---: | :--- | :--- | :---: | :--- |
+| 1 | Centralized MTL | Multi-Task | 3 | Full access |
+| 2 | Centralized Single | SST-2 only | 1 | Full access |
+| 3 | Centralized Single | QQP only | 1 | Full access |
+| 4 | Centralized Single | STS-B only | 1 | Full access |
+| 5 | Federated MTL | Multi-Task | 3 | IID |
+| 6 | Federated MTL | Multi-Task | 3 | IID + LoRA |
+| 7 | Federated MTL | Multi-Task | 9 | Non-IID ($3 \times 3$) |
+| 8 | Federated Single | QQP only | 3 | Non-IID |
+| 9 | Federated Single | SST-2 only | 3 | Non-IID |
+| 10 | Federated Single | STS-B only | 3 | Non-IID |
 
-### Single Task Learning (STL)
-| Framework | Model Type | Global Model | Client Model | Datasets | Validation Metrics | Total Experiments |
-|-----------|------------|--------------|--------------|----------|-------------------|------------------|
-| Federated Learning | LLMs | BERT-base-uncased | BERT-base-uncased | SST-2, QQP, STS-B | Accuracy, Pearson | 3 |
-|  | SLMs | prajjwal1/bert-tiny | prajjwal1/bert-tiny | SST-2, QQP, STS-B | Accuracy, Pearson | 3 |
-|  | L-SLMs (Our method) | BERT-base-uncased | prajjwal1/bert-tiny | SST-2, QQP, STS-B | Accuracy, Pearson | 3 |
-|  | L-SLMs (Our method) | BERT-base-uncased | prajjwal1/bert-tiny + LoRA | SST-2, QQP, STS-B | Accuracy, Pearson | 3 |
-| Centralized | LLMs | BERT-base-uncased | — | SST-2, QQP, STS-B | Accuracy, Pearson | 3 |
-|  | SLMs | prajjwal1/bert-tiny | — | SST-2, QQP, STS-B | Accuracy, Pearson | 3 |
+## Citation
+If you find this work useful in your research, please cite:
 
-### Multi-Task Learning (MTL)
-| Framework | Model Type | Global Model | Client Model | Datasets | Validation Metrics | Total Experiments |
-|-----------|------------|--------------|--------------|----------|-------------------|------------------|
-| Federated Learning | LLMs | BERT-base-uncased | BERT-base-uncased | SST-2, QQP, STS-B | Accuracy, Pearson | 1 |
-|  | SLMs | prajjwal1/bert-tiny | prajjwal1/bert-tiny | SST-2, QQP, STS-B | Accuracy, Pearson | 1 |
-|  | L-SLMs (Our method) | BERT-base-uncased | prajjwal1/bert-tiny | SST-2, QQP, STS-B | Accuracy, Pearson | 1 |
-|  | L-SLMs (Our method) | BERT-base-uncased | prajjwal1/bert-tiny + LoRA | SST-2, QQP, STS-B | Accuracy, Pearson | 1 |
-| Centralized | LLMs | BERT-base-uncased | — | SST-2, QQP, STS-B | Accuracy, Pearson | 1 |
-|  | SLMs | prajjwal1/bert-tiny | — | SST-2, QQP, STS-B | Accuracy, Pearson | 1 |
+**Quang-Vinh Pham and Quang-Hung Le**, "RT-FedMTL: A Novel Real-Time Federated Multi-Task Learning Framework with Small Language Models for Natural Language Understanding Tasks," *Journal of Communications Software and Systems*, vol. XX, no. X, March 2026.
 
-## Notes
-- **LLMs**: Large Language Models
-- **SLMs**: Small Language Models
-- **L-SLMs**: Large-Small Language Models (Our method)
-- **LoRA**: Low-Rank Adaptation
-- **Datasets**: All experiments use SST-2, QQP, and STS-B datasets
-- **Validation Metrics**: All experiments use Accuracy and Pearson correlation as the primary metrics
+### BibTeX
+```bibtex
+@article{pham2026rtfedmtl,
+  title={RT-FedMTL: A Novel Real-Time Federated Multi-Task Learning Framework with Small Language Models for Natural Language Understanding Tasks},
+  author={Pham, Quang-Vinh and Le, Quang-Hung},
+  journal={Journal of Communications Software and Systems},
+  volume={XX},
+  number={X},
+  year={2026},
+  month={March}
+}
+```
