@@ -51,7 +51,11 @@ The primary optimization objectives include minimizing task-specific losses acro
 The proposed federated multi-task framework employs a hierarchical architecture with shared encoder layers and task-specific output heads. The shared component captures common linguistic patterns across all NLU tasks, while task-specific components handle domain-specific requirements. The architecture supports dynamic task addition and removal without requiring complete model retraining. Building on recent advances in encoder-decoder structures for federated multi-task learning, our framework incorporates collaborative learning mechanisms that enable efficient knowledge transfer across different NLU tasks while maintaining task-specific performance.
 
 ### 4.2 Small Language Model Backbone
-The framework supports multiple SLM backbones including DistilBERT, MiniLM, and ALBERT variants. Model selection is based on task complexity requirements, resource constraints, and communication efficiency considerations. The architecture maintains compatibility with transformer-based SLMs while supporting efficient parameter sharing across tasks. Inspired by recent research on federated multi-task learning for large language models (MIRA), we implement parameter-efficient fine-tuning techniques that significantly reduce communication overhead while maintaining competitive performance across diverse NLU tasks.
+The framework achieves computational efficiency for real-time edge NLU by utilizing a lightweight backbone based on SLM architectures such as DistilBERT, BERT-Medium, or MiniLM. The backbone architecture comprises three key components:
+- **a) Tokenizer and Embedding Layer**: Converts raw input into subword tokens and maps them to a high-dimensional vector space with learnable position embeddings.
+- **b) Low-Cost Transformer Encoder**: A streamlined encoder with reduced layers and hidden dimensions to minimize per-client resource consumption.
+- **c) Shared representation**: A dense features vector $f_e(x; \theta_e)$ that captures universal linguistic trait shared across all tasks to enable collaborative knowledge transfer.
+Inspired by recent research on federated multi-task learning for large language models (MIRA), we implement parameter-efficient fine-tuning techniques that significantly reduce communication overhead while maintaining competitive performance across diverse NLU tasks.
 
 ### 4.3 Multi-Task Learning Strategy
 Parameter sharing employs a hybrid approach combining hard sharing for lower transformer layers and soft sharing for task-specific components. Task balancing utilizes dynamic loss weighting based on task difficulty, data availability, and performance requirements. The framework supports both positive transfer exploitation and negative transfer mitigation through adaptive regularization techniques. Drawing from insights on federated multi-task learning for personalized deep neural networks in edge computing, our approach adapts to heterogeneous client environments and varying computational capabilities.
@@ -73,13 +77,13 @@ The evaluation employs three core NLU benchmarks representing diverse natural la
 - **Task Type**: Binary classification for sentiment polarity detection
 - **Dataset Scale**: 66,477 training samples, 872 validation samples, 1,821 test samples
 - **Data Distribution**: Balanced binary classification with positive/negative sentiment labels
-- **Evaluation Metrics**: Accuracy and F1-score for classification performance
+- **Evaluation Metrics**: Accuracy and $F_1$-score for classification performance
 
 **QQP for paraphrase detection task**
 - **Task Type**: Binary classification for paraphrase detection
 - **Dataset Scale**: 323,415 training samples, 40,431 validation samples, 39,081 test samples
 - **Data Distribution**: Question pairs with binary paraphrase/ non-paraphrase labels
-- **Evaluation Metrics**: Accuracy and F1-score for paraphrase identification
+- **Evaluation Metrics**: Accuracy and $F_1$-score for paraphrase identification
 
 **STS-B semantic similarity task**
 - **Task Type**: Regression for semantic similarity scoring
@@ -163,8 +167,8 @@ The experimental framework systematically evaluates both IID and non-IID data pa
 
 #### Evaluation Metrics
 **Task-level metrics**
-- **SST-2: sentiment analysis task**: accuracy & F1
-- **QQP: paraphrase detection task**: accuracy & F1
+- **SST-2: sentiment analysis task**: accuracy & $F_1$
+- **QQP: paraphrase detection task**: accuracy & $F_1$
 - **STS-B: semantic similarity task**: Pearson correlation & Spearman correlation
 
 **Federated metrics (communication rounds, convergence speed)**

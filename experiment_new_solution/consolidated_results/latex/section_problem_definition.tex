@@ -1,18 +1,18 @@
-\section{PROBLEM DEFINITION}  
+\section{Problem Formulation}  
 \label{sec:problem_definition}  
-This section introduces the official RT-FedMTL environment for NLU. We define the formal mathematical structure for distributed multi-task optimization work, tackle the issues of data and system heterogeneity, and set the global goal for training collaboration models across private edge clients.
+This section introduces the RT-FedMTL environment for NLU. We define the formal mathematical structure for distributed multi-task optimization work, tackle the issues of data and system heterogeneity, and set the global goal for training collaboration models across private edge clients.
 
-\subsection{RT-FedMTL Formalization for NLU}  
-We model a NLU-based RT-FedMTL system in which training is carried out across communication rounds $t=1,2,\dots$ \cite{mcmahan2017communication, smith2017federated, chen2024fedbone}. In each round, a subset of clients is chosen, local updates are made to private data streams, and parameters are returned to a central server for aggregation. As opposed to offline FL, the client data distributions can vary over time. Hence, both local goals and optimum parameters are time-dependent. Let $\mathcal{C}=\{1,\dots,C\}$ represent the set of clients and $\mathcal{K}=\{1,\dots,K\}$ represent the set of NLU tasks. Each client $c\in\mathcal{C}$ is assigned to only one main task $\tau(c)\in\mathcal{K}$ (or a small subset of tasks), where new samples are added to the local stream perpetually. The goal is to learn a federated model with cross-task transfer quality but task-level specialization in the absence of IID and time-varying data.
+\subsection{System Setup}  
+We model a NLU-based RT-FedMTL system in which training is carried out across communication rounds $t=1,2,\dots$ \cite{mcmahan2017communication,smith2017federated,chen2024fedbone}. In each round, a subset of clients is chosen, local updates are made to private data streams, and parameters are returned to a central server for aggregation. As opposed to offline FL, the client data distributions can vary over time. Hence, both local goals and optimum parameters are time-dependent. Let $\mathcal{C}=\{1,\dots,C\}$ represent the set of clients and $\mathcal{K}=\{1,\dots,K\}$ represent the set of NLU tasks. Each client $c\in\mathcal{C}$ is assigned to only one main task $\tau(c)\in\mathcal{K}$ (or a small subset of tasks), where new samples are added to the local stream perpetually. The goal is to learn a federated model with cross-task transfer quality but task-level specialization in the absence of IID and time-varying data.
 
-\subsection{Distribution of Clients and the Data}  
+\subsection{Learning Objective}  
 Heterogeneity comes in two forms:  
 \begin{itemize}  
-\item Heterogeneity of Data: the local distributions will differ across clients $c_i,c_j$ (i.e. $P_{c_i}(x,y)\neq P_{c_j}(x,y)$) (label skew, domain shift, vocabulary differences).  
+\item Heterogeneity of data: the local distributions will differ across clients $c_i,c_j$ (i.e. $P_{c_i}(x,y)\neq P_{c_j}(x,y)$) (label skew, domain shift, vocabulary differences).  
 \item Task heterogeneity: clients might optimize different losses according to $\tau(c)$, which will produce diverging gradients across tasks.  
 \end{itemize}  
 In addition, systems remain heterogeneous, stale updates are propagated by client availability and update frequency. Therefore, the optimization problem must include partial participation and nonuniform local progress. Let $\ell_{\tau(c)}(\theta_e,\theta_{\tau(c)};\xi)$ be the loss cost for the specific sample $\xi\in\mathcal{D}_c^t$. The universal goal at stage $t$ is  
-\begin{equation}  
+\begin{equation}  \label{eq:universal_goal}
 \begin{aligned}  
 \min_{\theta_e,\{\theta_k\}} \,F_t(\Theta)  
 &= \sum_{c=1}^{C} p_c^t \, \mathbb{E}_{\xi\sim\mathcal{D}_c^t}  
@@ -20,12 +20,12 @@ In addition, systems remain heterogeneous, stale updates are propagated by clien
 &\quad + \lambda \, \Omega(\{\theta_k\}),  
 \end{aligned}  
 \end{equation}  
-where $p_c^t$ denote the weight of the aggregated model (i.e., the weight per unit local sample), $\Omega$ is a regularizer to enhance the cross-task learning stability and $\lambda\ge0$ moderates the sharing-specialization tradeoff. After local updates, the server also aggregates common encoder parameters through weighted averaging,  
-\begin{equation}  
-\theta_e^{t+1} = \sum_{c\in\mathcal{C}_t} \alpha_c^t \, \theta_{e,c}^{t+1}.  
+where $p_c^t$ denote the weight of the aggregated model (i.e., the weight per unit local sample), $\Omega$ is a regularizer to enhance the cross-task learning stability and $\lambda\ge0$ moderates the sharing-specialization trade-off. After local updates, the server also aggregates common encoder parameters through weighted averaging,  
+\begin{equation}  \label{eq:encoder_aggregation}
+\theta_e^{t+1} = \sum_{c\in\mathcal{C}_t} \alpha_c^t \, \theta_{e,c}^{t+1},  
 \end{equation}  
 and updates custom task-specific parameters, following task-wise aggregation,  
-\begin{equation}  
+\begin{equation}  \label{eq:head_aggregation}
 \theta_k^{t+1} = \sum_{c \in\mathcal{C}_t: \, \tau(c)=k} \beta_c^t \, \theta_{k,c}^{t+1}.  
 \end{equation}  
-In $\mathcal{C}_t$ the client subset participates at round $t$ and $\alpha_c^t,\beta_c^t$ can be viewed as normalized aggregation coefficients \cite{mcmahan2017communication, smith2017federated, zhou2025multi}. By working towards privacy and heterogeneity requirements, RT-FedMTL is captured as the architecture in real-time, jointly maximizing the optimal use of shared representations and task-specific parameters (3, 4).
+In $\mathcal{C}_t$ the client subset participates at round $t$ and $\alpha_c^t,\beta_c^t$ can be viewed as normalized aggregation coefficients \cite{mcmahan2017communication,smith2017federated,zhou2025multi}. By working towards privacy and heterogeneity requirements, RT-FedMTL is captured as the architecture in real-time, jointly maximizing the optimal use of shared representations and task-specific parameters \eqref{eq:encoder_aggregation}, \eqref{eq:head_aggregation}.

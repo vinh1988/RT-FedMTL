@@ -140,7 +140,7 @@ EXPERIMENTS
 In this section, the proposed RT-FedMTL framework is examined in terms of five thematic dimensions: overall baseline comparisons, the impact of MTL, paradigm performance gaps, real-time suitability, and communication efficiency.  
 Experimental Setup  
 Datasets and Tasks  
-This evaluation combines three core NLU benchmarks that represent different NLU problems from within the GLUE benchmark. SST-2 is a binary classification task (66,477 training, 872 validation, 1,821 test samples) for detecting sentiment polarity. The performance is determined by accuracy and F1-score. QQP is a binary classification task for paraphrase detection with 323,415 training, 40,431 validation, and 39,081 test samples. Evaluation uses accuracy and F1-score. STS-B is a regression task that scores the semantic similarity of sentence pairs on a 1 to 5 scale, with 4,249 training, 1,500 validation, and 1,379 test samples. Performance is evaluated by Pearson and Spearman correlation.
+This evaluation combines three core NLU benchmarks that represent different NLU problems from within the GLUE benchmark. SST-2 is a binary classification task (66,477 training, 872 validation, 1,821 test samples) for detecting sentiment polarity. The performance is determined by accuracy and $F_1$-score. QQP is a binary classification task for paraphrase detection with 323,415 training, 40,431 validation, and 39,081 test samples. Evaluation uses accuracy and $F_1$-score. STS-B is a regression task that scores the semantic similarity of sentence pairs on a 1 to 5 scale, with 4,249 training, 1,500 validation, and 1,379 test samples. Performance is evaluated by Pearson and Spearman correlation.
 
 
 
@@ -232,7 +232,7 @@ subsubsectionFederated Data Partitioning The data is uniformly distributed among
 
 Baselines. Three baselines are tested: (1) Centralized MTL: all 5 SLM types trained on centralized data and share encoder and task head, this is used as the top-tier reference (Exp. 1 in Table ); (2) Federated Single-Task: per-task federated experiments with 3 clients and non-IID data (Exps. 8-10 in Table ); and (3) Large-model federated methods: evaluation against larger LMs to see communication efficiency and performance trade-offs. 
 
-Evaluation Metrics. Task-level metrics are accuracy  F1-score (SST-2, QQP) and Pearson / Spearman correlation (STS-B). Federated system-level metrics are communication cost per round, convergence speed, and total training time. 
+Evaluation Metrics. Task-level metrics are accuracy  $F_1$-score (SST-2, QQP) and Pearson / Spearman correlation (STS-B). Federated system-level metrics are communication cost per round, convergence speed, and total training time. 
 
 Implementation Details. All experiments use learning rate  with 1,000-step warmup, batch size 8 for all experiments (Centralized to FL/FL-MTL), weight decay 0.01, gradient clipping at the max-norm of 1.0, and random seed 42. Centralized are trained with 25 epochs; federated clients train 1 local epoch per round. Communication is provided by ports 8771-8775 with 60s client timeout and 3,400s round timeout and 3-retry exponential-backoff. 
 
