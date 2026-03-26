@@ -1,0 +1,58 @@
+This is BibTeX, Version 0.99d (TeX Live 2023/Debian)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: RT-FedMTL-March26.aux
+The style file: IEEEtran.bst
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: references.bib
+-- IEEEtran.bst version 1.14 (2015/08/26) by Michael Shell.
+-- http://www.michaelshell.org/tex/ieeetran/bibtex/
+-- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
+Warning--empty journal in spearman1961proof
+
+Done.
+You've used 43 entries,
+            4087 wiz_defined-function locations,
+            1053 strings with 17146 characters,
+and the built_in function-call counts, 35595 in all, are:
+= -- 2711
+> -- 1088
+< -- 288
++ -- 596
+- -- 218
+* -- 1719
+:= -- 5064
+add.period$ -- 94
+call.type$ -- 43
+change.case$ -- 42
+chr.to.int$ -- 696
+cite$ -- 44
+duplicate$ -- 2516
+empty$ -- 2861
+format.name$ -- 242
+if$ -- 8343
+int.to.chr$ -- 0
+int.to.str$ -- 43
+missing$ -- 465
+newline$ -- 152
+num.names$ -- 43
+pop$ -- 1157
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 2
+skip$ -- 2686
+stack$ -- 0
+substring$ -- 1700
+swap$ -- 2054
+text.length$ -- 56
+text.prefix$ -- 0
+top$ -- 5
+type$ -- 43
+warning$ -- 1
+while$ -- 157
+width$ -- 45
+write$ -- 420
+(There was 1 warning)

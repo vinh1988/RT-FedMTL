@@ -1,0 +1,28 @@
+ID,Framework,Task Type,Model Type,Global Model,Client Model,Datasets,Validation Metrics,Total Experiments,Done,Git Branch
+# BERT-Large - STL (Single-Task Learning)
+1,Federated Learning,STL,LLMs,bert-large-uncased,bert-large-uncased,SST-2,"Accuracy, F1",1,,
+2,Federated Learning,STL,LLMs,bert-large-uncased,bert-large-uncased,QQP,"Accuracy, F1",1,,
+3,Federated Learning,STL,LLMs,bert-large-uncased,bert-large-uncased,STS-B,"Pearson, Spearman",1,,
+
+# BERT-Tiny (2/128) - STL (Single-Task Learning)
+4,Federated Learning,STL,SLMs,prajjwal1/bert-tiny,prajjwal1/bert-tiny,SST-2,"Accuracy, F1",1,,
+5,Federated Learning,STL,SLMs,prajjwal1/bert-tiny,prajjwal1/bert-tiny,QQP,"Accuracy, F1",1,,
+6,Federated Learning,STL,SLMs,prajjwal1/bert-tiny,prajjwal1/bert-tiny,STS-B,"Pearson, Spearman",1,,
+
+# BERT-Large - MTL (Multi-Task Learning)
+7,Federated Learning,MTL,LLMs,bert-large-uncased,bert-large-uncased,"SST-2, QQP, STS-B","SST-2: Accuracy, F1; QQP: Accuracy, F1; STS-B: Pearson, Spearman",1,,
+
+# BERT-Tiny (2/128) - MTL (Multi-Task Learning)
+8,Federated Learning,MTL,SLMs,prajjwal1/bert-tiny,prajjwal1/bert-tiny,"SST-2, QQP, STS-B","SST-2: Accuracy, F1; QQP: Accuracy, F1; STS-B: Pearson, Spearman",1,,
+
+# Centralized Baselines - BERT-Large
+9,Centralized,STL,LLMs,bert-large-uncased,—,SST-2,"Accuracy, F1",1,,
+10,Centralized,STL,LLMs,bert-large-uncased,—,QQP,"Accuracy, F1",1,,
+11,Centralized,STL,LLMs,bert-large-uncased,—,STS-B,"Pearson, Spearman",1,,
+12,Centralized,MTL,LLMs,bert-large-uncased,—,"SST-2, QQP, STS-B","SST-2: Accuracy, F1; QQP: Accuracy, F1; STS-B: Pearson, Spearman",1,,
+
+# Centralized Baselines - BERT-Tiny (2/128)
+13,Centralized,STL,SLMs,prajjwal1/bert-tiny,—,SST-2,"Accuracy, F1",1,,
+14,Centralized,STL,SLMs,prajjwal1/bert-tiny,—,QQP,"Accuracy, F1",1,,
+15,Centralized,STL,SLMs,prajjwal1/bert-tiny,—,STS-B,"Pearson, Spearman",1,,
+16,Centralized,MTL,SLMs,prajjwal1/bert-tiny,—,"SST-2, QQP, STS-B","SST-2: Accuracy, F1; QQP: Accuracy, F1; STS-B: Pearson, Spearman",1,,

@@ -1,0 +1,216 @@
+\section{EXPERIMENTS}
+\label{sec:experiments}
+In this section, the proposed RT-FedMTL framework is examined in terms of five thematic dimensions: overall baseline comparisons, the impact of MTL, paradigm performance gaps, real-time suitability, and communication efficiency.  
+\subsection{Experimental Setup}  
+\subsubsection{Datasets and Tasks}  
+This evaluation combines three core NLU benchmarks that represent different NLU problems from within the GLUE benchmark \cite{wang2018glue}. SST-2 \cite{socher2013recursive} is a binary classification task (66,477 training, 872 validation, 1,821 test samples) for detecting sentiment polarity. The performance is determined by accuracy and $F_1$-score \cite{van1979information}. QQP \cite{sharma2019natural} is a binary classification task for paraphrase detection with 323,415 training, 40,431 validation, and 39,081 test samples. Evaluation uses accuracy and $F_1$-score \cite{van1979information}. STS-B \cite{cer2017semeval} is a regression task that scores the semantic similarity of sentence pairs on a 1 to 5 scale, with 4,249 training, 1,500 validation, and 1,379 test samples. Performance is evaluated by Pearson \cite{pearson1895vii} and Spearman correlation \cite{spearman1961proof}.
+
+
+\begin{table}[t]
+  \centering
+  \caption{Experimental design matrix}
+  \label{tab:design_matrix}
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{clllcc}
+    \toprule
+    Exp. & Paradigm & Task Config. & Clients & Data Dist. \\
+    \midrule
+    1  & Centralized MTL    & Multi-Task  & 3 & Full access \\
+    2  & Centralized Single & SST-2 only  & 1 & Full access \\
+    3  & Centralized Single & QQP only    & 1 & Full access \\
+    4  & Centralized Single & STS-B only  & 1 & Full access \\
+    5  & Federated MTL      & Multi-Task  & 3 & IID \\
+    6  & Federated MTL      & Multi-Task  & 3 & IID + LoRA \\
+    7  & Federated MTL      & Multi-Task  & 9 & Non-IID ($3{\times}3$) \\
+    8  & Federated Single   & QQP only    & 3 & Non-IID \\
+    9  & Federated Single   & SST-2 only  & 3 & Non-IID \\
+    10 & Federated Single   & STS-B only  & 3 & Non-IID \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table*}[t]
+  \centering
+  \hypertarget{tab:resource_trajectory}{}\caption{Resource usage trajectory (GB, per-client average)}
+  \label{tab:resource_trajectory}
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{lcccccc}
+    \toprule
+    Model & Cent-S & Cent-M & FL-S & FL-M\,(Non-IID) & FL-M\,(IID) & FL-M\,(LoRA) \\
+    \midrule
+    DistilBERT   & 4.2492 & 4.3214 & 1.0972 & 1.0968 & \hypertarget{mem:distilbert_fl_iid}{1.0896} & 0.2852 \\
+    BERT-Medium  & 2.6549 & 2.6671 & 0.6795 & 0.6790 & 0.6807 & 0.1840 \\
+    BERT-Mini    & 2.4487 & 2.4651 & 0.1969 & 0.1969 & 0.1969 & 0.0630 \\
+    MiniLM       & 1.4982 & 1.5045 & 0.3839 & 0.3846 & \hypertarget{mem:minilm_fl_iid}{0.3835} & 0.1090 \\
+    TinyBERT     & 0.3427 & 0.3440 & 0.0881 & 0.0881 & 0.0881 & 0.0356 \\
+    \bottomrule
+    \addlinespace[2pt]
+    \multicolumn{7}{l}{\scriptsize \textit{Cent-S: Centralized Single-Task, Cent-M: Centralized Multi-Task, FL-S: Federated Single-Task,}} \\
+    \multicolumn{7}{l}{\scriptsize \textit{FL-M: Federated Multi-Task, IID/Non-IID: Data Distribution.}} \\
+  \end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+  \centering
+  \caption{Training time trajectory (seconds)}
+  \label{tab:time_trajectory}
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{lcccccc}
+    \toprule
+    Model & Cent-S & Cent-M & FL-S & FL-M\,(Non-IID) & FL-M\,(IID) & FL-M\,(LoRA) \\
+    \midrule
+    DistilBERT  & 9{,}122  & 24{,}450 & 24{,}648 & 52{,}904 & 56{,}454 & 21{,}245 \\
+    BERT-Medium & 6{,}693  & 19{,}257 & 16{,}527 & 33{,}375 & 45{,}258 & 12{,}886 \\
+    BERT-Mini   & 1{,}359  &  3{,}653 &  5{,}581 & 10{,}318 & 13{,}341 &  4{,}192 \\
+    MiniLM      & 4{,}473  & 12{,}437 &  9{,}317 & 20{,}766 & 27{,}930 & 18{,}808 \\
+    TinyBERT    & 3{,}170  &  9{,}228 &  3{,}308 &  6{,}975 &  6{,}778 &  3{,}561 \\
+    \bottomrule
+    \addlinespace[2pt]
+  \end{tabular}
+\end{table*}
+
+\subsubsection{Federated Data Partitioning} The data is uniformly distributed among clients in IID partitioning (Exps. 5-6 in Table~\ref{tab:design_matrix}, 3 clients, multi-task scenarios). For non-IID partitioning the Dirichlet distribution ($\alpha{=}0.5$), which simulates real heterogeneity of data, uses three clients per task (9 total), giving 107,805 / 22,159 / 1,416 samples per client for QQP, SST-2, and STS-B respectively (Exps. 7-10 in Table~\ref{tab:design_matrix}). Validation sets are \emph{not} split over clients in any paradigm, which guarantees global model assessment consistency.
+
+\begin{table*}[t]
+  \centering
+  \caption{Comparative analysis of SLM performance across paradigms (--- denotes not applicable)}
+  \label{tab:results_consolidated}
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{lllllcccccccc}
+    \toprule
+    & & & & & \multicolumn{2}{c}{SST-2} & \multicolumn{2}{c}{QQP} & \multicolumn{2}{c}{STS-B} & System & System \\
+    \cmidrule(lr){6-7} \cmidrule(lr){8-9} \cmidrule(lr){10-11}
+    Model & Paradigm & Task & Dist. & Tuning & Acc. & $F_1$ & Acc. & $F_1$ & Pear. & Spea. & Time (s) & Res (GB) \\
+    \midrule
+    DistilBERT \cite{sanh2019distilbert} & FL & ST & Non-IID & FFT & --- & --- & 0.8408 & 0.7724 & --- & --- & 34904.44 & 1.0956 \\
+     & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.7753 & 0.7421 & 15452.52 & 1.0988 \\
+     & FL & ST & Non-IID & FFT & 0.9346 & 0.9392 & --- & --- & --- & --- & 23586.44 & 1.0972 \\
+     & FL & MTL (ours) & IID & LoRA & 0.8257 & 0.8433 & 0.7535 & 0.6754 & 0.5108 & 0.4919 & 21245.26 & 0.2852 \\
+      & FL & MTL (ours) & Non-IID & FFT & \hypertarget{perf:distilbert_sst2_fl_noniid}{0.9232} & 0.9298 & 0.8579 & 0.8054 & 0.6963 & 0.6967 & 52903.97 & 1.0968 \\
+      & FL & MTL (ours) & IID & FFT & \hypertarget{perf:distilbert_sst2_fl_iid}{0.9461} & 0.9514 & 0.8913 & 0.8610 & 0.8284 & 0.8136 & 56454.46 & 1.0896 \\
+     & Cent. & ST & IID & FFT & --- & --- & --- & --- & 0.8712 & 0.8691 & 4561.78 & 4.2470 \\
+     & Cent. & ST & IID & FFT & 0.9002 & 0.9061 & --- & --- & --- & --- & 18514.82 & 4.2460 \\
+     & Cent. & ST & IID & FFT & --- & --- & 0.8456 & 0.8934 & --- & --- & 4290.59 & 4.2547 \\
+     & Cent. & MTL & IID & FFT & 0.9037 & 0.9077 & 0.8137 & 0.8778 & 0.8635 & 0.8614 & 24449.68 & 4.3214 \\
+    \midrule
+    BERT-Medium \cite{turc2019well} & FL & ST & Non-IID & FFT & --- & --- & 0.7989 & 0.6852 & --- & --- & 23880.89 & 0.6789 \\
+     & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.6521 & 0.6212 & 10261.92 & 0.6810 \\
+     & FL & ST & Non-IID & FFT & 0.9300 & 0.9348 & --- & --- & --- & --- & 15439.04 & 0.6786 \\
+      & FL & MTL (ours) & Non-IID & FFT & 0.8933 & 0.8988 & 0.8183 & 0.7441 & 0.4219 & 0.4132 & 33374.50 & 0.6790 \\
+      & FL & MTL (ours) & IID & FFT & 0.9392 & 0.9450 & 0.8962 & 0.8655 & 0.8258 & 0.8052 & 45258.21 & 0.6807 \\
+     & FL & MTL (ours) & IID & LoRA & 0.8131 & 0.8362 & 0.7388 & 0.6805 & 0.6823 & 0.6512 & 12885.74 & 0.1840 \\
+     & Cent. & ST & IID & FFT & --- & --- & --- & --- & 0.8673 & 0.8648 & 3381.83 & 2.6467 \\
+     & Cent. & ST & IID & FFT & 0.8933 & 0.8970 & --- & --- & --- & --- & 13492.62 & 2.6711 \\
+     & Cent. & ST & IID & FFT & --- & --- & 0.8358 & 0.8859 & --- & --- & 3205.51 & 2.6467 \\
+     & Cent. & MTL & IID & FFT & 0.8865 & 0.8884 & 0.8333 & 0.8777 & 0.8615 & 0.8584 & 19257.40 & 2.6671 \\
+    \midrule
+    BERT-Mini \cite{turc2019well} & FL & ST & Non-IID & FFT & --- & --- & 0.7674 & 0.6201 & --- & --- & 9642.59 & 0.1969 \\
+     & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.6504 & 0.6150 & 2547.10 & 0.1969 \\
+     & FL & ST & Non-IID & FFT & 0.9151 & 0.9196 & --- & --- & --- & --- & 4552.75 & 0.1969 \\
+      & FL & MTL (ours) & Non-IID & FFT & 0.8234 & 0.8226 & 0.7748 & 0.6668 & 0.4009 & 0.3939 & 10317.55 & 0.1969 \\
+     & FL & MTL (ours) & IID & LoRA & 0.7649 & 0.7915 & 0.6958 & 0.5602 & 0.2824 & 0.2773 & 4191.67 & 0.0630 \\
+      & FL & MTL (ours) & IID & FFT & 0.9266 & 0.9329 & 0.8350 & 0.7981 & 0.6940 & 0.6550 & 13341.01 & 0.1969 \\
+     & Cent. & ST & IID & FFT & --- & --- & --- & --- & 0.8316 & 0.8283 & 411.45 & 2.4487 \\
+     & Cent. & ST & IID & FFT & 0.8727 & 0.8773 & --- & --- & --- & --- & 3348.26 & 2.4487 \\
+     & Cent. & ST & IID & FFT & --- & --- & 0.7990 & 0.8536 & --- & --- & 318.61 & 2.4487 \\
+     & Cent. & MTL & IID & FFT & 0.8589 & 0.8650 & 0.7770 & 0.8580 & 0.7989 & 0.7973 & 3652.50 & 2.4651 \\
+    \midrule
+    MiniLM \cite{wang2020minilm} & FL & ST & Non-IID & FFT & --- & --- & 0.8421 & 0.7644 & --- & --- & 14583.05 & 0.3842 \\
+     & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.7877 & 0.7489 & 4920.48 & 0.3840 \\
+     & FL & ST & Non-IID & FFT & 0.9243 & 0.9293 & --- & --- & --- & --- & 8447.20 & 0.3836 \\
+      & FL & MTL (ours) & IID & FFT & 0.9369 & 0.9428 & \hypertarget{perf:minilm_qqp_fl_iid}{0.8966} & 0.8662 & \hypertarget{perf:minilm_stsb_fl_iid}{0.8384} & 0.8197 & 27930.06 & 0.3835 \\
+      & FL & MTL (ours) & Non-IID & FFT & 0.8888 & 0.8974 & 0.8629 & 0.8150 & 0.7003 & 0.7061 & 20765.57 & 0.3846 \\
+     & FL & MTL (ours) & IID & LoRA & 0.7787 & 0.8102 & 0.7271 & 0.6060 & 0.0703 & 0.0621 & 18808.08 & 0.1090 \\
+     & Cent. & ST & IID & FFT & --- & --- & --- & --- & 0.8620 & 0.8592 & 2696.27 & 1.4929 \\
+     & Cent. & ST & IID & FFT & 0.9014 & 0.9051 & --- & --- & --- & --- & 8334.10 & 1.4950 \\
+     & Cent. & ST & IID & FFT & --- & --- & 0.7990 & 0.8656 & --- & --- & 2388.13 & 1.5067 \\
+     & Cent. & MTL & IID & FFT & 0.8796 & 0.8829 & 0.7917 & 0.8649 & 0.8580 & 0.8560 & 12437.12 & 1.5045 \\
+    \midrule
+    TinyBERT \cite{jiao2019tinybert} & FL & ST & Non-IID & FFT & --- & --- & 0.7010 & 0.3887 & --- & --- & 6226.63 & 0.0881 \\
+     & FL & ST & Non-IID & FFT & --- & --- & --- & --- & 0.2186 & 0.1755 & 1182.03 & 0.0881 \\
+     & FL & ST & Non-IID & FFT & 0.9060 & 0.9122 & --- & --- & --- & --- & 2514.06 & 0.0881 \\
+      & FL & MTL (ours) & IID & FFT & 0.9014 & 0.9145 & 0.7950 & 0.7494 & 0.5212 & 0.4754 & 6778.00 & 0.0881 \\
+      & FL & MTL (ours) & Non-IID & FFT & 0.7810 & 0.7782 & 0.6895 & 0.4733 & 0.0081 & 0.0063 & 6975.28 & 0.0881 \\
+     & FL & MTL (ours) & IID & LoRA & 0.7569 & 0.7902 & 0.6766 & 0.4475 & 0.3636 & 0.3505 & 3560.68 & 0.0356 \\
+     & Cent. & ST & IID & FFT & --- & --- & --- & --- & 0.7270 & 0.7230 & 2337.42 & 0.3427 \\
+     & Cent. & ST & IID & FFT & 0.8314 & 0.8358 & --- & --- & --- & --- & 4857.08 & 0.3427 \\
+     & Cent. & ST & IID & FFT & --- & --- & 0.7157 & 0.8139 & --- & --- & 2315.39 & 0.3427 \\
+     & Cent. & MTL & IID & FFT & 0.8211 & 0.8263 & 0.7230 & 0.8101 & 0.6474 & 0.6426 & 9227.55 & 0.3440 \\
+    %\midrule
+    \bottomrule
+    \addlinespace[2pt]
+    \multicolumn{13}{l}{\textit{ST: Single-Task, MTL: Multi-Task Learning, Cent.: Centralized, FFT: Full Fine-Tuning, Pear.: Pearson Correlation, Spea.: Spearman Correlation, ---: Not applicable.}} \\
+    %\multicolumn{13}{l}{\textit{Spea.: Spearman Correlation.}} \\
+  \end{tabular}
+\end{table*}
+
+
+
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=1.0\linewidth]{plots/advanced_complexity_line_resource_usage_balanced.png}
+  \caption{%
+    Resource usage trajectory.
+    Federated settings produce a clear 3-4$\times$ reduction in
+    per-client resource usage relative to centralized training because each
+    client holds only a data partition. LoRA further halves resource demands.}
+  \label{fig:resource_trajectory}
+\end{figure}
+
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=1.0\linewidth]{plots/advanced_complexity_line_total_train_time_balanced.png}
+  \caption{% 
+    Training time trajectory capturing the wall-clock training durations.
+    The transition from centralized to federated multi-task settings introduces a
+    significant overhead, which LoRA substantially offsets by limiting parameter transmission.}
+  \label{fig:time_trajectory}
+\end{figure}
+
+\subsubsection{Baselines} 
+Three baselines are tested: (1) centralized MTL: all 5 SLM types trained on centralized data and share encoder and task head, this is used as the top-tier reference (Exp.\ 1 in Table~\ref{tab:design_matrix}); (2) federated single-task: per-task federated experiments with 3 clients and non-IID data (Exps.\ 8-10 in Table~\ref{tab:design_matrix}); and (3) large-model federated methods: evaluation against larger language models to see communication efficiency and performance trade-offs. 
+
+\subsubsection{Evaluation Metrics} 
+Task-level metrics are accuracy \& $F_1$-score \cite{van1979information} (SST-2, QQP) and Pearson \cite{pearson1895vii} / Spearman correlation \cite{spearman1961proof} (STS-B) \cite{wang2018glue}. Federated system-level metrics are communication cost per round, convergence speed, and total training time. 
+
+\subsubsection{Implementation Details} 
+All experiments use learning rate $2\times10^{-5}$ with 1,000-step warmup, batch size 8 for all experiments (centralized to FL/FL-MTL), weight decay 0.01, gradient clipping at the max-norm of 1.0, and random seed 42. Centralized are trained with 25 epochs; federated clients train 1 local epoch per round. Communication is provided by ports 8771-8775 with 60\,s client timeout and 3,400\,s round timeout and 3-retry exponential-backoff. 
+
+% ------------------------------------------------------ 
+\subsection{Results and Discussion}  
+% ------------------------------------------------------ 
+
+\begin{figure*}[t] 
+\centering 
+\includegraphics[width=1.0\linewidth]{plots/advanced_complexity_line_performance_balanced.png} 
+\caption{Performance across six paradigm-complexity stages for five SLM architectures. Dashed lines separate centralized and federated settings.} 
+\label{fig:perf_trajectory} 
+\end{figure*} 
+
+\subsubsection{Overall Performance (Comparison across Baselines)} Table~\ref{tab:results_consolidated} shows that SLMs within RT-FedMTL still achieve good performance in NLU. Centralized MTL is at least a baseline; however, DistilBERT in federated MTL (IID) performance, surprisingly, is \valuelink{perf:distilbert_sst2_fl_iid}{0.9461} on SST-2, better than that of its centralized counterpart. MiniLM features a very low resource-to-function ratio with \valuelink{perf:minilm_qqp_fl_iid}{0.8966} and \valuelink{perf:minilm_stsb_fl_iid}{0.8384} in QQP and STS-B tasks using IID respectively-scores that are on par or better than those of much larger models and taking only \valuelink{mem:minilm_fl_iid}{0.38}\,GB of GPU memory (compared with \valuelink{mem:distilbert_fl_iid}{1.09}\,GB in DistilBERT). It confirms that in distributed NLU the size of the model does not only matter for the quality, and compact architectures such as MiniLM can be fine-tuned with respect to it. 
+
+\subsubsection{Effect of Multi-Task Learning}
+MTL offers notable benefits in federated scenarios on account of its implementation of shared representations across similar tasks. As evidenced in Figure~\ref{fig:perf_trajectory} and Table~\ref{tab:results_consolidated}, it is evident that comparing FL-single and FL-MTL (non-IID) has rich task interplay. SST-2 shows mild negative transfer in some setups, whereas it is usually worse for regression problems such as STS-B for non-IID situations. Nevertheless, classification tasks tend to demonstrate more positive transfer, with features learned by SST-2 benefiting QQP for example. Large SLMs such as DistilBERT and BERT-Medium exhibit robustness to the negative transfer, because they have a higher representational ability. 
+
+\subsubsection{Federated Learning Performance} A "reliability gap" emerges as the switching from centralized to federated learning is observed from a moderate quality (${\le}5\%$) degradation in classification for tasks such as SST-2 and QQP. This difference is most prominent in the STS-B Pearson correlation, which decreases notably for smallest architectures such as TinyBERT under the non-IID MTL scenario. This line is illustrated in Figure~\ref{fig:perf_trajectory}, which illustrates how a proposed RT-FedMTL does in fact mitigate this gap by stabilizing performance without loss of signal across tasks. Notably, DistilBERT is generally the most stable architecture for sentiment-heavy tasks, as it shows only a slow decay performance even under the worst of non-IID skew (\valuelink{perf:distilbert_sst2_fl_noniid}{0.9232} Acc. on SST-2). The performance of IID federated results, in a quantitative sense, confirms that MTL can generate better results over an isolated centralized training for discrete model performance (e.g., DistilBERT reaching \valuelink{perf:distilbert_sst2_fl_iid}{0.9461} on SST-2). The non-IID metrics highlight that the framework is more robust to data heterogeneity; classification tasks such as SST-2 retain steady performance (e.g., \valuelink{perf:distilbert_sst2_fl_noniid}{0.9232} for DistilBERT), but regression tasks such as STS-B show a greater degree of sensitivity. MiniLM is consistently the greatest versatile candidate in both IID and non-IID distributions being able to win 2 of 3 benchmark tasks (QQP and STS-B) with a memory footprint savings of nearly 3$\times$ when compared to DistilBERT. This shows that although the framework is robust to categorical benchmarks, the selection of the model needs to be a delicate bit better, where DistilBERT for sentiment robustness and MiniLM for resource-constrained multi-task stability.
+
+\subsubsection{Real-Time Inference Analysis}
+For deployment on edge devices where real-time inference is critical, resource consumption and model footprint are the defining metrics. Figure~\ref{fig:resource_trajectory} and Table~\ref{tab:resource_trajectory} highlight that FL reduces individual client GPU memory demands by \valuelink{tab:resource_trajectory}{74-92\%} relative to centralized training, as calculated by:
+\begin{equation} \label{eq:mem_reduction}
+    \text{Reduction} = \frac{M_{\text{Cent-M}} - M_{\text{FL-M}}}{M_{\text{Cent-M}}} \times 100\%
+\end{equation}
+where $M_{\text{Cent-M}}$ and $M_{\text{FL-M}}$ denote the average per-client GPU memory usage for the centralized multi-task learning and federated multi-task learning (IID) settings respectively, as detailed in Table~\ref{tab:resource_trajectory}.
+TinyBERT and BERT-Mini emerge as the leading candidates for extremely resource-constrained devices ($<0.1$\,GB and $<0.2$\,GB per client respectively), albeit with bounded performance on complex tasks. MiniLM and DistilBERT provide a superior performance-efficiency balance for most real-time scenarios, maintaining high accuracy while keeping per-client resource usage significantly lower than the centralized baseline.
+
+\subsubsection{Communication Efficiency}
+Communication overhead is the primary bottleneck in federated MTL, with wall-clock training times increasing by 2.2-3.7$\times$ compared to centralized training (Table~\ref{tab:time_trajectory}). However, as illustrated in Figure~\ref{fig:time_trajectory}, the integration of parameter-efficient fine-tuning (PEFT) via LoRA \cite{hu2022lora} substantially mitigates this cost. LoRA reduces federated training time by 38-62\% for most models by transmitting only low-rank adapter weights instead of full model parameters. This optimization enables the framework to maintain competitive accuracy while drastically reducing the bandwidth requirements, making it suitable for bandwidth-limited edge deployments.
+
+
+
+

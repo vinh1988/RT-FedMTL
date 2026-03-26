@@ -1,0 +1,6 @@
+\section{CONCLUSION}
+\label{sec:conclusion}
+In this work, we introduced RT-FedMTL, a novel real-time federated MTL framework with SLMs for efficient and privacy-preserving NLU. 
+Extensive experiments conducted on five SLM architectures with respect to three standard NLU tasks to get the best trade-off between performance and resource usage. A significant result shows that our framework can drastically minimize per-client GPU memory requirements by 74-92\% versus centralized MTL baselines, while keeping performance for multiple benchmarks. Furthermore, the integration of PEFT via LoRA reduces federated training time by 38-62\% for most models by transmitting only low-rank adapter weights instead of full model parameters. This empirical evidence demonstrates that LoRA can handle communication bottlenecks in real-time scenario remarkably well.
+
+As a follow-up in the future, we plan to investigate adaptive task-sharing mechanisms to avoid negative transfer. In addition, we further explore personalized federated learning techniques in the real-time communication layer, allowing the efficiency gains not to come at the cost of the privacy in the production NLU deployments.

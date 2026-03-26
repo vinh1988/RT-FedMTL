@@ -1,0 +1,26 @@
+Federated Learning Training Summary
+========================================
+
+Configuration: Server-Side MTL (MT-DNN Style)
+Architecture: Shared BERT + Task-Specific Heads
+Total Rounds: 30
+Total Clients: 3
+
+MTL LoRA Model Architecture (Partial Unfreezing):
+  Base Model: prajjwal1/bert-medium
+  Tasks: sst2, qqp, stsb
+  BERT Layers: 8 total (4 frozen, 4 unfrozen)
+  Frozen BERT Parameters: 28,763,648
+  Unfrozen BERT Parameters: 12,609,536
+  Shared LoRA Parameters: 1,048,576
+  Task 'sst2' Head: 1,026 parameters
+  Task 'qqp' Head: 1,026 parameters
+  Task 'stsb' Head: 513 parameters
+  Total Trainable Parameters: 13,660,677
+  Trainable Ratio: 32.20%
+
+Global Results File: federated_results_20260201_165326.csv
+Client Results File: client_results_20260201_165326.csv
+Timestamp: 2026-02-01 21:12:09
+
+learning_rate: 0.0002

@@ -1,0 +1,11 @@
+Paradigm,Task_Type,Distribution,Experiment,Val_SST2_Acc,Val_SST2_F1,Val_QQP_Acc,Val_QQP_F1,Val_STSB_Pearson,Val_STSB_Spearman,Total_Train_Time,Resource_Usage,Model
+Centralized,Multi-Task (MTL),IID,centralized-mtl-all-tasks,0.8211009174311926,0.8262806236080178,0.7230392156862745,0.8100840336134454,0.6474476771747455,0.6425823112091291,9227.549522000001,0.34404213187249366,tiny_bert
+Centralized,Single-Task,IID,centralized-single-task-qqp,,,0.7156862745098039,0.8138801261829653,,,2315.386234,0.3427341380503591,tiny_bert
+Centralized,Single-Task,IID,centralized-single-task-sst2,0.8314220183486238,0.8357541899441341,,,,,4857.076364,0.3427341380503591,tiny_bert
+Centralized,Single-Task,IID,centralized-single-task-stsb,,,,,0.7269762520492515,0.7230012598740546,2337.4206000000004,0.3427261867201335,tiny_bert
+FL,Multi-Task (MTL),IID,fl-mtl-slms-berttiny-stsb-qqp-sst2,0.9014,0.9145,0.795,0.7494,0.5212,0.4754,6778.0,0.088078848,tiny_bert
+FL,Multi-Task (MTL),IID,fl-mtl-slms-berttiny-stsb-qqp-sst2-lora,0.7569,0.7902,0.6766,0.4475,0.3636,0.3505,3560.68,0.035645951999999995,tiny_bert
+FL,Multi-Task (MTL),Non-IID,fl-mtl-slms-tiny-bert-non-iid-stsb-qqp-sst2-3client-each,0.781,0.7782,0.6895,0.4733,0.0081,0.0063,6975.280000000001,0.08807884800000002,tiny_bert
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-qqp,,,0.701,0.3887,,,6226.63,0.08807936000000001,tiny_bert
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-sst2,0.906,0.9122,,,,,2514.06,0.08807936000000001,tiny_bert
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-stsb,,,,,0.2186,0.1755,1182.03,0.08807782399999999,tiny_bert

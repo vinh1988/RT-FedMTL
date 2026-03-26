@@ -1,0 +1,51 @@
+Paradigm,Task_Type,Distribution,Experiment,Val_SST2_Acc,Val_SST2_F1,Val_QQP_Acc,Val_QQP_F1,Val_STSB_Pearson,Val_STSB_Spearman,Total_Train_Time,Resource_Usage,Model,Model_Name_Lower,Tuning_Method
+Centralized,Single-Task,IID,centralized-single-task-stsb,,,,,0.8711609715954807,0.8691196061336034,4561.782035,4.246972451503247,distil-bert,distil-bert,FFT
+Centralized,Single-Task,IID,centralized-single-task-sst2,0.9002293577981652,0.906148867313916,,,,,18514.820688,4.246002389215707,distil-bert,distil-bert,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-qqp,,,0.8408,0.7724,,,34904.44,1.0956402346666667,distil-bert,distil-bert,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-stsb,,,,,0.7753,0.7421,15452.52,1.098837101226667,distil-bert,distil-bert,FFT
+FL,Multi-Task (MTL),IID,fl-mtl-slms-disti-bert-stsb-qqp-sst2-lora,0.8257,0.8433,0.7535,0.6754,0.5108,0.4919,21245.26,0.2852372479999999,distil-bert,distil-bert,LoRA
+Centralized,Multi-Task (MTL),IID,centralized-mtl-all-tasks,0.9036697247706422,0.9076923076923076,0.8137254901960784,0.8778135048231511,0.8635447821041434,0.8614326862448632,24449.680308000003,4.321388951085961,distil-bert,distil-bert,FFT
+Centralized,Single-Task,IID,centralized-single-task-qqp,,,0.8455882352941176,0.8934010152284264,,,4290.592427,4.254653436501313,distil-bert,distil-bert,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-sst2,0.9346,0.9392,,,,,23586.44,1.0971694079999998,distil-bert,distil-bert,FFT
+FL,Multi-Task (MTL),Non-IID,fl-mtl-slms-disti-bert-non-iid-stsb-qqp-sst2-3client-each,0.9232,0.9298,0.8579,0.8054,0.6963,0.6967,52903.97,1.0967926556444445,distil-bert,distil-bert,FFT
+FL,Multi-Task (MTL),IID,fl-mtl-slms-disti-bert-stsb-qqp-sst2,0.9461,0.9514,0.8913,0.861,0.8284,0.8136,56454.46,1.0896227259733335,distil-bert,distil-bert,FFT
+Centralized,Single-Task,IID,centralized-single-task-stsb,,,,,0.867273563041981,0.8648429946451441,3381.830675,2.646687730270523,medium-bert,medium-bert,FFT
+Centralized,Single-Task,IID,centralized-single-task-sst2,0.893348623853211,0.8970099667774086,,,,,13492.619839,2.671146022044904,medium-bert,medium-bert,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-qqp,,,0.7989,0.6852,,,23880.890000000003,0.6789056853333333,medium-bert,medium-bert,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-stsb,,,,,0.6521,0.6212,10261.92,0.6809706905600001,medium-bert,medium-bert,FFT
+FL,Multi-Task (MTL),Non-IID,fl-mtl-slms-medium-bert-non-iid-stsb-qqp-sst2-3client-each,0.8933,0.8988,0.8183,0.7441,0.4219,0.4132,33374.5,0.679019633777778,medium-bert,medium-bert,FFT
+Centralized,Multi-Task (MTL),IID,centralized-mtl-all-tasks,0.8864678899082569,0.8883977900552487,0.8333333333333334,0.8776978417266187,0.8615454825355658,0.8584116040914934,19257.400783,2.667126624615792,medium-bert,medium-bert,FFT
+Centralized,Single-Task,IID,centralized-single-task-qqp,,,0.8357843137254902,0.8858603066439523,,,3205.513366,2.6467195355914264,medium-bert,medium-bert,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-sst2,0.93,0.9348,,,,,15439.040000000005,0.6785561600000001,medium-bert,medium-bert,FFT
+FL,Multi-Task (MTL),IID,fl-mtl-slms-bertmedium-stsb-qqp-sst2,0.9392,0.945,0.8962,0.8655,0.8258,0.8052,45258.21,0.680650752,medium-bert,medium-bert,FFT
+FL,Multi-Task (MTL),IID,fl-mtl-slms-bertmedium-stsb-qqp-sst2-lora,0.8131,0.8362,0.7388,0.6805,0.6823,0.6512,12885.74,0.184010752,medium-bert,medium-bert,LoRA
+Centralized,Single-Task,IID,centralized-single-task-stsb,,,,,0.8315636517704581,0.8283058502458666,411.4503820000001,2.448689295950763,mini-bert,mini-bert,FFT
+FL,Multi-Task (MTL),Non-IID,fl-mtl-slms-mini-bert-non-iid-stsb-qqp-sst2-3client-each,0.8234,0.8226,0.7748,0.6668,0.4009,0.3939,10317.55,0.1968561493333334,mini-bert,mini-bert,FFT
+FL,Multi-Task (MTL),IID,fl-mtl-slms-bertmini-stsb-qqp-sst2-lora,0.7649,0.7915,0.6958,0.5602,0.2824,0.2773,4191.67,0.0629906773333333,mini-bert,mini-bert,LoRA
+FL,Multi-Task (MTL),IID,fl-mtl-slms-bertmini-stsb-qqp-sst2,0.9266,0.9329,0.835,0.7981,0.694,0.655,13341.009999999998,0.1968561493333333,mini-bert,mini-bert,FFT
+Centralized,Single-Task,IID,centralized-single-task-sst2,0.8727064220183486,0.8773072747014115,,,,,3348.261791,2.448740043358585,mini-bert,mini-bert,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-qqp,,,0.7674,0.6201,,,9642.59,0.196857344,mini-bert,mini-bert,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-stsb,,,,,0.6504,0.615,2547.1000000000004,0.19685376,mini-bert,mini-bert,FFT
+Centralized,Multi-Task (MTL),IID,centralized-mtl-all-tasks,0.8589449541284404,0.8649835345773875,0.7769607843137255,0.858034321372855,0.7989210335842442,0.7972817541302876,3652.502049,2.4650807086774007,mini-bert,mini-bert,FFT
+Centralized,Single-Task,IID,centralized-single-task-qqp,,,0.7990196078431373,0.8535714285714285,,,318.60756000000003,2.448740043358585,mini-bert,mini-bert,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-sst2,0.9151,0.9196,,,,,4552.750000000001,0.196857344,mini-bert,mini-bert,FFT
+Centralized,Single-Task,IID,centralized-single-task-stsb,,,,,0.8619868198603453,0.8592108928986084,2696.273322,1.4929338118549882,mini-lm,mini-lm,FFT
+FL,Multi-Task (MTL),IID,fl-mtl-slms-mini-lm-stsb-qqp-sst2,0.9369,0.9428,0.8966,0.8662,0.8384,0.8197,27930.06,0.3834601813333332,mini-lm,mini-lm,FFT
+Centralized,Single-Task,IID,centralized-single-task-sst2,0.9013761467889908,0.9050772626931568,,,,,8334.104373,1.4949932063834552,mini-lm,mini-lm,FFT
+FL,Multi-Task (MTL),Non-IID,fl-mtl-slms-mini-lm-non-iid-stsb-qqp-sst2-3client-each,0.8888,0.8974,0.8629,0.815,0.7003,0.7061,20765.57,0.3845961386666666,mini-lm,mini-lm,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-qqp,,,0.8421,0.7644,,,14583.05,0.3842048,mini-lm,mini-lm,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-stsb,,,,,0.7877,0.7489,4920.48,0.3840139195733333,mini-lm,mini-lm,FFT
+Centralized,Multi-Task (MTL),IID,centralized-mtl-all-tasks,0.8795871559633027,0.882943143812709,0.7916666666666666,0.8648648648648649,0.8579729233861991,0.8559583568490605,12437.119957,1.5044632406823133,mini-lm,mini-lm,FFT
+Centralized,Single-Task,IID,centralized-single-task-qqp,,,0.7990196078431373,0.8655737704918033,,,2388.1281400000003,1.5066975644757463,mini-lm,mini-lm,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-sst2,0.9243,0.9293,,,,,8447.2,0.383614976,mini-lm,mini-lm,FFT
+FL,Multi-Task (MTL),IID,fl-mtl-slms-mini-lm-sts-qqp-sst2-lora,0.7787,0.8102,0.7271,0.606,0.0703,0.0621,18808.08,0.1089619626666666,mini-lm,mini-lm,LoRA
+FL,Multi-Task (MTL),IID,fl-mtl-slms-berttiny-stsb-qqp-sst2,0.9014,0.9145,0.795,0.7494,0.5212,0.4754,6778.0,0.088078848,tiny_bert,tiny_bert,FFT
+Centralized,Single-Task,IID,centralized-single-task-stsb,,,,,0.7269762520492515,0.7230012598740546,2337.4206000000004,0.3427261867201335,tiny_bert,tiny_bert,FFT
+Centralized,Single-Task,IID,centralized-single-task-sst2,0.8314220183486238,0.8357541899441341,,,,,4857.076364,0.3427341380503591,tiny_bert,tiny_bert,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-qqp,,,0.701,0.3887,,,6226.63,0.08807936,tiny_bert,tiny_bert,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-stsb,,,,,0.2186,0.1755,1182.03,0.0880778239999999,tiny_bert,tiny_bert,FFT
+Centralized,Multi-Task (MTL),IID,centralized-mtl-all-tasks,0.8211009174311926,0.8262806236080178,0.7230392156862745,0.8100840336134454,0.6474476771747455,0.6425823112091291,9227.549522,0.3440421318724936,tiny_bert,tiny_bert,FFT
+FL,Multi-Task (MTL),Non-IID,fl-mtl-slms-tiny-bert-non-iid-stsb-qqp-sst2-3client-each,0.781,0.7782,0.6895,0.4733,0.0081,0.0063,6975.280000000001,0.088078848,tiny_bert,tiny_bert,FFT
+Centralized,Single-Task,IID,centralized-single-task-qqp,,,0.7156862745098039,0.8138801261829653,,,2315.386234,0.3427341380503591,tiny_bert,tiny_bert,FFT
+FL,Single-Task,Non-IID,fl-slms-mini-lm-non-iid-sst2,0.906,0.9122,,,,,2514.06,0.08807936,tiny_bert,tiny_bert,FFT
+FL,Multi-Task (MTL),IID,fl-mtl-slms-berttiny-stsb-qqp-sst2-lora,0.7569,0.7902,0.6766,0.4475,0.3636,0.3505,3560.68,0.0356459519999999,tiny_bert,tiny_bert,LoRA

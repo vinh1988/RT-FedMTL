@@ -1,0 +1,76 @@
+config:
+  data:
+    max_length: 128
+    padding: max_length
+    truncation: true
+  model:
+    model_name: prajjwal1/bert-mini
+  monitoring:
+    enable_gpu_monitoring: true
+    enable_validation_tracking: true
+    resource_sampling_interval: 10
+    save_resource_logs: true
+  output:
+    checkpoint_interval: 5
+    log_level: INFO
+    results_dir: centralized_mtl_results
+    save_checkpoints: true
+  paths:
+    cache_dir: cache
+    data_dir: data
+    output_dir: outputs
+  task_configs:
+    qqp:
+      num_labels: 2
+      task_type: classification
+      test_samples: 39081
+      train_samples: 323415
+      val_samples: 40431
+    sst2:
+      num_labels: 2
+      task_type: classification
+      test_samples: 1821
+      train_samples: 66477
+      val_samples: 872
+    stsb:
+      num_labels: 1
+      task_type: regression
+      test_samples: 1379
+      train_samples: 4249
+      val_samples: 1500
+  training:
+    batch_size: 8
+    epochs: 25
+    learning_rate: 2.0e-05
+    max_grad_norm: 1.0
+    random_seed: 42
+    warmup_steps: 1000
+    weight_decay: 0.01
+test_results:
+  qqp:
+    loss: 1.709217280628817
+    metrics:
+      accuracy: 0.7769607843137255
+      f1: 0.858034321372855
+      mcc: 0.4575782894255819
+      precision: 0.7596685082872928
+      recall: 0.985663082437276
+  sst2:
+    loss: 1.1932766322938628
+    metrics:
+      accuracy: 0.8497706422018348
+      f1: 0.8539576365663322
+      mcc: 0.6994754267284297
+      precision: 0.8454746136865342
+      recall: 0.8626126126126126
+  stsb:
+    loss: 0.9254807306334694
+    metrics:
+      mae: 0.7416126132011414
+      mse: 0.9260504841804504
+      pearson: 0.782726368570411
+      rmse: 0.9623151421546936
+      spearman: 0.7819649393031426
+  total_loss: 130.409203863731
+timestamp: '2026-02-26T00:42:04.371446'
+training_time: '1:00:54.607425'

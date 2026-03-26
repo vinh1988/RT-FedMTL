@@ -1,0 +1,61 @@
+# Enhanced Federated Learning Configuration (YAML Format)
+# Tiny BERT with Full Fine-Tuning - Standard MTL
+
+model:
+  server_model: "prajjwal1/bert-tiny"  # BERT-Tiny (2 layers, 128 hidden, ~4.4M params)
+  client_model: "prajjwal1/bert-tiny"  # BERT-Tiny
+
+synchronization:
+  enabled: true                    # Enable model synchronization
+  frequency: "per_round"          # Sync frequency
+  global_model_sharing: true      # Share global model with clients
+
+training:
+  num_rounds: 25                   # Number of federated rounds (need at least 2 to see global model metrics)
+  min_clients: 1                  # Minimum clients required
+  max_clients: 9                  # Maximum clients supported (3 per task)
+  expected_clients: 9             # Expected clients to wait for (3 SST2 + 3 QQP + 3 STSB)
+  local_epochs: 1                 # Local epochs per round
+  batch_size: 8                  # Batch size for training (INCREASED for faster training)
+  learning_rate: 0.00002         # Learning rate (2e-5, reduced 10x for BERT-Medium stability)
+
+# Non-IID Configuration for all tasks
+  data_distribution: "non_iid"     # Non-IID distribution
+  non_iid_alpha: 0.5              # Dirichlet alpha for heterogeneity
+  oversample_minority: true         # Balance minority classes
+  normalize_weights: true           # Normalize client weights
+
+task_configs:
+  sst2:                          # SST-2 sentiment analysis
+    train_samples: 66477           # Full SST2 dataset (split across 3 clients)
+    val_samples: 872             # Full SST2 validation (split across 3 clients)
+    random_seed: 42              # Reproducibility
+
+  qqp:                           # QQP question pairs
+    train_samples: 323415            # Full QQP dataset (split across 3 clients)
+    val_samples: 40431               # Full QQP validation (split across 3 clients)
+    random_seed: 42              # Reproducibility
+
+  stsb:                          # STSB semantic similarity
+    train_samples: 4249           # Full STSB dataset (split across 3 clients)
+    val_samples: 1500             # Full STSB validation (split across 3 clients)
+    random_seed: 42              # Reproducibility
+
+communication:
+  port: 8775                     # WebSocket server port (different from other setups)
+  timeout: 60                    # Client timeout (seconds)
+  websocket_timeout: 30          # WebSocket timeout (seconds)
+  retry_attempts: 3              # Retry attempts
+  round_timeout: 3400            # Timeout for collecting client updates per round (56.7 minutes)
+  send_timeout: 3600             # Timeout for sending large updates (60 minutes - for full dataset training)
+
+output:
+  results_dir: "tinybert_fl_mtl_non-iid_9clients"  # Results directory
+  log_level: "INFO"              # Logging level
+  save_checkpoints: true         # Save model checkpoints
+
+monitoring:
+  enable_gpu_monitoring: true     # Track GPU/CPU usage
+  enable_validation_tracking: true # Track validation metrics
+  resource_sampling_interval: 10  # Seconds between samples
+  save_resource_logs: true       # Save resource usage logs

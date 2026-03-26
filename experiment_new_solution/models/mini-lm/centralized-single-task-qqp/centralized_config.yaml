@@ -1,0 +1,40 @@
+# Centralized Training Configuration (YAML Format)
+# MiniLM-L6-H384-uncased with Full Fine-Tuning - Single Task QQP
+
+model:
+  model_name: "sentence-transformers/all-MiniLM-L6-v2"  # MiniLM-L6-H384-uncased (~22M params)
+  
+training:
+  dataset: "qqp"                     # QQP question pairs
+  train_samples: 323415               # Full QQP dataset
+  val_samples: 40431                   # Full QQP validation
+  test_samples: 39081                   # Full QQP test set
+  batch_size: 8                        # Batch size for training
+  learning_rate: 0.00002                 # Learning rate (2e-5)
+  epochs: 25                            # Training epochs
+  warmup_steps: 1000                    # Learning rate warmup
+  weight_decay: 0.01                     # Weight decay
+  max_grad_norm: 1.0                    # Gradient clipping
+  random_seed: 42                         # Reproducibility
+  
+data:
+  max_length: 128                       # Max sequence length
+  truncation: true                        # Truncate sequences
+  padding: "max_length"                  # Padding strategy
+  
+output:
+  results_dir: "minilm_centralized_single_qqp"  # Results directory
+  log_level: "INFO"                      # Logging level
+  save_checkpoints: true                 # Save model checkpoints
+  checkpoint_interval: 5                  # Save every 5 epochs
+  
+monitoring:
+  enable_gpu_monitoring: true            # Track GPU/CPU usage
+  enable_validation_tracking: true       # Track validation metrics
+  resource_sampling_interval: 10         # Seconds between samples
+  save_resource_logs: true               # Save resource usage logs
+  
+paths:
+  data_dir: "data"                      # Data directory
+  cache_dir: "cache"                    # Cache directory
+  output_dir: "outputs"                  # Output directory
