@@ -5,20 +5,8 @@
 ## Abstract
 Natural language understanding is a crucial component in intelligent systems such as social media monitoring, conversational agents, and information retrieval. Deploying these systems in real application scenarios requires not only accurate but also efficient, privacy-preserving, and capable of handling multiple tasks simultaneously. Centralized training of large language models based approaches raises significant challenges in terms of data privacy, communication overhead, and inference latency. This paper proposes RT-FedMTL, a novel real-time federated multi-task learning framework with small language models for efficient and privacy-preserving natural language understanding. Particularly, our framework unifies federated learning and multi-task learning to enable collaborative training across distributed clients while preserving data locality and leveraging shared representations across tasks. We utilize WebSocket protocols and small language models tuning to reduce the feedback loop and provide near-instantaneous global updates. Extensive experiments conducted on five small language model architectures with respect to three standard natural language understanding tasks to get the best trade-off between performance and resource usage. A significant result demonstrates RT-FedMTL can drastically minimize per-client GPU memory requirements (up to 74-92%) versus centralized multi-task learning baselines, while keeping performance for multiple benchmarks.
 
-## Experimental Design Matrix (Table I)
-
-| Exp. | Paradigm | Task Config. | Clients | Data Dist. |
-| :---: | :--- | :--- | :---: | :--- |
-| 1 | Centralized MTL | Multi-Task | 3 | Full access |
-| 2 | Centralized Single | SST-2 only | 1 | Full access |
-| 3 | Centralized Single | QQP only | 1 | Full access |
-| 4 | Centralized Single | STS-B only | 1 | Full access |
-| 5 | Federated MTL | Multi-Task | 3 | IID |
-| 6 | Federated MTL | Multi-Task | 3 | IID + LoRA |
-| 7 | Federated MTL | Multi-Task | 9 | Non-IID ($3 \times 3$) |
-| 8 | Federated Single | QQP only | 3 | Non-IID |
-| 9 | Federated Single | SST-2 only | 3 | Non-IID |
-| 10 | Federated Single | STS-B only | 3 | Non-IID |
+## Results
+The consolidated LaTeX results for all experiments can be found here: [Consolidated Results](https://github.com/vinh1988/RT-FedMTL/tree/main/experiment_new_solution/consolidated_results/latex)
 
 ## Citation
 If you find this work useful in your research, please cite:
