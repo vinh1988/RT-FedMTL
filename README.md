@@ -3,13 +3,12 @@
 
 
 
-## Results
-The consolidated LaTeX results for all experiments can be found here: [Consolidated Results](https://github.com/vinh1988/RT-FedMTL/tree/main/experiment_new_solution/consolidated_results/latex)
+<!-- ## Results
+The consolidated LaTeX results for all experiments can be found here: [Consolidated Results](https://github.com/vinh1988/RT-FedMTL/tree/main/experiment_new_solution/consolidated_results/latex) -->
 
 ## Citation
 If you find this work useful in your research, please cite:
 
-### BibTeX
 ```bibtex
 @article{pham2026rtfedmtl,
   title={RT-FedMTL: A Novel Real-Time Federated Multi-Task Learning Framework with Small Language Models for Natural Language Understanding Tasks},
