@@ -9,8 +9,6 @@ The consolidated LaTeX results for all experiments can be found here: [Consolida
 ## Citation
 If you find this work useful in your research, please cite:
 
-**Quang-Vinh Pham and Quang-Hung Le**, "RT-FedMTL: A Novel Real-Time Federated Multi-Task Learning Framework with Small Language Models for Natural Language Understanding Tasks," *Journal of Communications Software and Systems*, vol. XX, no. X, March 2026.
-
 ### BibTeX
 ```bibtex
 @article{pham2026rtfedmtl,
