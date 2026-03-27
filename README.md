@@ -18,9 +18,6 @@ If you find this work useful in your research, please cite:
 @article{pham2026rtfedmtl,
   title={RT-FedMTL: A Novel Real-Time Federated Multi-Task Learning Framework with Small Language Models for Natural Language Understanding Tasks},
   author={Pham, Quang-Vinh and Le, Quang-Hung},
-  journal={Journal of Communications Software and Systems},
-  volume={XX},
-  number={X},
   year={2026},
   month={March}
 }
